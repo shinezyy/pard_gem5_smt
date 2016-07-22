@@ -58,7 +58,8 @@ echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
 $GEM5_DIR/build/ALPHA/gem5.opt\
-    --outdir=$OUTPUT_DIR $GEM5_DIR/configs/spec/spec06_config.py\
+    --outdir=$OUTPUT_DIR\
+    $GEM5_DIR/configs/spec/spec06_config.py\
     --benchmark="$BENCHMARK"\
     --benchmark_stdout=$OUTPUT_DIR/$BENCHMARK.out\
     --benchmark_stderr=$OUTPUT_DIR/$BENCHMARK.err\
