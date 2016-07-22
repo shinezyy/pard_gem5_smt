@@ -519,7 +519,7 @@ class DefaultFetch
     bool issuePipelinedIfetch[Impl::MaxThreads];
 
     /** Event used to delay fault generation of translation faults */
-    FinishTranslationEvent finishTranslationEvent;
+    FinishTranslationEvent **finishTranslationEvents;
 
     // @todo: Consider making these vectors and tracking on a per thread basis.
     /** Stat for total number of cycles stalled due to an icache miss. */
