@@ -49,6 +49,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <iostream>
 
 #include "arch/isa_traits.hh"
 #include "arch/tlb.hh"
@@ -91,8 +92,7 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
       fetchBufferMask(fetchBufferSize - 1),
       fetchQueueSize(params->fetchQueueSize),
       numThreads(params->numThreads),
-      numFetchingThreads(params->smtNumFetchingThreads),
-      finishTranslationEvent(this)
+      numFetchingThreads(params->smtNumFetchingThreads)
 {
     if (numThreads > Impl::MaxThreads)
         fatal("numThreads (%d) is larger than compiled limit (%d),\n"
@@ -154,6 +154,12 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
         // Create space to buffer the cache line data,
         // which may not hold the entire cache line.
         fetchBuffer[tid] = new uint8_t[fetchBufferSize];
+    }
+    // Construct the FinishTranslationEvent collection
+    // according to the number of thread.
+    finishTranslationEvents = new FinishTranslationEvent * [numThreads];
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        finishTranslationEvents[tid] = new FinishTranslationEvent(this);
     }
 }
 
@@ -469,7 +475,12 @@ DefaultFetch<Impl>::isDrained() const
      * cycle if the finish translation event is scheduled, so make
      * sure that's not the case.
      */
-    return !finishTranslationEvent.scheduled();
+    bool hasDelayedFetch = false;
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        hasDelayedFetch = hasDelayedFetch || 
+            finishTranslationEvents[tid]->scheduled();
+    }
+    return !hasDelayedFetch;
 }
 
 template <class Impl>
@@ -652,7 +663,6 @@ DefaultFetch<Impl>::finishTranslation(const Fault &fault, RequestPtr mem_req)
         return;
     }
 
-
     // If translation was successful, attempt to read the icache block.
     if (fault == NoFault) {
         // Check that we're not going off into random memory
@@ -697,10 +707,10 @@ DefaultFetch<Impl>::finishTranslation(const Fault &fault, RequestPtr mem_req)
     } else {
         // Don't send an instruction to decode if we can't handle it.
         if (!(numInst < fetchWidth) || !(fetchQueue[tid].size() < fetchQueueSize)) {
-            assert(!finishTranslationEvent.scheduled());
-            finishTranslationEvent.setFault(fault);
-            finishTranslationEvent.setReq(mem_req);
-            cpu->schedule(finishTranslationEvent,
+            assert(!finishTranslationEvents[tid]->scheduled());
+            finishTranslationEvents[tid]->setFault(fault);
+            finishTranslationEvents[tid]->setReq(mem_req);
+            cpu->schedule(finishTranslationEvents[tid],
                           cpu->clockEdge(Cycles(1)));
             return;
         }
