@@ -49,7 +49,6 @@
 #include <list>
 #include <map>
 #include <queue>
-#include <iostream>
 
 #include "arch/isa_traits.hh"
 #include "arch/tlb.hh"
