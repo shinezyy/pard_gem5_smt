@@ -105,97 +105,97 @@ if options.smt:
 def get_benchmark_process(benchmark_name):
     if benchmark_name == 'perlbench':
         print '--> perlbench'
-        process = spec06_benchmarks.perlbench
+        process = spec06_benchmarks.get_perlbench()
     elif benchmark_name == 'bzip2':
         print '--> bzip2'
-        process = spec06_benchmarks.bzip2
+        process = spec06_benchmarks.get_bzip2()
     elif benchmark_name == 'gcc':
         print '--> gcc'
-        process = spec06_benchmarks.gcc
+        process = spec06_benchmarks.get_gcc()
     elif benchmark_name == 'bwaves':
         print '--> bwaves'
-        process = spec06_benchmarks.bwaves
+        process = spec06_benchmarks.get_bwaves()
     elif benchmark_name == 'gamess':
         print '--> gamess'
-        process = spec06_benchmarks.gamess
+        process = spec06_benchmarks.get_gamess()
     elif benchmark_name == 'mcf':
         print '--> mcf'
-        process = spec06_benchmarks.mcf
+        process = spec06_benchmarks.get_mcf()
     elif benchmark_name == 'milc':
         print '--> milc'
-        process = spec06_benchmarks.milc
+        process = spec06_benchmarks.get_milc()
     elif benchmark_name == 'zeusmp':
         print '--> zeusmp'
-        process = spec06_benchmarks.zeusmp
+        process = spec06_benchmarks.get_zeusmp()
     elif benchmark_name == 'gromacs':
         print '--> gromacs'
-        process = spec06_benchmarks.gromacs
+        process = spec06_benchmarks.get_gromacs()
     elif benchmark_name == 'cactusADM':
         print '--> cactusADM'
-        process = spec06_benchmarks.cactusADM
+        process = spec06_benchmarks.get_cactusADM()
     elif benchmark_name == 'leslie3d':
         print '--> leslie3d'
-        process = spec06_benchmarks.leslie3d
+        process = spec06_benchmarks.get_leslie3d()
     elif benchmark_name == 'namd':
         print '--> namd'
-        process = spec06_benchmarks.namd
+        process = spec06_benchmarks.get_namd()
     elif benchmark_name == 'gobmk':
         print '--> gobmk'
-        process = spec06_benchmarks.gobmk
+        process = spec06_benchmarks.get_gobmk()
     elif benchmark_name == 'dealII':
         print '--> dealII'
-        process = spec06_benchmarks.dealII
+        process = spec06_benchmarks.get_dealII()
     elif benchmark_name == 'soplex':
         print '--> soplex'
-        process = spec06_benchmarks.soplex
+        process = spec06_benchmarks.get_soplex()
     elif benchmark_name == 'povray':
         print '--> povray'
-        process = spec06_benchmarks.povray
+        process = spec06_benchmarks.get_povray()
     elif benchmark_name == 'calculix':
         print '--> calculix'
-        process = spec06_benchmarks.calculix
+        process = spec06_benchmarks.get_calculix()
     elif benchmark_name == 'hmmer':
         print '--> hmmer'
-        process = spec06_benchmarks.hmmer
+        process = spec06_benchmarks.get_hmmer()
     elif benchmark_name == 'sjeng':
         print '--> sjeng'
-        process = spec06_benchmarks.sjeng
+        process = spec06_benchmarks.get_sjeng()
     elif benchmark_name == 'GemsFDTD':
         print '--> GemsFDTD'
-        process = spec06_benchmarks.GemsFDTD
+        process = spec06_benchmarks.get_GemsFDTD()
     elif benchmark_name == 'libquantum':
         print '--> libquantum'
-        process = spec06_benchmarks.libquantum
+        process = spec06_benchmarks.get_libquantum()
     elif benchmark_name == 'h264ref':
         print '--> h264ref'
-        process = spec06_benchmarks.h264ref
+        process = spec06_benchmarks.get_h264ref()
     elif benchmark_name == 'tonto':
         print '--> tonto'
-        process = spec06_benchmarks.tonto
+        process = spec06_benchmarks.get_tonto()
     elif benchmark_name == 'lbm':
         print '--> lbm'
-        process = spec06_benchmarks.lbm
+        process = spec06_benchmarks.get_lbm()
     elif benchmark_name == 'omnetpp':
         print '--> omnetpp'
-        process = spec06_benchmarks.omnetpp
+        process = spec06_benchmarks.get_omnetpp()
     elif benchmark_name == 'astar':
         print '--> astar'
-        process = spec06_benchmarks.astar
+        process = spec06_benchmarks.get_astar()
     elif benchmark_name == 'wrf':
         print '--> wrf'
-        process = spec06_benchmarks.wrf
+        process = spec06_benchmarks.get_wrf()
     elif benchmark_name == 'sphinx3':
         print '--> sphinx3'
-        process = spec06_benchmarks.sphinx3
+        process = spec06_benchmarks.get_sphinx3()
     elif benchmark_name == 'xalancbmk':
         print '--> xalancbmk'
-        process = spec06_benchmarks.xalancbmk
+        process = spec06_benchmarks.get_xalancbmk()
     elif benchmark_name == 'specrand_i':
         print '--> specrand_i'
-        process = spec06_benchmarks.specrand_i
+        process = spec06_benchmarks.get_specrand_i()
     elif benchmark_name == 'specrand_f':
         print '--> specrand_f'
-        process = spec06_benchmarks.specrand_f
+        process = spec06_benchmarks.get_specrand_f()
     else:
         print "No recognized SPEC2006 benchmark selected! Exiting."
         sys.exit(1)
@@ -210,14 +210,16 @@ for bm in benchmarks:
     multiprocess.append(get_benchmark_process(bm))
 
 # Set process stdout/stderr
-for process in multiprocess:
+for i in range(0, len(multiprocess)):
+    process = multiprocess[i]
     if options.benchmark_stdout:
-        process.output = options.benchmark_stdout
-        print "Process stdout file: " + process.output
+        process.output = options.benchmark_stdout + benchmarks[i]\
+                + str(i) + 'out'
+        print "stdout file[" + str(i) +"]: " + process.output
     if options.benchmark_stderr:
-        process.errout = options.benchmark_stderr
-        print "Process stderr file: " + process.errout
-
+        process.errout = options.benchmark_stdout + benchmarks[i]\
+                + str(i) + 'err'
+        print "errout file[" + str(i) +"]: " + process.errout
 
 (CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(options)
 CPUClass.numThreads = numThreads
@@ -232,7 +234,7 @@ system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 mem_ranges = [AddrRange(options.mem_size)],
                 cache_line_size = options.cacheline_size)
 
-'''
+''' needed by newest gem5(2016.07)
 if numThreads > 1:
     system.multi_thread = True
 '''

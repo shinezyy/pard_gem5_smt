@@ -11,27 +11,28 @@ my_suffix = '_base.gcc-alpha-4.3'
 
 #temp
 #binary_dir = spec_dir
-data_dir = 'x'
 
 #400.perlbench
-perlbench = LiveProcess()
-perlbench.executable =  spec_dir+'400.perlbench/exe/perlbench' + my_suffix
-perl_input_ref_dir = spec_dir+'400.perlbench/data/ref/input/'
-perl_input_test_dir = spec_dir+'400.perlbench/data/test/input/'
-perl_input_all_dir = spec_dir+'400.perlbench/data/all/input/'
-# TEST CMDS
-perlbench.cmd = [perlbench.executable] + ['-I.',\
-        '-I'+perl_input_all_dir+'lib', perl_input_test_dir+'attrs.pl']
-# REF CMDS
-# perlbench.cmd = [perlbench.executable] + ['-I'+perl_input_all_dir+'lib',\
-# perl_input_ref_dir+'checkspam.pl',\
-#         '2500', '5', '25', '11', '150', '1', '1', '1', '1']
+def get_perlbench():
+    perlbench = LiveProcess()
+    perlbench.executable =  spec_dir+'400.perlbench/exe/perlbench' + my_suffix
+    perl_input_ref_dir = spec_dir+'400.perlbench/data/ref/input/'
+    perl_input_test_dir = spec_dir+'400.perlbench/data/test/input/'
+    perl_input_all_dir = spec_dir+'400.perlbench/data/all/input/'
+    # TEST CMDS
+    perlbench.cmd = [perlbench.executable] + ['-I.',\
+            '-I'+perl_input_all_dir+'lib', perl_input_test_dir+'attrs.pl']
+    # REF CMDS
+    # perlbench.cmd = [perlbench.executable] + ['-I'+perl_input_all_dir+'lib',\
+    # perl_input_ref_dir+'checkspam.pl',\
+    #         '2500', '5', '25', '11', '150', '1', '1', '1', '1']
 
-# perlbench.cmd = [perlbench.executable] + ['-I./lib',\
-# 'diffmail.pl', '4', '800', '10', '17', '19', '300']
-# perlbench.cmd = [perlbench.executable] + ['-I./lib',\
-# 'splitmail.pl', '1600', '12', '26', '16', '4500']
-#perlbench.output = out_dir+'perlbench.out'
+    # perlbench.cmd = [perlbench.executable] + ['-I./lib',\
+    # 'diffmail.pl', '4', '800', '10', '17', '19', '300']
+    # perlbench.cmd = [perlbench.executable] + ['-I./lib',\
+    # 'splitmail.pl', '1600', '12', '26', '16', '4500']
+    #perlbench.output = out_dir+'perlbench.out'
+    return perlbench
 
 #401.bzip2
 bzip2 = LiveProcess()
@@ -40,7 +41,7 @@ bzip2.executable =  'bzip2' + my_suffix
 #bzip2.cmd = [bzip2.executable] + ['input.program', '5']
 # REF CMDS
 #bzip2.cmd = [bzip2.executable] + ['input.source', '280']
-bzip2.cmd = [bzip2.executable] + [data_dir+'chicken.jpg', '30']
+bzip2.cmd = [bzip2.executable] + ['chicken.jpg', '30']
 #bzip2.cmd = [bzip2.executable] + ['liberty.jpg', '30']
 #bzip2.cmd = [bzip2.executable] + ['input.program', '280']
 #bzip2.cmd = [bzip2.executable] + ['text.html', '280']
@@ -48,23 +49,24 @@ bzip2.cmd = [bzip2.executable] + [data_dir+'chicken.jpg', '30']
 #bzip2.output = out_dir + 'bzip2.out'
 
 #403.gcc
-gcc = LiveProcess()
-gcc.executable = spec_dir+'403.gcc/exe/gcc' + my_suffix
-gcc_input_ref_dir = spec_dir+'403.gcc/data/ref/input/'
-gcc_input_test_dir = spec_dir+'403.gcc/data/test/input/'
-# TEST CMDS
-gcc.cmd = [gcc.executable] + [gcc_input_test_dir+'cccp.i', '-o', 'cccp.s']
-# REF CMDS
-# gcc.cmd = [gcc.executable] + ['166.i', '-o', '166.s']
-#gcc.cmd = [gcc.executable] + ['200.i', '-o', '200.s']
-#gcc.cmd = [gcc.executable] + ['c-typeck.i', '-o', 'c-typeck.s']
-#gcc.cmd = [gcc.executable] + ['cp-decl.i', '-o', 'cp-decl.s']
-#gcc.cmd = [gcc.executable] + [gcc_input_ref_dir+'expr.i', '-o', 'expr.s']
-#gcc.cmd = [gcc.executable] + ['expr2.i', '-o', 'expr2.s']
-#gcc.cmd = [gcc.executable] + ['g23.i', '-o', 'g23.s']
-#gcc.cmd = [gcc.executable] + ['s04.i', '-o', 's04.s']
-#gcc.cmd = [gcc.executable] + ['scilab.i', '-o', 'scilab.s']
-#gcc.output = out_dir + 'gcc.out'
+def get_gcc():
+    gcc = LiveProcess()
+    gcc.executable = spec_dir+'403.gcc/exe/gcc' + my_suffix
+    gcc_input_ref_dir = spec_dir+'403.gcc/data/ref/input/'
+    gcc_input_test_dir = spec_dir+'403.gcc/data/test/input/'
+    # TEST CMDS
+    gcc.cmd = [gcc.executable] + [gcc_input_test_dir+'cccp.i', '-o', 'cccp.s']
+    # REF CMDS
+    # gcc.cmd = [gcc.executable] + ['166.i', '-o', '166.s']
+    #gcc.cmd = [gcc.executable] + ['200.i', '-o', '200.s']
+    #gcc.cmd = [gcc.executable] + ['c-typeck.i', '-o', 'c-typeck.s']
+    #gcc.cmd = [gcc.executable] + ['cp-decl.i', '-o', 'cp-decl.s']
+    #gcc.cmd = [gcc.executable] + [gcc_input_ref_dir+'expr.i', '-o', 'expr.s']
+    #gcc.cmd = [gcc.executable] + ['expr2.i', '-o', 'expr2.s']
+    #gcc.cmd = [gcc.executable] + ['g23.i', '-o', 'g23.s']
+    #gcc.cmd = [gcc.executable] + ['s04.i', '-o', 's04.s']
+    #gcc.cmd = [gcc.executable] + ['scilab.i', '-o', 'scilab.s']
+    #gcc.output = out_dir + 'gcc.out'
 
 #410.bwaves
 bwaves = LiveProcess()
@@ -96,7 +98,7 @@ mcf.executable =  'mcf' + my_suffix
 # TEST CMDS
 #mcf.cmd = [mcf.executable] + ['inp.in']
 # REF CMDS
-mcf.cmd = [mcf.executable] + [data_dir+'inp.in']
+mcf.cmd = [mcf.executable] + ['inp.in']
 #mcf.output = out_dir + 'mcf.out'
 
 #433.milc
