@@ -213,12 +213,12 @@ for bm in benchmarks:
 for i in range(0, len(multiprocess)):
     process = multiprocess[i]
     if options.benchmark_stdout:
-        process.output = options.benchmark_stdout + benchmarks[i]\
-                + '_' + str(i) + '_' + 'out'
+        outfile = benchmarks[i] + '_' + str(i) + '_out'
+        process.output = os.path.join(options.benchmark_stdout, outfile)
         print "stdout file[" + str(i) +"]: " + process.output
     if options.benchmark_stderr:
-        process.errout = options.benchmark_stdout + benchmarks[i]\
-                + '_' + str(i) + '_' + 'err'
+        errfile = benchmarks[i] + '_' + str(i) + '_err'
+        process.errout = os.path.join(options.benchmark_stderr, errfile)
         print "errout file[" + str(i) +"]: " + process.errout
 
 (CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(options)

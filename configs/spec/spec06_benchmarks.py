@@ -2,9 +2,11 @@ import m5
 import os
 from m5.objects import *
 
+import os
+
 # These three directory paths are not currently used.
 #gem5_dir = '<FULL_PATH_TO_YOUR_GEM5_INSTALL>'
-spec_dir = os.getenv("HOME")+('/cpu2006/benchspec/CPU2006/')
+spec_dir = os.path.expanduser('~/cpu2006/benchspec/CPU2006/')
 #out_dir = '<FULL_PATH_TO_DESIRED_OUTPUT_DIRECTORY>'
 # my_suffix = '_base.gcc-arm-A7-little-endian-NVM'
 my_suffix = '_base.gcc-alpha-4.3'
@@ -72,6 +74,7 @@ def get_gcc():
     #gcc.cmd = [gcc.executable] + ['s04.i', '-o', 's04.s']
     #gcc.cmd = [gcc.executable] + ['scilab.i', '-o', 'scilab.s']
     #gcc.output = out_dir + 'gcc.out'
+    return gcc
 
     return gcc
 
