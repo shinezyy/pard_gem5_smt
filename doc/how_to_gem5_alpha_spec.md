@@ -53,6 +53,19 @@ like
 ./run_gem5_alpha_spec06_benchmark.sh "perlbench;perlbench" ~/tmp/perlbench2/ --smt
 ```
 
+## Tested benchmarks:
+These benchmarks can run on gem5 (without smt), and get expected output:
+
+- perlbench
+- hmmer
+- libquantum
+- sjeng
+- gobmk (too slow, only got a part of output)
+- mcf (too slow, only got a part of output)
+- omnetpp (too slow, only got a part of output)
+- h264ref (too slow, only got a part of output)
+- specrand_i
+
 ## Issue:
 Some benchmarks use relative path as inputs, like gobmk.
 Inputs for gobmk are many relative paths point to data in ".../data/all",
@@ -60,16 +73,22 @@ which is not accessible if we stay in GEM5_DIR.
 For a single benchmark, we can change current directory to its "all"
 directory to solve it.
 However, if multiple benchmarks are set as workloads, condition is much more
-complex. I proposed an ugly solution, and the following takes
+complex. I proposed an ugly solution, and the following takes gobmk as an example:
+
 ```
 cd $GEM5_DIR    # go to your gem5 directory
 mkdir spec_run  # which is ignored by latest .gitignore
 cd spec_run
 cp ~/cpu2006/benchspec/CPU2006/445.gobmk/data/all/input/* ./ -r
 # copy data to spec_run
-../run_gem5_alpha_spec06_benchmark.sh "perlbench;gobmk" ~/tmp/perlbench_gobmk/ --
-smt
+../run_gem5_alpha_spec06_benchmark.sh "perlbench;gobmk" ~/tmp/perlbench_gobmk/ --smt
 # Because demanded input files reside in current directory, it works.
 
 ```
 
+Except two directories above, these files are suggested to be linked to "spec_run":
+
+- foreman_qcif.yuv -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/464.h264ref/data/all/input/foreman_qcif.yuv
+- lake.bin -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/473.astar/data/test/input/lake.bin
+- omnetpp.ini -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/471.omnetpp/data/test/input/omnetpp.ini
+- 

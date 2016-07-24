@@ -244,26 +244,36 @@ calculix.executable = 'calculix' + my_suffix
 calculix.cmd = [calculix.executable] + ['-i', 'hyperviscoplastic']
 #calculix.output = out_dir + 'calculix.out'
 
-#456.hmmer
-hmmer=LiveProcess()
-hmmer.executable = 'hmmer' + my_suffix
-# TEST CMDS
-# hmmer.cmd = [hmmer.executable] + ['--fixed', '0', '--mean', '325', '--num',\
-# '45000', '--sd', '200', '--seed', '0', 'bombesin.hmm']
-# REF CMDS
-hmmer.cmd = [hmmer.executable] + ['nph3.hmm', 'swiss41']
-# hmmer.cmd = [hmmer.executable] + ['--fixed', '0', '--mean', '500', '--num',\
-# '500000', '--sd', '350', '--seed', '0', 'retro.hmm']
-#hmmer.output = out_dir + 'hmmer.out'
+def get_hmmer():
+    #456.hmmer
+    hmmer=LiveProcess()
+    hmmer.executable = spec_dir + '456.hmmer/exe/hmmer' + my_suffix
+    hmmer_input_test_dir = spec_dir + '456.hmmer/data/test/input/'
+    # TEST CMDS
+    hmmer.cmd = [hmmer.executable] +\
+            ['--fixed', '0', '--mean', '325', '--num',\
+             '45000', '--sd', '200', '--seed', '0',\
+             hmmer_input_test_dir + 'bombesin.hmm']
+    # REF CMDS
+    # hmmer.cmd = [hmmer.executable] + ['nph3.hmm', 'swiss41']
+    # hmmer.cmd = [hmmer.executable] + ['--fixed', '0', '--mean', '500', '--num',\
+            # '500000', '--sd', '350', '--seed', '0', 'retro.hmm']
+    #hmmer.output = out_dir + 'hmmer.out'
 
-#458.sjeng
-sjeng=LiveProcess()
-sjeng.executable = 'sjeng' + my_suffix
-# TEST CMDS
-#sjeng.cmd = [sjeng.executable] + ['test.txt']
-# REF CMDS
-sjeng.cmd = [sjeng.executable] + ['ref.txt']
-#sjeng.output = out_dir + 'sjeng.out'
+    return hmmer
+
+def get_sjeng():
+    #458.sjeng
+    sjeng=LiveProcess()
+    sjeng.executable = spec_dir + '458.sjeng/exe/sjeng' + my_suffix
+    sjeng_input_test_dir = spec_dir + '458.sjeng/data/test/input/'
+    # TEST CMDS
+    sjeng.cmd = [sjeng.executable] + [sjeng_input_test_dir+'test.txt']
+    # REF CMDS
+    #sjeng.cmd = [sjeng.executable] + ['ref.txt']
+    #sjeng.output = out_dir + 'sjeng.out'
+
+    return sjeng
 
 #459.GemsFDTD
 GemsFDTD=LiveProcess()
@@ -274,27 +284,32 @@ GemsFDTD.executable = 'GemsFDTD' + my_suffix
 GemsFDTD.cmd = [GemsFDTD.executable]
 #GemsFDTD.output = out_dir + 'GemsFDTD.out'
 
-#462.libquantum
-libquantum=LiveProcess()
-libquantum.executable = 'libquantum' + my_suffix
-# TEST CMDS
-#libquantum.cmd = [libquantum.executable] + ['33','5']
-# REF CMDS [UPDATE 10/2/2015]: Sparsh Mittal has pointed out the correct input
-# for libquantum should be 1397 and 8, not 1297 and 8. Thanks!
-libquantum.cmd = [libquantum.executable] + ['1397','8']
-#libquantum.output = out_dir + 'libquantum.out'
+def get_libquantum():
+    #462.libquantum
+    libquantum=LiveProcess()
+    libquantum.executable = spec_dir + '462.libquantum/exe/libquantum' + my_suffix
+    # TEST CMDS
+    libquantum.cmd = [libquantum.executable] + ['33','5']
+    # REF CMDS [UPDATE 10/2/2015]: Sparsh Mittal has pointed out the correct input
+    # for libquantum should be 1397 and 8, not 1297 and 8. Thanks!
+    #libquantum.cmd = [libquantum.executable] + ['1397','8']
+    #libquantum.output = out_dir + 'libquantum.out'
+    return libquantum
 
-#464.h264ref
-h264ref=LiveProcess()
-h264ref.executable = 'h264ref' + my_suffix
-# TEST CMDS
-# h264ref.cmd = [h264ref.executable] + ['-d',\
-# 'foreman_test_encoder_baseline.cfg']
-# REF CMDS
-h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_baseline.cfg']
-#h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_main.cfg']
-#h264ref.cmd = [h264ref.executable] + ['-d', 'sss_encoder_main.cfg']
-#h264ref.output = out_dir + 'h264ref.out'
+def get_h264ref():
+    #464.h264ref
+    h264ref=LiveProcess()
+    h264ref.executable = spec_dir + '464.h264ref/exe/h264ref' + my_suffix
+    test_dir = spec_dir + '464.h264ref/data/test/input/'
+    # TEST CMDS
+    h264ref.cmd = [h264ref.executable] + ['-d',\
+            test_dir + 'foreman_test_encoder_baseline.cfg']
+    # REF CMDS
+    #h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_baseline.cfg']
+    #h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_main.cfg']
+    #h264ref.cmd = [h264ref.executable] + ['-d', 'sss_encoder_main.cfg']
+    #h264ref.output = out_dir + 'h264ref.out'
+    return h264ref
 
 #465.tonto
 tonto=LiveProcess()
@@ -316,23 +331,29 @@ lbm.cmd = [lbm.executable] + ['300', 'reference.dat', '0', '0',\
 '100_100_130_ldc.of']
 #lbm.output = out_dir + 'lbm.out'
 
-#471.omnetpp
-omnetpp=LiveProcess()
-omnetpp.executable = 'omnetpp' + my_suffix
-# TEST CMDS
-#omnetpp.cmd = [omnetpp.executable] + ['omnetpp.ini']
-# REF CMDS
-omnetpp.cmd = [omnetpp.executable] + ['omnetpp.ini']
-#omnetpp.output = out_dir + 'omnetpp.out'
+def get_omnetpp():
+    #471.omnetpp
+    omnetpp=LiveProcess()
+    omnetpp.executable = spec_dir + '471.omnetpp/exe/omnetpp' + my_suffix
+    test_dir = spec_dir + '471.omnetpp/data/test/input/'
+    # TEST CMDS
+    omnetpp.cmd = [omnetpp.executable] + [test_dir+'omnetpp.ini']
+    # REF CMDS
+    # omnetpp.cmd = [omnetpp.executable] + ['omnetpp.ini']
+    #omnetpp.output = out_dir + 'omnetpp.out'
+    return omnetpp
 
-#473.astar
-astar=LiveProcess()
-astar.executable = 'astar' + my_suffix
-# TEST CMDS
-#astar.cmd = [astar.executable] + ['lake.cfg']
-# REF CMDS
-astar.cmd = [astar.executable] + ['rivers.cfg']
-#astar.output = out_dir + 'astar.out'
+def get_astar():
+    #473.astar
+    astar=LiveProcess()
+    astar.executable = spec_dir + '473.astar/exe/astar' + my_suffix
+    test_dir = spec_dir + '473.astar/data/test/input/'
+    # TEST CMDS
+    astar.cmd = [astar.executable] + [test_dir + 'lake.cfg']
+    # REF CMDS
+    # astar.cmd = [astar.executable] + ['rivers.cfg']
+    #astar.output = out_dir + 'astar.out'
+    return astar
 
 #481.wrf
 wrf=LiveProcess()
@@ -363,16 +384,18 @@ xalancbmk.executable = 'xalancbmk' + my_suffix
 ######## NOT WORKING ###########
 #xalancbmk.output = out_dir + 'xalancbmk.out'
 
-#998.specrand
-specrand_i=LiveProcess()
-specrand_i.executable = 'specrand' + my_suffix
-# TEST CMDS
-#specrand_i.cmd = [specrand_i.executable] + ['324342', '24239']
-# REF CMDS
-specrand_i.cmd = [specrand_i.executable] + ['1255432124', '234923']
-#specrand_i.output = out_dir + 'specrand_i.out'
+def get_specrand_i():
+    #999.specrand
+    specrand_i=LiveProcess()
+    specrand_i.executable = spec_dir + '999.specrand/exe/specrand' + my_suffix
+    # TEST CMDS
+    specrand_i.cmd = [specrand_i.executable] + ['324342', '24239']
+    # REF CMDS
+    #specrand_i.cmd = [specrand_i.executable] + ['1255432124', '234923']
+    #specrand_i.output = out_dir + 'specrand_i.out'
+    return specrand_i
 
-#999.specrand
+#998.specrand
 specrand_f=LiveProcess()
 specrand_f.executable = 'specrand' + my_suffix
 # TEST CMDS
