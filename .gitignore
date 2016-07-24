@@ -16,3 +16,4 @@ m5out
 /util/m5/*.a
 /util/m5/m5
 *.txt
+spec_run

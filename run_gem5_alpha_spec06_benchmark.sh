@@ -19,10 +19,9 @@
 
 ############ DIRECTORY VARIABLES: MODIFY ACCORDINGLY #############
 # Install location of gem5
-# GEM5_DIR=/home/zhouyaoyang/projects/gem5-stable
-GEM5_DIR=$PWD
+GEM5_DIR=$(dirname $0)
 # Install location of your SPEC2006 benchmarks
-SPEC_DIR=/home/zhouyaoyang/cpu2006
+SPEC_DIR=$HOME/cpu2006
 ##################################################################
 
 # Get command line input. We will need to check these.

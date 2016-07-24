@@ -1,9 +1,10 @@
 import m5
+import os
 from m5.objects import *
 
 # These three directory paths are not currently used.
 #gem5_dir = '<FULL_PATH_TO_YOUR_GEM5_INSTALL>'
-spec_dir = '/home/zhouyaoyang/cpu2006/benchspec/CPU2006/'
+spec_dir = os.getenv("HOME")+('/cpu2006/benchspec/CPU2006/')
 #out_dir = '<FULL_PATH_TO_DESIRED_OUTPUT_DIRECTORY>'
 # my_suffix = '_base.gcc-arm-A7-little-endian-NVM'
 my_suffix = '_base.gcc-alpha-4.3'
@@ -34,19 +35,23 @@ def get_perlbench():
     #perlbench.output = out_dir+'perlbench.out'
     return perlbench
 
-#401.bzip2
-bzip2 = LiveProcess()
-bzip2.executable =  'bzip2' + my_suffix
-# TEST CMDS
-#bzip2.cmd = [bzip2.executable] + ['input.program', '5']
-# REF CMDS
-#bzip2.cmd = [bzip2.executable] + ['input.source', '280']
-bzip2.cmd = [bzip2.executable] + ['chicken.jpg', '30']
-#bzip2.cmd = [bzip2.executable] + ['liberty.jpg', '30']
-#bzip2.cmd = [bzip2.executable] + ['input.program', '280']
-#bzip2.cmd = [bzip2.executable] + ['text.html', '280']
-#bzip2.cmd = [bzip2.executable] + ['input.combined', '200']
-#bzip2.output = out_dir + 'bzip2.out'
+def get_bzip2():
+    #401.bzip2
+    bzip2 = LiveProcess()
+    bzip2.executable =  spec_dir+'401.bzip2/exe/bzip2' + my_suffix
+    bzip2_input_ref_dir = spec_dir + '401.bzip2/data/ref/input/'
+    bzip2_input_test_dir = spec_dir + '401.bzip2/data/test/input/'
+    # TEST CMDS
+    bzip2.cmd = [bzip2.executable] + [bzip2_input_test_dir+'dryer.jpg', '5']
+    # REF CMDS
+    #bzip2.cmd = [bzip2.executable] + ['input.source', '280']
+    #bzip2.cmd = [bzip2.executable] + ['chicken.jpg', '30']
+    #bzip2.cmd = [bzip2.executable] + ['liberty.jpg', '30']
+    #bzip2.cmd = [bzip2.executable] + ['input.program', '280']
+    #bzip2.cmd = [bzip2.executable] + ['text.html', '280']
+    #bzip2.cmd = [bzip2.executable] + ['input.combined', '200']
+    #bzip2.output = out_dir + 'bzip2.out'
+    return bzip2
 
 #403.gcc
 def get_gcc():
@@ -68,14 +73,20 @@ def get_gcc():
     #gcc.cmd = [gcc.executable] + ['scilab.i', '-o', 'scilab.s']
     #gcc.output = out_dir + 'gcc.out'
 
-#410.bwaves
-bwaves = LiveProcess()
-bwaves.executable = 'bwaves' + my_suffix
-# TEST CMDS
-#bwaves.cmd = [bwaves.executable]
-# REF CMDS
-bwaves.cmd = [bwaves.executable]
-#bwaves.output = out_dir + 'bwaves.out'
+    return gcc
+
+def get_bwaves():
+    #410.bwaves
+    bwaves = LiveProcess()
+    bwaves.executable = spec_dir + '410.bwaves/exe/bwaves' + my_suffix
+    bwaves_input_ref_dir = spec_dir + '410.bwaves/data/ref/input/'
+    bwaves_input_test_dir = spec_dir + '410.bwaves/data/test/input/'
+    # TEST CMDS
+    bwaves.cmd = [bwaves.executable] + [bwaves_input_test_dir+'bwaves.in']
+    # REF CMDS
+    #bwaves.cmd = [bwaves.executable]
+    #bwaves.output = out_dir + 'bwaves.out'
+    return bwaves
 
 #416.gamess
 gamess=LiveProcess()
@@ -92,14 +103,18 @@ gamess.input = 'cytosine.2.config'
 #gamess.input = 'triazolium.config'
 #gamess.output = out_dir + 'gamess.out'
 
-#429.mcf
-mcf = LiveProcess()
-mcf.executable =  'mcf' + my_suffix
-# TEST CMDS
-#mcf.cmd = [mcf.executable] + ['inp.in']
-# REF CMDS
-mcf.cmd = [mcf.executable] + ['inp.in']
-#mcf.output = out_dir + 'mcf.out'
+def get_mcf():
+    #429.mcf
+    mcf = LiveProcess()
+    mcf.executable = spec_dir + '429.mcf/exe/mcf' + my_suffix
+    mcf_input_ref_dir = spec_dir + '429.mcf/data/ref/input/'
+    mcf_input_test_dir = spec_dir + '429.mcf/data/test/input/'
+    # TEST CMDS
+    mcf.cmd = [mcf.executable] + [mcf_input_test_dir + 'inp.in']
+    # REF CMDS
+    #mcf.cmd = [mcf.executable] + [mcf_input_ref_dir + 'inp.in']
+    #mcf.output = out_dir + 'mcf.out'
+    return mcf
 
 #433.milc
 milc=LiveProcess()
@@ -163,24 +178,29 @@ namd.cmd = [namd.executable] + ['--input',\
 'namd.input', '--output', 'namd.out', '--iterations', '38']
 #namd.output = out_dir + 'namd.out'
 
-#445.gobmk
-gobmk=LiveProcess()
-gobmk.executable = 'gobmk' + my_suffix
-# TEST CMDS
-#gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-#gobmk.input = 'dniwog.tst'
-# REF CMDS
-gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-gobmk.input = '13x13.tst'
-#gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-#gobmk.input = 'nngs.tst'
-#gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-#gobmk.input = 'score2.tst'
-#gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-#gobmk.input = 'trevorc.tst'
-#gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-#gobmk.input = 'trevord.tst'
-#gobmk.output = out_dir + 'gobmk.out'
+def get_gobmk():
+    #445.gobmk
+    gobmk=LiveProcess()
+    gobmk.executable = spec_dir + '445.gobmk/exe/gobmk' + my_suffix
+    gobmk_input_ref_dir = spec_dir + '445.gobmk/data/ref/input/'
+    gobmk_input_test_dir = spec_dir + '445.gobmk/data/test/input/'
+    # TEST CMDS
+    gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    gobmk.input = gobmk_input_test_dir+'dniwog.tst'
+    # REF CMDS
+    # gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    # gobmk.input = '13x13.tst'
+    #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    #gobmk.input = 'nngs.tst'
+    #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    #gobmk.input = 'score2.tst'
+    #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    #gobmk.input = 'trevorc.tst'
+    #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    #gobmk.input = 'trevord.tst'
+    #gobmk.output = out_dir + 'gobmk.out'
+
+    return gobmk
 
 #447.dealII
 ####### NOT WORKING #########
