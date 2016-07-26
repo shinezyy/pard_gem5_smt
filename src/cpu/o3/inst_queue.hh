@@ -278,6 +278,10 @@ class InstructionQueue
     /** Debug function to print all instructions. */
     void printInsts();
 
+    void setMaxEntries(ThreadID tid, unsigned val);
+
+    unsigned getMaxEntries(ThreadID tid) const;
+
   private:
     /** Does the actual squashing. */
     void doSquash(ThreadID tid);

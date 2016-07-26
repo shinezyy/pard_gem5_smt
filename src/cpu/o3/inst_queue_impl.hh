@@ -1641,4 +1641,49 @@ InstructionQueue<Impl>::dumpInsts()
     }
 }
 
+template <class Impl>
+void
+InstructionQueue<Impl>::setMaxEntries(ThreadID tid, unsigned val)
+{
+    assert(0 <= val && val <= numEntries && "val exceeds limit");
+
+    // TODO Borrow or send free entries from more propriate thread.
+
+    if (val > maxEntries[tid]) {
+        unsigned inc = val - maxEntries[tid];
+        for (ThreadID t = 0; t < numThreads && inc != 0; t++) {
+            if (t == tid) {
+                continue;
+            }
+
+            unsigned numToGet = numFreeEntries(t);
+            if (inc < numToGet) {
+                numToGet = inc;  // Only need to get `inc' entries.
+            }
+            inc -= numToGet;
+            maxEntries[t] -= numToGet;
+        }
+
+        // `inc' may not be 0, which means there aren't
+        // enough entries to satisfy this request.
+        maxEntries[tid] = val - inc;
+    } else {
+        for (ThreadID t = 0; t < numThreads; t++) {
+            if (t != tid) {
+                maxEntries[t] += (maxEntries[tid] - val);
+                maxEntries[tid] = val;
+                break;
+            }
+        }
+    }
+}
+
+template <class Impl>
+unsigned
+InstructionQueue<Impl>::getMaxEntries(ThreadID tid) const
+{
+    assert(0 <= tid && tid < numThreads && "tid exceeds limit");
+    return maxEntries[tid];
+}
+
 #endif//__CPU_O3_INST_QUEUE_IMPL_HH__
