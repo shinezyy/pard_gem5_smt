@@ -189,7 +189,7 @@ def get_gobmk():
     gobmk_input_test_dir = spec_dir + '445.gobmk/data/test/input/'
     # TEST CMDS
     gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-    gobmk.input = gobmk_input_test_dir+'dniwog.tst'
+    gobmk.input = gobmk_input_test_dir+'capture.tst'
     # REF CMDS
     # gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
     # gobmk.input = '13x13.tst'

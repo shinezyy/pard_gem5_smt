@@ -136,6 +136,13 @@ class InstructionQueue
     /** Resets all instruction queue state. */
     void resetState();
 
+    /** Update maxEntries for each thread, accoding to portion. */
+    void updateMaxEntries();
+    bool maxEntriesUpToDate;
+
+    /** reassign portion of instruction queue for each thread. */
+    void reassignPortion(int newPortionVec[], int lenNewPortionVec);
+
     /** Sets active threads list. */
     void setActiveThreads(std::list<ThreadID> *at_ptr);
 
@@ -407,11 +414,14 @@ class InstructionQueue
     enum IQPolicy {
         Dynamic,
         Partitioned,
-        Threshold
+        Threshold,
+        Programmable
     };
 
     /** IQ sharing policy for SMT. */
     IQPolicy iqPolicy;
+
+    int portion[Impl::MaxThreads]; // integer of 2^n, to avoid float
 
     /** Number of Total Threads*/
     ThreadID numThreads;

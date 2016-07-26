@@ -60,6 +60,7 @@
 #include "cpu/o3/cpu_policy.hh"
 #include "cpu/o3/scoreboard.hh"
 #include "cpu/o3/thread_state.hh"
+#include "cpu/o3/resource_manager.hh"
 #include "cpu/activity.hh"
 #include "cpu/base.hh"
 #include "cpu/simple_thread.hh"
@@ -259,6 +260,7 @@ class FullO3CPU : public BaseO3CPU
     bool isDrained() const;
 
   public:
+
     /** Constructs a CPU with the given parameters. */
     FullO3CPU(DerivO3CPUParams *params);
     /** Destructor. */
@@ -546,8 +548,12 @@ class FullO3CPU : public BaseO3CPU
     /** The issue/execute/writeback stages. */
     typename CPUPolicy::IEW iew;
 
+    friend class ResourceManager<Impl>;
+
     /** The commit stage. */
     typename CPUPolicy::Commit commit;
+
+    typename CPUPolicy::ResManager resourceManager;
 
     /** The register file. */
     PhysRegFile regFile;

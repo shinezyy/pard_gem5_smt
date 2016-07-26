@@ -47,6 +47,7 @@
 
 #include <limits>
 #include <vector>
+#include <iostream>
 
 #include "cpu/o3/fu_pool.hh"
 #include "cpu/o3/inst_queue.hh"
@@ -158,10 +159,25 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
 
         DPRINTF(IQ, "IQ sharing policy set to Threshold:"
                 "%i entries per thread.\n",thresholdIQ);
-   } else {
-       assert(0 && "Invalid IQ Sharing Policy.Options Are:{Dynamic,"
-              "Partitioned, Threshold}");
-   }
+    } else if (policy == "programmable") {
+        iqPolicy = Programmable;
+
+        int allocatedNum = 0;
+
+        ThreadID tid = 0;
+
+        for (; tid < numThreads - 1; tid++) {
+            maxEntries[tid] = numEntries * portion[tid] / 1024;
+            allocatedNum += maxEntries[tid];
+        }
+        assert(allocatedNum <= numEntries);
+        maxEntries[tid] = numEntries - allocatedNum;
+
+        DPRINTF(IQ, "IQ sharing policy set to Programmable\n");
+    } else {
+        assert(0 && "Invalid IQ Sharing Policy.Options Are:{Dynamic,"
+                "Partitioned, Threshold}");
+    }
 }
 
 template <class Impl>
@@ -386,6 +402,12 @@ InstructionQueue<Impl>::resetState()
     for (ThreadID tid = 0; tid <numThreads; tid++) {
         count[tid] = 0;
         instList[tid].clear();
+        if (maxEntriesUpToDate) { // no portion assigned
+            portion[tid] = 1024/numThreads;
+        }
+        else {
+            std::cout << "Using assigned portion!\n";
+        }
     }
 
     // Initialize the number of free IQ entries.
@@ -487,6 +509,7 @@ template <class Impl>
 void
 InstructionQueue<Impl>::resetEntries()
 {
+    int allocatedNum = 0;
     if (iqPolicy != Dynamic || numThreads > 1) {
         int active_threads = activeThreads->size();
 
@@ -500,9 +523,53 @@ InstructionQueue<Impl>::resetEntries()
                 maxEntries[tid] = numEntries / active_threads;
             } else if(iqPolicy == Threshold && active_threads == 1) {
                 maxEntries[tid] = numEntries;
+            } else if(iqPolicy == Programmable) {
+                if (threads != end) {
+                    maxEntries[tid] = numEntries * portion[tid] / 1024;
+                    allocatedNum += maxEntries[tid];
+                } else {
+                    assert(allocatedNum <= numEntries);
+                    maxEntries[tid] = numEntries - allocatedNum;
+                }
             }
         }
     }
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::reassignPortion(int *newPortionVec,
+        int lenNewPortionVec)
+{
+    assert(lenNewPortionVec == numThreads);
+
+    maxEntriesUpToDate = false;
+
+    for (int i = 0; i < numThreads; ++i) {
+        portion[i] = newPortionVec[i];
+    }
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::updateMaxEntries()
+{
+    if (iqPolicy != Programmable || maxEntriesUpToDate) {
+        return;
+    }
+
+    int allocatedNum = 0;
+
+    ThreadID tid = 0;
+
+    for (; tid < numThreads - 1; tid++) {
+        maxEntries[tid] = numEntries * portion[tid] / 1024;
+        allocatedNum += maxEntries[tid];
+    }
+    assert(allocatedNum <= numEntries);
+    maxEntries[tid] = numEntries - allocatedNum;
+
+    maxEntriesUpToDate = true;
 }
 
 template <class Impl>

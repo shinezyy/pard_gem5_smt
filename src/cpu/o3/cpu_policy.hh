@@ -47,6 +47,7 @@
 #include "cpu/o3/rename_map.hh"
 #include "cpu/o3/rob.hh"
 #include "cpu/o3/store_set.hh"
+#include "cpu/o3/resource_manager.hh"
 
 /**
  * Struct that defines the key classes to be used by the CPU.  All
@@ -85,6 +86,9 @@ struct SimpleCPUPolicy
     typedef DefaultIEW<Impl> IEW;
     /** Typedef for commit. */
     typedef DefaultCommit<Impl> Commit;
+
+    /** Typedef for resource manager. */
+    typedef ResourceManager<Impl> ResManager;
 
     /** The struct for communication between fetch and decode. */
     typedef DefaultFetchDefaultDecode<Impl> FetchStruct;

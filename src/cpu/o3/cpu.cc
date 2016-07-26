@@ -51,6 +51,7 @@
 #include "cpu/o3/cpu.hh"
 #include "cpu/o3/isa_specific.hh"
 #include "cpu/o3/thread_context.hh"
+#include "cpu/o3/resource_manager.hh"
 #include "cpu/activity.hh"
 #include "cpu/quiesce_event.hh"
 #include "cpu/simple_thread.hh"
@@ -167,6 +168,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       rename(this, params),
       iew(this, params),
       commit(this, params),
+      resourceManager(this, params),
 
       regFile(params->numPhysIntRegs,
               params->numPhysFloatRegs,
@@ -618,6 +620,7 @@ FullO3CPU<Impl>::init()
         thread[tid]->noSquashFromTC = false;
 
     commit.setThreads(thread);
+    resourceManager.setInstQueue(&iew.instQueue);
 }
 
 template <class Impl>
@@ -633,6 +636,7 @@ FullO3CPU<Impl>::startup()
     iew.startupStage();
     rename.startupStage();
     commit.startupStage();
+    resourceManager.preserveInstQueue();
 }
 
 template <class Impl>

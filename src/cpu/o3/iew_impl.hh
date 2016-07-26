@@ -1457,6 +1457,8 @@ DefaultIEW<Impl>::tick()
     list<ThreadID>::iterator threads = activeThreads->begin();
     list<ThreadID>::iterator end = activeThreads->end();
 
+    instQueue.updateMaxEntries();
+
     // Check stall and squash signals, dispatch any instructions.
     while (threads != end) {
         ThreadID tid = *threads++;

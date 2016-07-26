@@ -29,9 +29,9 @@ Then you will get a list about compilation success and error.
 ## how to set benchmarks as workloads for gem5 ?
 
 Now, you can get configured gem5 from
-git@http://10.30.7.141:pard/pard_smt_gem5.git;
+git@http://10.30.7.141:pard/pard\_smt\_gem5.git;
 
-The branch "pard_smt_gem5" is our default branch, containing newest scripts.
+The branch "pard\_smt\_gem5" is our default branch, containing newest scripts.
 
 **You did not need to** modify environment variables in scripts anymore.
 
@@ -64,12 +64,12 @@ These benchmarks can run on gem5 (without smt), and get expected output:
 - mcf (too slow, only got a part of output)
 - omnetpp (too slow, only got a part of output)
 - h264ref (too slow, only got a part of output)
-- specrand_i
+- specrand\_i
 
 ## Issue:
 Some benchmarks use relative path as inputs, like gobmk.
 Inputs for gobmk are many relative paths point to data in ".../data/all",
-which is not accessible if we stay in GEM5_DIR.
+which is not accessible if we stay in GEM5\_DIR.
 For a single benchmark, we can change current directory to its "all"
 directory to solve it.
 However, if multiple benchmarks are set as workloads, condition is much more
@@ -86,9 +86,8 @@ cp ~/cpu2006/benchspec/CPU2006/445.gobmk/data/all/input/* ./ -r
 
 ```
 
-Except two directories above, these files are suggested to be linked to "spec_run":
+Except two directories above, these files are suggested to be linked to "spec\_run":
 
-- foreman_qcif.yuv -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/464.h264ref/data/all/input/foreman_qcif.yuv
+- foreman\_qcif.yuv -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/464.h264ref/data/all/input/foreman_qcif.yuv
 - lake.bin -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/473.astar/data/test/input/lake.bin
 - omnetpp.ini -> /home/zhouyaoyang/cpu2006/benchspec/CPU2006/471.omnetpp/data/test/input/omnetpp.ini
-- 
