@@ -77,7 +77,8 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
       dispatchWidth(params->dispatchWidth),
       issueWidth(params->issueWidth),
       wbWidth(params->wbWidth),
-      numThreads(params->numThreads)
+      numThreads(params->numThreads),
+      numIQFull(params->numThreads)
 {
     if (dispatchWidth > Impl::MaxWidth)
         fatal("dispatchWidth (%d) is larger than compiled limit (%d),\n"
@@ -175,6 +176,11 @@ DefaultIEW<Impl>::regStats()
     iewIQFullEvents
         .name(name() + ".iewIQFullEvents")
         .desc("Number of times the IQ has become full, causing a stall");
+
+    iewIQFullEventsPerThread
+        .init(cpu->numThreads)
+        .name(name() + ".iewIQFullEventsPerThread")
+        .desc("Number of times each thread's IQ has become full");
 
     iewLSQFullEvents
         .name(name() + ".iewLSQFullEvents")
@@ -1019,6 +1025,10 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
             toRename->iewUnblock[tid] = false;
 
             ++iewIQFullEvents;
+            ++iewIQFullEventsPerThread[tid];
+
+            ++numIQFull[tid];
+
             break;
         }
 
@@ -1629,6 +1639,29 @@ DefaultIEW<Impl>::checkMisprediction(DynInstPtr &inst)
                 predictedNotTakenIncorrect++;
             }
         }
+    }
+}
+
+template <class Impl>
+int
+DefaultIEW<Impl>::getNumIQFull(ThreadID tid) const
+{
+    return numIQFull[tid];
+}
+
+template <class Impl>
+void
+DefaultIEW<Impl>::clearNumIQFull(ThreadID tid)
+{
+    numIQFull[tid] = 0;
+}
+
+template <class Impl>
+void
+DefaultIEW<Impl>::clearNumIQFullALL()
+{
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        clearNumIQFull(tid);
     }
 }
 

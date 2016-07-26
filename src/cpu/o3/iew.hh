@@ -43,6 +43,7 @@
 #ifndef __CPU_O3_IEW_HH__
 #define __CPU_O3_IEW_HH__
 
+#include <vector>
 #include <queue>
 #include <set>
 
@@ -431,6 +432,8 @@ class DefaultIEW
     Stats::Scalar iewDispNonSpecInsts;
     /** Stat for number of times the IQ becomes full. */
     Stats::Scalar iewIQFullEvents;
+    /** Stat for number of times the IQ becomes full. */
+    Stats::Vector iewIQFullEventsPerThread;
     /** Stat for number of times the LSQ becomes full. */
     Stats::Scalar iewLSQFullEvents;
     /** Stat for total number of memory ordering violation events. */
@@ -481,6 +484,14 @@ class DefaultIEW
     Stats::Formula wbFanout;
     /** Number of instructions per cycle delayed in writing back . */
     Stats::Formula wbPenalizedRate;
+
+  private:
+    std::vector<int> numIQFull;
+
+  public:
+    int getNumIQFull(ThreadID tid) const;
+    void clearNumIQFull(ThreadID tid);
+    void clearNumIQFullALL();
 };
 
 #endif // __CPU_O3_IEW_HH__
