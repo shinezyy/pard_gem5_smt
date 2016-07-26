@@ -554,7 +554,7 @@ DefaultIEW<Impl>::unblock(ThreadID tid)
     DPRINTF(IEW, "[tid:%i]: Reading instructions out of the skid "
             "buffer %u.\n",tid, tid);
 
-    // If the skid bufffer is empty, signal back to previous stages to unblock.
+    // If the skid buffer is empty, signal back to previous stages to unblock.
     // Also switch status to running.
     if (skidBuffer[tid].empty()) {
         toRename->iewUnblock[tid] = true;
@@ -1145,7 +1145,6 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         updatedQueues = true;
     }
 
-    dis_num_inst = 0;
 }
 
 template <class Impl>
@@ -1288,7 +1287,7 @@ DefaultIEW<Impl>::executeInsts()
             // If we execute the instruction (even if it's a nop) the fault
             // will be replaced and we will lose it.
             if (inst->getFault() == NoFault) {
-                inst->execute();
+                inst->execute();    // This is where instruction execute
                 if (!inst->readPredicate())
                     inst->forwardOldRegs();
             }
@@ -1301,7 +1300,7 @@ DefaultIEW<Impl>::executeInsts()
         updateExeInstStats(inst);
 
         // Check if branch prediction was correct, if not then we need
-        // to tell commit to squash in flight instructions.  Only
+        // to tell commit to squash in-flight instructions.  Only
         // handle this if there hasn't already been something that
         // redirects fetch in this group of instructions.
 

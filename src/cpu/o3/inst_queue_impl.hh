@@ -1037,7 +1037,8 @@ InstructionQueue<Impl>::addReadyMemInst(DynInstPtr &ready_inst)
     readyInsts[op_class].push(ready_inst);
 
     // Will need to reorder the list if either a queue is not on the list,
-    // or it has an older instruction than last time.
+    // or the new inserted instruction is older than the instruction
+    // with the same opclass in listOrder.
     if (!queueOnList[op_class]) {
         addToOrderList(op_class);
     } else if (readyInsts[op_class].top()->seqNum  <
