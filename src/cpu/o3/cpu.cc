@@ -72,6 +72,8 @@
 #include "debug/Activity.hh"
 #endif
 
+#include <fstream>
+
 struct BaseCPUParams;
 
 using namespace TheISA;
@@ -401,6 +403,8 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
 
     for (ThreadID tid = 0; tid < this->numThreads; tid++)
         this->thread[tid]->setFuncExeInst(0);
+
+    this->setUpSrcManagerConfigs("src_manager.config");
 }
 
 template <class Impl>
@@ -1685,6 +1689,22 @@ FullO3CPU<Impl>::updateThreadPriority()
         activeThreads.erase(list_begin);
 
         activeThreads.push_back(high_thread);
+    }
+}
+
+template <class Impl>
+void
+FullO3CPU<Impl>::setUpSrcManagerConfigs(const std::string filename)
+{
+    std::ifstream configs(filename);
+    std::string key;
+    int value;
+
+    assert(configs && "Missing config file");
+
+    while (configs >> key >> value) {
+        DPRINTF(O3CPU, "%s -> %d\n", key.c_str(), value);
+        srcManagerConfig[key] = value;
     }
 }
 

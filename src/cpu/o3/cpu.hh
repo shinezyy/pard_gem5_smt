@@ -52,6 +52,7 @@
 #include <queue>
 #include <set>
 #include <vector>
+#include <map>
 
 #include "arch/types.hh"
 #include "base/statistics.hh"
@@ -747,6 +748,19 @@ class FullO3CPU : public BaseO3CPU
     //number of misc
     Stats::Scalar miscRegfileReads;
     Stats::Scalar miscRegfileWrites;
+
+  protected:
+    typedef std::map<std::string, int> SrcManagerConfig;
+    SrcManagerConfig srcManagerConfig;
+
+  private:
+    /**
+     * Load the given config file and store its key value data in
+     * srcManagerConfig.
+     *
+     * @param filename the config file's name.
+     */
+    void setUpSrcManagerConfigs(const std::string filename);
 };
 
 #endif // __CPU_O3_CPU_HH__
