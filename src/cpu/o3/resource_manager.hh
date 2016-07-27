@@ -3,6 +3,8 @@
 
 //#include "cpu/o3/inst_queue.hh"
 
+#include <map>
+
 struct DerivO3CPUParams;
 
 template<class Impl>
@@ -15,12 +17,20 @@ class ResourceManager {
     private:
 
         IQ *instQueue;
+
         O3CPU *cpu;
+
+        std::map<std::string, int> config;
     public:
         ResourceManager(O3CPU *_cpu, DerivO3CPUParams *params);
+
         std::string name() const;
+
         void setInstQueue(IQ *_instQueue);
+
         void preserveInstQueue();
+
+        bool readConfig();
 };
 
 #endif
