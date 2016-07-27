@@ -5,6 +5,8 @@
 
 #include <map>
 
+#define Denominator 1024
+
 struct DerivO3CPUParams;
 
 template<class Impl>

@@ -34,7 +34,7 @@ ResourceManager<Impl>::preserveInstQueue()
     if(readConfig()) {
         if(config.find("InstQueuePortion") != config.end()) {
             portion[0] = config["InstQueuePortion"];
-            assert(portion[0] <= 1024);
+            assert(portion[0] <= Denominator);
             portion[1] = 1 - portion[0];
         }
     }

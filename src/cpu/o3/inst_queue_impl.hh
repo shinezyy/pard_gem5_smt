@@ -55,6 +55,7 @@
 #include "enums/OpClass.hh"
 #include "params/DerivO3CPU.hh"
 #include "sim/core.hh"
+#include "cpu/o3/resource_manager.hh"
 
 // clang complains about std::set being overloaded with Packet::set if
 // we open up the entire namespace std
@@ -167,7 +168,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         ThreadID tid = 0;
 
         for (; tid < numThreads - 1; tid++) {
-            maxEntries[tid] = numEntries * portion[tid] / 1024;
+            maxEntries[tid] = numEntries * portion[tid] / Denominator;
             allocatedNum += maxEntries[tid];
         }
         assert(allocatedNum <= numEntries);
@@ -403,7 +404,7 @@ InstructionQueue<Impl>::resetState()
         count[tid] = 0;
         instList[tid].clear();
         if (maxEntriesUpToDate) { // no portion assigned
-            portion[tid] = 1024/numThreads;
+            portion[tid] = Denominator/numThreads;
         }
         else {
             std::cout << "Using assigned portion!\n";
@@ -525,7 +526,7 @@ InstructionQueue<Impl>::resetEntries()
                 maxEntries[tid] = numEntries;
             } else if(iqPolicy == Programmable) {
                 if (threads != end) {
-                    maxEntries[tid] = numEntries * portion[tid] / 1024;
+                    maxEntries[tid] = numEntries * portion[tid] / Denominator;
                     allocatedNum += maxEntries[tid];
                 } else {
                     assert(allocatedNum <= numEntries);
@@ -563,7 +564,7 @@ InstructionQueue<Impl>::updateMaxEntries()
     ThreadID tid = 0;
 
     for (; tid < numThreads - 1; tid++) {
-        maxEntries[tid] = numEntries * portion[tid] / 1024;
+        maxEntries[tid] = numEntries * portion[tid] / Denominator;
         allocatedNum += maxEntries[tid];
     }
     assert(allocatedNum <= numEntries);
