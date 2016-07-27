@@ -428,6 +428,9 @@ Export('extras_dir_list')
 # the ext directory should be on the #includes path
 main.Append(CPPPATH=[Dir('ext')])
 
+# Depend on rapidjson header-only library to parse configurations
+main.Append(CPPPATH=[Dir('rapidjson/include')])
+
 def strip_build_path(path, env):
     path = str(path)
     variant_base = env['BUILDROOT'] + os.path.sep

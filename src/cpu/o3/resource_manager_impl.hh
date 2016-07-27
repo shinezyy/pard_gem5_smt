@@ -1,15 +1,17 @@
 #ifndef __CPU_O3_RM_IMPL_HH__
 #define __CPU_O3_RM_IMPL_HH__
 
-#include <fstream>
 #include <string>
+#include <cstdio>
+#include <rapidjson/filereadstream.h>
+
 #include "config/the_isa.hh"
 #include "params/DerivO3CPU.hh"
 #include "cpu/o3/resource_manager.hh"
 
 template<class Impl>
 ResourceManager<Impl>::ResourceManager(O3CPU *_cpu, DerivO3CPUParams *params)
-    : cpu(_cpu){}
+    : cpu(_cpu) {}
 
 template<class Impl>
 std::string
@@ -32,11 +34,15 @@ ResourceManager<Impl>::preserveInstQueue()
     int portion[] = {512, 512};
 
     if(readConfig()) {
-        if(config.find("InstQueuePortion") != config.end()) {
-            portion[0] = config["InstQueuePortion"];
+        if(config.HasMember("InstQueuePortion")) {
+            portion[0] = config["InstQueuePortion"].GetInt();
             assert(portion[0] <= Denominator);
-            portion[1] = 1 - portion[0];
+            portion[1] = Denominator - portion[0];
         }
+    }
+
+    for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
+        printf("portion[%d]: %d\n", i, portion[i]);
     }
 
     instQueue->reassignPortion(portion, 2);
@@ -46,23 +52,23 @@ template<class Impl>
 bool
 ResourceManager<Impl>::readConfig()
 {
-    std::fstream fin;
-    fin.open("config.txt", std::fstream::in);
-
-    if (!fin.is_open()) {
-        std::cerr << "Failed to open config file\n";
+    const char *json = "config.json";
+    FILE *fp = fopen(json, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "%s not found\n", json);
         return false;
     }
 
-    std::cout << "Read config file in!\n";
-    while (!fin.eof()) {
-        std::string parameter_name;
-        int parameter_val;
-        fin >> parameter_name >> parameter_val;
-        config[parameter_name] = parameter_val;
+    char readBuffer[0xffff];
+    rapidjson::FileReadStream input(fp, readBuffer, sizeof(readBuffer));
+    config.ParseStream(input);
+    fclose(fp);
+
+    if (config.HasParseError()) {
+        fprintf(stderr, "config.json syntax error\n");
+        assert(!config.HasParseError());
     }
 
-    fin.close();
     return true;
 }
 

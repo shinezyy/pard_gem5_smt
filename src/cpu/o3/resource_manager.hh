@@ -1,9 +1,8 @@
 #ifndef __CPU_O3_RM_HH__
 #define __CPU_O3_RM_HH__
 
-//#include "cpu/o3/inst_queue.hh"
-
 #include <map>
+#include <rapidjson/document.h>
 
 #define Denominator 1024
 
@@ -17,12 +16,13 @@ class ResourceManager {
     typedef typename CPUPol::IQ IQ;
 
     private:
-
         IQ *instQueue;
 
         O3CPU *cpu;
 
-        std::map<std::string, int> config;
+        // TODO Document is a typedef, so we cannot pre-declare it...
+        rapidjson::Document config;
+
     public:
         ResourceManager(O3CPU *_cpu, DerivO3CPUParams *params);
 
