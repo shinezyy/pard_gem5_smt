@@ -144,6 +144,9 @@ class InstructionQueue
     void reassignPortion(int newPortionVec[], int lenNewPortionVec,
                          int newPortionDenominator);
 
+    /** reassign issue prioirity for each thread. */
+    void reassignIssuePrio(int newPrioVec[], int len);
+
     /** Sets active threads list. */
     void setActiveThreads(std::list<ThreadID> *at_ptr);
 
@@ -341,6 +344,24 @@ class InstructionQueue
      * since, so they can now be retried. May fail again go on the blocked list.
      */
     std::list<DynInstPtr> retryMemInsts;
+
+    /** issue policy for smt. */
+    enum IssuePolicy {
+        Priority,
+        Nodiscrimination
+    };
+
+    IssuePolicy issuePolicy;
+
+    /** Priority of instructions to get function unit,
+     * which was enforced by pqCompare.
+     */
+    int issuePrio[Impl::MaxThreads];
+
+
+
+
+
 
     /**
      * Struct for comparing entries to be added to the priority queue.

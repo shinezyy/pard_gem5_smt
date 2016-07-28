@@ -119,6 +119,22 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
 
     resetState();
 
+    std::string _issuePolicy = params->smtIssuePolicy;
+
+    //Convert string to lowercase
+    std::transform(_issuePolicy.begin(), _issuePolicy.end(),
+            _issuePolicy.begin(), (int(*)(int)) tolower);
+
+    if (_issuePolicy == "priority") {
+        issuePolicy = Priority;
+    } else if (_issuePolicy == "Nodiscrimination") {
+        issuePolicy = Nodiscrimination;
+    } else {
+        assert(0 && "Invalid Issue Policy.Options Are:{Priority, "
+                "Nodiscrimination}");
+    }
+
+
     std::string policy = params->smtIQPolicy;
 
     //Convert string to lowercase
@@ -540,7 +556,7 @@ InstructionQueue<Impl>::resetEntries()
 
 template <class Impl>
 void
-InstructionQueue<Impl>::reassignPortion(int *newPortionVec,
+InstructionQueue<Impl>::reassignPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
     assert(lenNewPortionVec == numThreads);
@@ -552,6 +568,20 @@ InstructionQueue<Impl>::reassignPortion(int *newPortionVec,
     }
 
     denominator = newPortionDenominator;
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::reassignIssuePrio(int newPrioVec[],
+        int len)
+{
+    assert(len == numThreads);
+
+    maxEntriesUpToDate = false;
+
+    for (int i = 0; i < numThreads; ++i) {
+        issuePrio[i] = newPrioVec[i];
+    }
 }
 
 template <class Impl>

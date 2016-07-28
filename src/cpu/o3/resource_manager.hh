@@ -14,6 +14,7 @@ class ResourceManager {
     typedef typename CPUPol::IQ IQ;
 
     private:
+
         IQ *instQueue;
 
         O3CPU *cpu;
@@ -21,14 +22,19 @@ class ResourceManager {
         // TODO Document is a typedef, so we cannot pre-declare it...
         rapidjson::Document config;
 
+        bool configUpdated;
+
     public:
+
         ResourceManager(O3CPU *_cpu, DerivO3CPUParams *params);
 
         std::string name() const;
 
         void setInstQueue(IQ *_instQueue);
 
-        void preserveInstQueue();
+        void reserveInstQueue();
+
+        void reconfigIssuePrio();
 
         bool readConfig();
 };

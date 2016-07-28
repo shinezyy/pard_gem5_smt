@@ -29,7 +29,7 @@ ResourceManager<Impl>::setInstQueue(IQ *_instQueue)
 
 template<class Impl>
 void
-ResourceManager<Impl>::preserveInstQueue()
+ResourceManager<Impl>::reserveInstQueue()
 {
     int portion[] = {512, 512};
     int denominator = 1024;
@@ -44,8 +44,12 @@ ResourceManager<Impl>::preserveInstQueue()
             portion[0] = config["InstQueuePortion"].GetInt();
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
+        } else {
+            std::cout << "Instruction queue partition policy not updated\n";
         }
     }
+
+    printf("Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
         printf("portion[%d]: %d\n", i, portion[i]);
@@ -53,6 +57,21 @@ ResourceManager<Impl>::preserveInstQueue()
 
     instQueue->reassignPortion(portion, 2, denominator);
 }
+
+
+template<class Impl>
+void
+ResourceManager<Impl>::reconfigIssuePrio()
+{
+    int prio[] = {5, 0};
+    if(configUpdated && config.find("IssuePriority") != config.end()) {
+        // do nothing now, because no configure file
+    } else {
+        std::cout << "Use default issue prority";
+        instQueue->reassignIssuePrio(prio, 2);
+    }
+}
+
 
 template<class Impl>
 bool
@@ -62,6 +81,7 @@ ResourceManager<Impl>::readConfig()
     FILE *fp = fopen(json, "r");
     if (fp == NULL) {
         fprintf(stderr, "%s not found\n", json);
+        configUpdated = false;
         return false;
     }
 
@@ -75,7 +95,10 @@ ResourceManager<Impl>::readConfig()
         assert(!config.HasParseError());
     }
 
+    configUpdated = true;
+
     return true;
 }
+
 
 #endif

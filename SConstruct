@@ -561,7 +561,7 @@ if main['GCC'] or main['CLANG']:
     main.Append(CCFLAGS=['-Wall', '-Wno-sign-compare', '-Wundef'])
     # We always compile using C++11, but only gcc >= 4.7 and clang 3.1
     # actually use that name, so we stick with c++0x
-    main.Append(CXXFLAGS=['-std=c++0x'])
+    main.Append(CXXFLAGS=['-std=c++11'])
     # Add selected sanity checks from -Wextra
     main.Append(CXXFLAGS=['-Wmissing-field-initializers',
                           '-Woverloaded-virtual'])

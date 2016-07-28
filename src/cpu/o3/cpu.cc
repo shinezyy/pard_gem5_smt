@@ -640,7 +640,9 @@ FullO3CPU<Impl>::startup()
     iew.startupStage();
     rename.startupStage();
     commit.startupStage();
-    resourceManager.preserveInstQueue();
+    resourceManager.readConfig();
+    resourceManager.reserveInstQueue();
+    resourceManager.reconfigIssuePrio();
 }
 
 template <class Impl>
