@@ -91,6 +91,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
     : cpu(cpu_ptr),
       iewStage(iew_ptr),
       fuPool(params->fuPool),
+      denominator(1024),
       numEntries(params->numIQEntries),
       totalWidth(params->issueWidth),
       commitToIEWDelay(params->commitToIEWDelay)
@@ -168,7 +169,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         ThreadID tid = 0;
 
         for (; tid < numThreads - 1; tid++) {
-            maxEntries[tid] = numEntries * portion[tid] / Denominator;
+            maxEntries[tid] = numEntries * portion[tid] / denominator;
             allocatedNum += maxEntries[tid];
         }
         assert(allocatedNum <= numEntries);
@@ -404,7 +405,7 @@ InstructionQueue<Impl>::resetState()
         count[tid] = 0;
         instList[tid].clear();
         if (maxEntriesUpToDate) { // no portion assigned
-            portion[tid] = Denominator/numThreads;
+            portion[tid] = denominator / numThreads;
         }
         else {
             std::cout << "Using assigned portion!\n";
@@ -526,7 +527,7 @@ InstructionQueue<Impl>::resetEntries()
                 maxEntries[tid] = numEntries;
             } else if(iqPolicy == Programmable) {
                 if (threads != end) {
-                    maxEntries[tid] = numEntries * portion[tid] / Denominator;
+                    maxEntries[tid] = numEntries * portion[tid] / denominator;
                     allocatedNum += maxEntries[tid];
                 } else {
                     assert(allocatedNum <= numEntries);
@@ -540,7 +541,7 @@ InstructionQueue<Impl>::resetEntries()
 template <class Impl>
 void
 InstructionQueue<Impl>::reassignPortion(int *newPortionVec,
-        int lenNewPortionVec)
+        int lenNewPortionVec, int newPortionDenominator)
 {
     assert(lenNewPortionVec == numThreads);
 
@@ -549,6 +550,8 @@ InstructionQueue<Impl>::reassignPortion(int *newPortionVec,
     for (int i = 0; i < numThreads; ++i) {
         portion[i] = newPortionVec[i];
     }
+
+    denominator = newPortionDenominator;
 }
 
 template <class Impl>
@@ -564,7 +567,7 @@ InstructionQueue<Impl>::updateMaxEntries()
     ThreadID tid = 0;
 
     for (; tid < numThreads - 1; tid++) {
-        maxEntries[tid] = numEntries * portion[tid] / Denominator;
+        maxEntries[tid] = numEntries * portion[tid] / denominator;
         allocatedNum += maxEntries[tid];
     }
     assert(allocatedNum <= numEntries);

@@ -4,8 +4,6 @@
 #include <map>
 #include <rapidjson/document.h>
 
-#define Denominator 1024
-
 struct DerivO3CPUParams;
 
 template<class Impl>

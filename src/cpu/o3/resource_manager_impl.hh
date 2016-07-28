@@ -32,12 +32,18 @@ void
 ResourceManager<Impl>::preserveInstQueue()
 {
     int portion[] = {512, 512};
+    int denominator = 1024;
 
     if(readConfig()) {
+        if(config.HasMember("InstQueuePortionDenominator")) {
+            denominator = config["InstQueuePortionDenominator"].GetInt();
+            printf("new denominator is %d\n", denominator);
+        }
+
         if(config.HasMember("InstQueuePortion")) {
             portion[0] = config["InstQueuePortion"].GetInt();
-            assert(portion[0] <= Denominator);
-            portion[1] = Denominator - portion[0];
+            assert(portion[0] <= denominator);
+            portion[1] = denominator - portion[0];
         }
     }
 
@@ -45,7 +51,7 @@ ResourceManager<Impl>::preserveInstQueue()
         printf("portion[%d]: %d\n", i, portion[i]);
     }
 
-    instQueue->reassignPortion(portion, 2);
+    instQueue->reassignPortion(portion, 2, denominator);
 }
 
 template<class Impl>

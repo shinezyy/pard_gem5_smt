@@ -141,7 +141,8 @@ class InstructionQueue
     bool maxEntriesUpToDate;
 
     /** reassign portion of instruction queue for each thread. */
-    void reassignPortion(int newPortionVec[], int lenNewPortionVec);
+    void reassignPortion(int newPortionVec[], int lenNewPortionVec,
+                         int newPortionDenominator);
 
     /** Sets active threads list. */
     void setActiveThreads(std::list<ThreadID> *at_ptr);
@@ -426,6 +427,7 @@ class InstructionQueue
     IQPolicy iqPolicy;
 
     int portion[Impl::MaxThreads]; // integer of 2^n, to avoid float
+    int denominator;
 
     /** Number of Total Threads*/
     ThreadID numThreads;
