@@ -52,6 +52,8 @@
 #include "cpu/pred/bpred_unit.hh"
 #include "cpu/timebuf.hh"
 #include "cpu/translation.hh"
+#include "cpu/o3/inst_queue.hh"
+#include "cpu/o3/iew.hh"
 #include "mem/packet.hh"
 #include "mem/port.hh"
 #include "sim/eventq.hh"
@@ -80,6 +82,7 @@ class DefaultFetch
     /** Typedefs from the CPU policy. */
     typedef typename CPUPol::FetchStruct FetchStruct;
     typedef typename CPUPol::TimeStruct TimeStruct;
+    typedef typename CPUPol::IEW IEW;
 
     /** Typedefs from ISA. */
     typedef TheISA::MachInst MachInst;
@@ -198,6 +201,9 @@ class DefaultFetch
     /** Probe points. */
     ProbePointArg<DynInstPtr> *ppFetch;
 
+    /** pointer to iew stage. */
+    IEW *iew;
+
   public:
     /** DefaultFetch constructor. */
     DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params);
@@ -219,6 +225,9 @@ class DefaultFetch
 
     /** Sets pointer to time buffer used to communicate to the next stage. */
     void setFetchQueue(TimeBuffer<FetchStruct> *fq_ptr);
+
+    /** Sets pointer to iew stage to get instruction issue priority. */
+    void setIEWStage(IEW *_iew);
 
     /** Initialize stage. */
     void startupStage();

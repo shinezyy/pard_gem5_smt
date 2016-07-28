@@ -321,6 +321,14 @@ DefaultFetch<Impl>::setActiveThreads(std::list<ThreadID> *at_ptr)
 
 template<class Impl>
 void
+DefaultFetch<Impl>::setFetchQueue(IEW *_iew)
+{
+    iew = _iew;
+}
+
+
+template<class Impl>
+void
 DefaultFetch<Impl>::setFetchQueue(TimeBuffer<FetchStruct> *ftb_ptr)
 {
     // Create wire to write information to proper place in fetch time buf.
@@ -1100,8 +1108,8 @@ DefaultFetch<Impl>::buildInst(ThreadID tid, StaticInstPtr staticInst,
     InstSeqNum seq = cpu->getAndIncrementInstSeq();
 
     // Create a new DynInst from the instruction fetched.
-    DynInstPtr instruction =
-        new DynInst(staticInst, curMacroop, thisPC, nextPC, seq, cpu);
+    DynInstPtr instruction = new DynInst(staticInst, curMacroop,
+            thisPC, nextPC, seq, cpu, iew->instQueue->issuePrio[tid]);
     instruction->setTid(tid);
 
     instruction->setASID(tid);

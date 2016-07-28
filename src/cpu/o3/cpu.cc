@@ -253,6 +253,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     commit.setIEWQueue(&iewQueue);
     commit.setRenameQueue(&renameQueue);
 
+    fetch.setIEWStage(&iew);
     commit.setIEWStage(&iew);
     rename.setIEWStage(&iew);
     rename.setCommitStage(&commit);

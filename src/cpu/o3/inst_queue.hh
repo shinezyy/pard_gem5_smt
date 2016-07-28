@@ -286,6 +286,11 @@ class InstructionQueue
 
     unsigned getMaxEntries(ThreadID tid) const;
 
+    /** Priority of instructions to get function unit,
+     * which was enforced by pqCompare.
+     */
+    int issuePrio[Impl::MaxThreads];
+
   private:
     /** Does the actual squashing. */
     void doSquash(ThreadID tid);
@@ -353,16 +358,6 @@ class InstructionQueue
 
     IssuePolicy issuePolicy;
 
-    /** Priority of instructions to get function unit,
-     * which was enforced by pqCompare.
-     */
-    int issuePrio[Impl::MaxThreads];
-
-
-
-
-
-
     /**
      * Struct for comparing entries to be added to the priority queue.
      * This gives reverse ordering to the instructions in terms of
@@ -373,6 +368,10 @@ class InstructionQueue
     struct pqCompare {
         bool operator() (const DynInstPtr &lhs, const DynInstPtr &rhs) const
         {
+            if (issuePolicy == Priority && lhs->issuePriority !=
+                    rhs->issuePriority) {
+                return lhs->issuePriority < rhs->issuePriority;
+            }
             return lhs->seqNum > rhs->seqNum;
         }
     };
