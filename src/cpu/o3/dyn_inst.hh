@@ -63,6 +63,8 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     /** Typedef for the CPU. */
     typedef typename Impl::O3CPU O3CPU;
 
+    typedef typename Impl::CPUPol::IQ::IssuePolicy IssuePolicy;
+
     /** Binary machine instruction type. */
     typedef TheISA::MachInst MachInst;
     /** Extended machine instruction type. */
@@ -103,6 +105,10 @@ class BaseO3DynInst : public BaseDynInst<Impl>
 
     /** Completes the access.  Only valid for memory operations. */
     Fault completeAcc(PacketPtr pkt);
+
+    /** For issue with priority. */
+    IssuePolicy *issuePolicy;
+    int *issuePriority;
 
   private:
     /** Initializes variables. */

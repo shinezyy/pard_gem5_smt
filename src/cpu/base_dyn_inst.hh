@@ -155,9 +155,6 @@ class BaseDynInst : public ExecContext, public RefCounted
     /** The sequence number of the instruction. */
     InstSeqNum seqNum;
 
-    /** Issue priority. */
-    int issuePriority;
-
     /** The StaticInst used by this BaseDynInst. */
     const StaticInstPtr staticInst;
 
@@ -432,7 +429,7 @@ class BaseDynInst : public ExecContext, public RefCounted
      */
     BaseDynInst(const StaticInstPtr &staticInst, const StaticInstPtr &macroop,
                 TheISA::PCState pc, TheISA::PCState predPC,
-                InstSeqNum seq_num, ImplCPU *cpu, int _issuePriority=-1);
+                InstSeqNum seq_num, ImplCPU *cpu);
 
     /** BaseDynInst constructor given a StaticInst pointer.
      *  @param _staticInst The StaticInst for this BaseDynInst.

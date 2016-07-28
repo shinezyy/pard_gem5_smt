@@ -885,7 +885,9 @@ InstructionQueue<Impl>::scheduleReadyInsts()
 
         issuing_inst->isFloating() ? fpInstQueueReads++ : intInstQueueReads++;
 
+        /** The following line no long works.
         assert(issuing_inst->seqNum == (*order_it).oldestInst);
+        */
 
         if (issuing_inst->isSquashed()) {
             readyInsts[op_class].pop();

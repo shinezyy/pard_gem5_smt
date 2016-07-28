@@ -291,6 +291,14 @@ class InstructionQueue
      */
     int issuePrio[Impl::MaxThreads];
 
+    /** issue policy for smt. */
+    enum IssuePolicy {
+        Priority,
+        Nodiscrimination
+    };
+
+    IssuePolicy issuePolicy;
+
   private:
     /** Does the actual squashing. */
     void doSquash(ThreadID tid);
@@ -350,13 +358,6 @@ class InstructionQueue
      */
     std::list<DynInstPtr> retryMemInsts;
 
-    /** issue policy for smt. */
-    enum IssuePolicy {
-        Priority,
-        Nodiscrimination
-    };
-
-    IssuePolicy issuePolicy;
 
     /**
      * Struct for comparing entries to be added to the priority queue.
@@ -368,9 +369,9 @@ class InstructionQueue
     struct pqCompare {
         bool operator() (const DynInstPtr &lhs, const DynInstPtr &rhs) const
         {
-            if (issuePolicy == Priority && lhs->issuePriority !=
-                    rhs->issuePriority) {
-                return lhs->issuePriority < rhs->issuePriority;
+            if (*(lhs->issuePolicy) == Priority &&
+                    *(lhs->issuePriority) != *(rhs->issuePriority)) {
+                return *(lhs->issuePriority) < *(rhs->issuePriority);
             }
             return lhs->seqNum > rhs->seqNum;
         }

@@ -62,12 +62,10 @@ template <class Impl>
 BaseDynInst<Impl>::BaseDynInst(const StaticInstPtr &_staticInst,
                                const StaticInstPtr &_macroop,
                                TheISA::PCState _pc, TheISA::PCState _predPC,
-                               InstSeqNum seq_num, ImplCPU *cpu,
-                               int _issuePriority)
+                               InstSeqNum seq_num, ImplCPU *cpu)
   : staticInst(_staticInst), cpu(cpu), traceData(NULL), macroop(_macroop)
 {
     seqNum = seq_num;
-    issuePriority = _issuePriority;
 
     pc = _pc;
     predPC = _predPC;

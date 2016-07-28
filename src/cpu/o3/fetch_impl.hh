@@ -321,7 +321,7 @@ DefaultFetch<Impl>::setActiveThreads(std::list<ThreadID> *at_ptr)
 
 template<class Impl>
 void
-DefaultFetch<Impl>::setFetchQueue(IEW *_iew)
+DefaultFetch<Impl>::setIEWStage(IEW *_iew)
 {
     iew = _iew;
 }
@@ -1109,12 +1109,15 @@ DefaultFetch<Impl>::buildInst(ThreadID tid, StaticInstPtr staticInst,
 
     // Create a new DynInst from the instruction fetched.
     DynInstPtr instruction = new DynInst(staticInst, curMacroop,
-            thisPC, nextPC, seq, cpu, iew->instQueue->issuePrio[tid]);
+            thisPC, nextPC, seq, cpu);
     instruction->setTid(tid);
 
     instruction->setASID(tid);
 
     instruction->setThreadState(cpu->thread[tid]);
+
+    instruction->issuePolicy = &iew->instQueue.issuePolicy;
+    instruction->issuePriority = &iew->instQueue.issuePrio[tid];
 
     DPRINTF(Fetch, "[tid:%i]: Instruction PC %#x (%d) created "
             "[sn:%lli].\n", tid, thisPC.instAddr(),

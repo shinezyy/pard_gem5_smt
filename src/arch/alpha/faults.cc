@@ -38,6 +38,8 @@
 #include "mem/page_table.hh"
 #include "sim/process.hh"
 #include "sim/full_system.hh"
+#include "sim/init_signals.hh"
+#include <signal.h>
 
 namespace AlphaISA {
 
@@ -214,6 +216,8 @@ NDtbMissFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
             success = p->pTable->lookup(vaddr, entry);
     }
     if (!success) {
+        printf("Tried to access unmapped address %lx.\n", (Addr)vaddr);
+        while(1);
         panic("Tried to access unmapped address %#x.\n", (Addr)vaddr);
     } else {
         tc->getDTBPtr()->insert(vaddr.page(), entry);

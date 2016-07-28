@@ -34,7 +34,7 @@ ResourceManager<Impl>::reserveInstQueue()
     int portion[] = {512, 512};
     int denominator = 1024;
 
-    if(readConfig()) {
+    if(configUpdated) {
         if(config.HasMember("InstQueuePortionDenominator")) {
             denominator = config["InstQueuePortionDenominator"].GetInt();
             printf("new denominator is %d\n", denominator);
@@ -65,11 +65,18 @@ ResourceManager<Impl>::reconfigIssuePrio()
 {
     int prio[] = {5, 0};
     if(configUpdated && config.HasMember("IssuePriority")) {
-        // do nothing now, because no configure file
+        auto prio_array = config["IssuePriority"].GetArray();
+        std::cout << "Priority array:\n";
+        for (int i = 0; i < 2; i++) {
+            prio[i] = prio_array[i].GetInt();
+            std::cout << prio[i] <<", ";
+        }
+        std::cout << std::endl;
     } else {
-        std::cout << "Use default issue prority";
-        instQueue->reassignIssuePrio(prio, 2);
+        std::cout << "Use default issue priority\n";
     }
+    std::cout << "Using issue policy: " << instQueue->issuePolicy;
+    instQueue->reassignIssuePrio(prio, 2);
 }
 
 
