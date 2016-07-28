@@ -81,7 +81,8 @@ class ROB
     enum ROBPolicy{
         Dynamic,
         Partitioned,
-        Threshold
+        Threshold,
+        Programmable
     };
 
   private:
@@ -323,6 +324,17 @@ class ROB
 
     /** Dummy instruction returned if there are no insts left. */
     DynInstPtr dummyInst;
+
+    int portion[Impl::MaxThreads];
+    int denominator;
+
+    /** Update maxEntries for each thread, accoding to portion. */
+    void updateMaxEntries();
+    bool maxEntriesUpToDate;
+
+    /** reassign portion of ROB for each thread. */
+    void reassignPortion(int newPortionVec[],
+            int lenNewPortionVec, int newPortionDemominator);
 
   private:
     /** The sequence number of the squashed instruction. */

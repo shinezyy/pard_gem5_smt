@@ -98,7 +98,23 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
         for (ThreadID tid = 0; tid < numThreads; tid++) {
             maxEntries[tid] = threshold;
         }
-    } else {
+    } else if (policy == "programmable") {
+        robPolicy = Programmable;
+        DPRINTF(Fetch, "ROB sharing policy set to Programmable\n");
+
+        int allocatedNum = 0;
+
+        ThreadID tid = 0;
+
+        for(; tid < numThreads - 1; ++tid) {
+            maxEntries[tid] = numEntries * portion[tid] / 1024;
+            allocatedNum += maxEntries[tid];
+        }
+
+        assert(allocatedNum <= numEntries);
+        maxEntries[tid] = numEntries - allocatedNum;
+    }
+    else {
         assert(0 && "Invalid ROB Sharing Policy.Options Are:{Dynamic,"
                     "Partitioned, Threshold}");
     }
@@ -574,5 +590,46 @@ ROB<Impl>::isDynamicPolicy() const
 {
     return robPolicy == Dynamic;
 }
+
+template <class Impl>
+void
+ROB<Impl>::reassignPortion(int newPortionVec[],
+        int lenNewPortionVec, int newPortionDenominator)
+{
+    assert(lenNewPortionVec == numThreads);
+
+    maxEntriesUpToDate = false;
+
+    for (int i = 0; i < numThreads; ++i) {
+        portion[i] = newPortionVec[i];
+    }
+
+    denominator = newPortionDenominator;
+}
+
+template <class Impl>
+void
+ROB<Impl>::updateMaxEntries()
+{
+    if (robPolicy != Programmable || maxEntriesUpToDate) {
+        return;
+    }
+
+    int allocatedNum = 0;
+
+    ThreadID tid = 0;
+
+    for (; tid < numThreads - 1; tid++) {
+        maxEntries[tid] = numEntries * portion[tid] / denominator;
+        allocatedNum += maxEntries[tid];
+    }
+    assert(allocatedNum <= numEntries);
+    maxEntries[tid] = numEntries - allocatedNum;
+
+    maxEntriesUpToDate = true;
+}
+
+
+
 
 #endif//__CPU_O3_ROB_IMPL_HH__

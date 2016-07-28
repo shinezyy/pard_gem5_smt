@@ -12,10 +12,13 @@ class ResourceManager {
     typedef typename Impl::CPUPol CPUPol;
     typedef typename Impl::O3CPU O3CPU;
     typedef typename CPUPol::IQ IQ;
+    typedef typename CPUPol::ROB ROB;
 
     private:
 
         IQ *instQueue;
+
+        ROB *rob;
 
         O3CPU *cpu;
 
@@ -30,9 +33,13 @@ class ResourceManager {
 
         std::string name() const;
 
-        void setInstQueue(IQ *_instQueue);
+        void setIQ(IQ *_instQueue);
 
-        void reserveInstQueue();
+        void setROB(ROB *_rob);
+
+        void reserveIQ();
+
+        void reserveROB();
 
         void reconfigIssuePrio();
 

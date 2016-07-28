@@ -22,14 +22,21 @@ ResourceManager<Impl>::name() const
 
 template<class Impl>
 void
-ResourceManager<Impl>::setInstQueue(IQ *_instQueue)
+ResourceManager<Impl>::setIQ(IQ *_instQueue)
 {
     instQueue = _instQueue;
 }
 
 template<class Impl>
 void
-ResourceManager<Impl>::reserveInstQueue()
+ResourceManager<Impl>::setROB(ROB *_rob)
+{
+    rob = _rob;
+}
+
+template<class Impl>
+void
+ResourceManager<Impl>::reserveIQ()
 {
     int portion[] = {512, 512};
     int denominator = 1024;
@@ -37,7 +44,7 @@ ResourceManager<Impl>::reserveInstQueue()
     if(configUpdated) {
         if(config.HasMember("InstQueuePortionDenominator")) {
             denominator = config["InstQueuePortionDenominator"].GetInt();
-            printf("new denominator is %d\n", denominator);
+            printf("new IQ denominator is %d\n", denominator);
         }
 
         if(config.HasMember("InstQueuePortion")) {
@@ -49,13 +56,44 @@ ResourceManager<Impl>::reserveInstQueue()
         }
     }
 
-    printf("Denominator is %d\n", denominator);
+    printf("IQ Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        printf("portion[%d]: %d\n", i, portion[i]);
+        printf("IQ portion[%d]: %d\n", i, portion[i]);
     }
 
     instQueue->reassignPortion(portion, 2, denominator);
+}
+
+template<class Impl>
+void
+ResourceManager<Impl>::reserveROB()
+{
+    int portion[] = {512, 512};
+    int denominator = 1024;
+
+    if(configUpdated) {
+        if(config.HasMember("ROBPortionDenominator")) {
+            denominator = config["ROBPortionDenominator"].GetInt();
+            printf("new ROB denominator is %d\n", denominator);
+        }
+
+        if(config.HasMember("ROBPortion")) {
+            portion[0] = config["ROBPortion"].GetInt();
+            assert(portion[0] <= denominator);
+            portion[1] = denominator - portion[0];
+        } else {
+            std::cout << "ROB partition policy not updated\n";
+        }
+    }
+
+    printf("ROB Denominator is %d\n", denominator);
+
+    for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
+        printf("ROB portion[%d]: %d\n", i, portion[i]);
+    }
+
+    rob->reassignPortion(portion, 2, denominator);
 }
 
 

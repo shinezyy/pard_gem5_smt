@@ -625,7 +625,8 @@ FullO3CPU<Impl>::init()
         thread[tid]->noSquashFromTC = false;
 
     commit.setThreads(thread);
-    resourceManager.setInstQueue(&iew.instQueue);
+    resourceManager.setIQ(&iew.instQueue);
+    resourceManager.setROB(commit.rob);
 }
 
 template <class Impl>
@@ -642,7 +643,8 @@ FullO3CPU<Impl>::startup()
     rename.startupStage();
     commit.startupStage();
     resourceManager.readConfig();
-    resourceManager.reserveInstQueue();
+    resourceManager.reserveIQ();
+    resourceManager.reserveROB();
     resourceManager.reconfigIssuePrio();
 }
 

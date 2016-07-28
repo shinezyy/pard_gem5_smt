@@ -660,6 +660,8 @@ DefaultCommit<Impl>::tick()
     list<ThreadID>::iterator threads = activeThreads->begin();
     list<ThreadID>::iterator end = activeThreads->end();
 
+    rob->updateMaxEntries();
+
     // Check if any of the threads are done squashing.  Change the
     // status if they are done.
     while (threads != end) {
