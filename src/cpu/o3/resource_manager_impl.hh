@@ -64,7 +64,7 @@ void
 ResourceManager<Impl>::reconfigIssuePrio()
 {
     int prio[] = {5, 0};
-    if(configUpdated && config.find("IssuePriority") != config.end()) {
+    if(configUpdated && config.HasMember("IssuePriority")) {
         // do nothing now, because no configure file
     } else {
         std::cout << "Use default issue prority";
