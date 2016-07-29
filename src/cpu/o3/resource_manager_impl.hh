@@ -113,7 +113,7 @@ ResourceManager<Impl>::reconfigIssuePrio()
     } else {
         std::cout << "Use default issue priority\n";
     }
-    std::cout << "Using issue policy: " << instQueue->issuePolicy;
+    std::cout << "Using issue policy (0: prio): " << instQueue->issuePolicy << "\n";
     instQueue->reassignIssuePrio(prio, 2);
 }
 

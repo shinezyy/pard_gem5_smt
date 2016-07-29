@@ -192,6 +192,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         maxEntries[tid] = numEntries - allocatedNum;
 
         DPRINTF(IQ, "IQ sharing policy set to Programmable\n");
+        printf("IQ sharing policy set to Programmable\n");
     } else {
         assert(0 && "Invalid IQ Sharing Policy.Options Are:{Dynamic,"
                 "Partitioned, Threshold}");
