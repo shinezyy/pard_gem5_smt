@@ -128,6 +128,7 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
         /** get max LQ and SQ entries from params. */
 
         lsqPolicy = Programmable;
+
         DPRINTF(LSQ, "LSQ sharing policy set to Programmable\n");
         printf("LSQ sharing policy set to Programmable\n");
 
@@ -141,16 +142,12 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
             maxSQEntries[tid] = SQEntries*SQPortion[tid]/denominator;
             allocatedLQNum += maxLQEntries[tid];
             allocatedSQNum += maxSQEntries[tid];
-            printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
-                    tid, maxLQEntries[tid], maxSQEntries[tid]);
         }
 
         assert(allocatedLQNum <= LQEntries);
         assert(allocatedSQNum <= SQEntries);
         maxLQEntries[tid] = LQEntries - allocatedLQNum;
         maxSQEntries[tid] = SQEntries - allocatedSQNum;
-        printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
-                tid, maxLQEntries[tid], maxSQEntries[tid]);
 
     } else {
         assert(0 && "Invalid LSQ Sharing Policy.Options Are:{Dynamic,"
@@ -160,8 +157,12 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
     //Initialize LSQs
     thread = new LSQUnit[numThreads];
     for (ThreadID tid = 0; tid < numThreads; tid++) {
+        /** Because LSQUnit is not dynamic,
+          * in order to implement dynamic partition,
+          * all of threads own LQEntries LQ and SQEntries SQ.
+          */
         thread[tid].init(cpu, iew_ptr, params, this,
-                         maxLQEntries[tid], maxSQEntries[tid], tid);
+                         LQEntries, SQEntries, tid);
         thread[tid].setDcachePort(&cpu_ptr->getDataPort());
     }
 }
@@ -670,9 +671,11 @@ template<class Impl>
 void
 LSQ<Impl>::updateMaxEntries()
 {
+
     if (lsqPolicy != Programmable || maxEntriesUpToDate) {
         return;
     }
+    printf("Updating LSQ maxEntries\n");
     int allocatedLQNum = 0;
     int allocatedSQNum = 0;
 
