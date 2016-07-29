@@ -59,6 +59,7 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
       numEntries(params->numROBEntries),
       squashWidth(params->squashWidth),
       numInstsInROB(0),
+      denominator(1024),
       numThreads(params->numThreads)
 {
     std::string policy = params->smtROBPolicy;
@@ -108,14 +109,13 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
         ThreadID tid = 0;
 
         for(; tid < numThreads - 1; ++tid) {
-            maxEntries[tid] = numEntries * portion[tid] / 1024;
+            maxEntries[tid] = numEntries * portion[tid] / denominator;
             allocatedNum += maxEntries[tid];
         }
 
         assert(allocatedNum <= numEntries);
         maxEntries[tid] = numEntries - allocatedNum;
-    }
-    else {
+    } else {
         assert(0 && "Invalid ROB Sharing Policy.Options Are:{Dynamic,"
                     "Partitioned, Threshold}");
     }

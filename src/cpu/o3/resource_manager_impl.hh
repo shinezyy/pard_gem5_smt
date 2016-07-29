@@ -36,6 +36,13 @@ ResourceManager<Impl>::setROB(ROB *_rob)
 
 template<class Impl>
 void
+ResourceManager<Impl>::setLSQ(LSQ *_lsq)
+{
+    lsq = _lsq;
+}
+
+template<class Impl>
+void
 ResourceManager<Impl>::reserveIQ()
 {
     int portion[] = {512, 512};
@@ -67,6 +74,70 @@ ResourceManager<Impl>::reserveIQ()
 
 template<class Impl>
 void
+ResourceManager<Impl>::reserveLQ()
+{
+    int portion[] = {512, 512};
+    int denominator = 1024;
+
+    if(configUpdated) {
+        if(config.HasMember("LSQPortionDenominator")) {
+            denominator = config["LSQPortionDenominator"].GetInt();
+            printf("new LSQ denominator is %d\n", denominator);
+        }
+
+        if(config.HasMember("LQPortion")) {
+            portion[0] = config["LQPortion"].GetInt();
+            assert(portion[0] <= denominator);
+            portion[1] = denominator - portion[0];
+        } else {
+            std::cout << "LQ partition policy not updated\n";
+        }
+    }
+
+    printf("LSQ Denominator is %d\n", denominator);
+
+    for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
+        printf("LQ portion[%d]: %d\n", i, portion[i]);
+    }
+
+    lsq->reassignLQPortion(portion, 2, denominator);
+}
+
+
+template<class Impl>
+void
+ResourceManager<Impl>::reserveSQ()
+{
+    int portion[] = {512, 512};
+    int denominator = 1024;
+
+    if(configUpdated) {
+        if(config.HasMember("LSQPortionDenominator")) {
+            denominator = config["LSQPortionDenominator"].GetInt();
+            printf("new LSQ denominator is %d\n", denominator);
+        }
+
+        if(config.HasMember("SQPortion")) {
+            portion[0] = config["SQPortion"].GetInt();
+            assert(portion[0] <= denominator);
+            portion[1] = denominator - portion[0];
+        } else {
+            std::cout << "SQ partition policy not updated\n";
+        }
+    }
+
+    printf("LSQ Denominator is %d\n", denominator);
+
+    for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
+        printf("SQ portion[%d]: %d\n", i, portion[i]);
+    }
+
+    lsq->reassignSQPortion(portion, 2, denominator);
+}
+
+
+template<class Impl>
+void
 ResourceManager<Impl>::reserveROB()
 {
     int portion[] = {512, 512};
@@ -95,7 +166,6 @@ ResourceManager<Impl>::reserveROB()
 
     rob->reassignPortion(portion, 2, denominator);
 }
-
 
 template<class Impl>
 void

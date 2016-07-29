@@ -13,12 +13,15 @@ class ResourceManager {
     typedef typename Impl::O3CPU O3CPU;
     typedef typename CPUPol::IQ IQ;
     typedef typename CPUPol::ROB ROB;
+    typedef typename CPUPol::LSQ LSQ;
 
     private:
 
         IQ *instQueue;
 
         ROB *rob;
+
+        LSQ *lsq;
 
         O3CPU *cpu;
 
@@ -37,9 +40,15 @@ class ResourceManager {
 
         void setROB(ROB *_rob);
 
+        void setLSQ(LSQ *_lsq);
+
         void reserveIQ();
 
         void reserveROB();
+
+        void reserveLQ();
+
+        void reserveSQ();
 
         void reconfigIssuePrio();
 

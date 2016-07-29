@@ -257,6 +257,8 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     commit.setIEWStage(&iew);
     rename.setIEWStage(&iew);
     rename.setCommitStage(&commit);
+    resourceManager.setIQ(&iew.instQueue);
+    resourceManager.setLSQ(&iew.ldstQueue);
 
     ThreadID active_threads;
     if (FullSystem) {
@@ -327,6 +329,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
 
     // Setup the ROB for whichever stages need it.
     commit.setROB(&rob);
+    resourceManager.setROB(commit.rob);
 
     lastActivatedCycle = 0;
 #if 0
@@ -625,8 +628,6 @@ FullO3CPU<Impl>::init()
         thread[tid]->noSquashFromTC = false;
 
     commit.setThreads(thread);
-    resourceManager.setIQ(&iew.instQueue);
-    resourceManager.setROB(commit.rob);
 }
 
 template <class Impl>
@@ -645,6 +646,8 @@ FullO3CPU<Impl>::startup()
     resourceManager.readConfig();
     resourceManager.reserveIQ();
     resourceManager.reserveROB();
+    resourceManager.reserveLQ();
+    resourceManager.reserveSQ();
     resourceManager.reconfigIssuePrio();
 }
 

@@ -57,6 +57,7 @@ echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
 #$GEM5_DIR/build/ALPHA/gem5.opt_nomodify\
+#gdb --args \
 $GEM5_DIR/build/ALPHA/gem5.opt\
     --outdir=$OUTPUT_DIR\
     $GEM5_DIR/configs/spec/spec06_config.py\

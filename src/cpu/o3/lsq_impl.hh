@@ -66,7 +66,8 @@ Ret Accumulate(Container &c, Ret init, BinaryOp op)
 
 template <class Impl>
 LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
-    : cpu(cpu_ptr), iewStage(iew_ptr),
+    :denominator(1024),
+      cpu(cpu_ptr), iewStage(iew_ptr),
       LQEntries(params->LQEntries),
       SQEntries(params->SQEntries),
       numThreads(params->numThreads)
@@ -86,35 +87,71 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
     if (policy == "dynamic") {
         lsqPolicy = Dynamic;
 
-        maxLQEntries = LQEntries;
-        maxSQEntries = SQEntries;
+        for (ThreadID tid = 0; tid < numThreads; ++tid) {
+            maxLQEntries[tid] = LQEntries;
+            maxSQEntries[tid] = SQEntries;
+        }
 
         DPRINTF(LSQ, "LSQ sharing policy set to Dynamic\n");
     } else if (policy == "partitioned") {
         lsqPolicy = Partitioned;
 
         //@todo:make work if part_amt doesnt divide evenly.
-        maxLQEntries = LQEntries / numThreads;
-        maxSQEntries = SQEntries / numThreads;
+        for (ThreadID tid = 0; tid < numThreads; ++tid) {
+            maxLQEntries[tid] = LQEntries / numThreads;
+            maxSQEntries[tid] = SQEntries / numThreads;
+        }
 
         DPRINTF(Fetch, "LSQ sharing policy set to Partitioned: "
                 "%i entries per LQ | %i entries per SQ\n",
-                maxLQEntries,maxSQEntries);
+                maxLQEntries[0], maxSQEntries[0]);
     } else if (policy == "threshold") {
         lsqPolicy = Threshold;
 
+        // The following lien may be wrong ?
         assert(params->smtLSQThreshold > LQEntries);
         assert(params->smtLSQThreshold > SQEntries);
 
         //Divide up by threshold amount
         //@todo: Should threads check the max and the total
         //amount of the LSQ
-        maxLQEntries  = params->smtLSQThreshold;
-        maxSQEntries  = params->smtLSQThreshold;
+        //NO
+        for (ThreadID tid = 0; tid < numThreads; ++tid) {
+            maxLQEntries[tid] = params->smtLSQThreshold;
+            maxSQEntries[tid] = params->smtLSQThreshold;
+        }
 
         DPRINTF(LSQ, "LSQ sharing policy set to Threshold: "
                 "%i entries per LQ | %i entries per SQ\n",
-                maxLQEntries,maxSQEntries);
+                maxLQEntries[0] ,maxSQEntries[0]);
+    } else if (policy == "programmable"){
+        /** get max LQ and SQ entries from params. */
+
+        lsqPolicy = Programmable;
+        DPRINTF(LSQ, "LSQ sharing policy set to Programmable\n");
+        printf("LSQ sharing policy set to Programmable\n");
+
+        int allocatedLQNum = 0;
+        int allocatedSQNum = 0;
+
+        ThreadID tid = 0;
+
+        for (;tid < numThreads - 1; ++tid) {
+            maxLQEntries[tid] = LQEntries*LQPortion[tid]/denominator;
+            maxSQEntries[tid] = SQEntries*SQPortion[tid]/denominator;
+            allocatedLQNum += maxLQEntries[tid];
+            allocatedSQNum += maxSQEntries[tid];
+            printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+                    tid, maxLQEntries[tid], maxSQEntries[tid]);
+        }
+
+        assert(allocatedLQNum <= LQEntries);
+        assert(allocatedSQNum <= SQEntries);
+        maxLQEntries[tid] = LQEntries - allocatedLQNum;
+        maxSQEntries[tid] = SQEntries - allocatedSQNum;
+        printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+                tid, maxLQEntries[tid], maxSQEntries[tid]);
+
     } else {
         assert(0 && "Invalid LSQ Sharing Policy.Options Are:{Dynamic,"
                     "Partitioned, Threshold}");
@@ -124,7 +161,7 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
     thread = new LSQUnit[numThreads];
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         thread[tid].init(cpu, iew_ptr, params, this,
-                         maxLQEntries, maxSQEntries, tid);
+                         maxLQEntries[tid], maxSQEntries[tid], tid);
         thread[tid].setDcachePort(&cpu_ptr->getDataPort());
     }
 }
@@ -199,6 +236,8 @@ LSQ<Impl>::entryAmount(ThreadID num_threads)
 {
     if (lsqPolicy == Partitioned) {
         return LQEntries / num_threads;
+    } else if (lsqPolicy == Programmable) {
+        return maxLQEntries[num_threads];
     } else {
         return 0;
     }
@@ -626,5 +665,73 @@ LSQ<Impl>::dumpInsts() const
         thread[tid].dumpInsts();
     }
 }
+
+template<class Impl>
+void
+LSQ<Impl>::updateMaxEntries()
+{
+    if (lsqPolicy != Programmable || maxEntriesUpToDate) {
+        return;
+    }
+    int allocatedLQNum = 0;
+    int allocatedSQNum = 0;
+
+    ThreadID tid = 0;
+
+    for (;tid < numThreads - 1; ++tid) {
+        maxLQEntries[tid] = LQEntries*LQPortion[tid]/denominator;
+        maxSQEntries[tid] = SQEntries*SQPortion[tid]/denominator;
+
+        allocatedLQNum += maxLQEntries[tid];
+        allocatedSQNum += maxSQEntries[tid];
+
+        printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+                tid, maxLQEntries[tid], maxSQEntries[tid]);
+    }
+
+    assert(allocatedLQNum <= LQEntries);
+    assert(allocatedSQNum <= SQEntries);
+
+    maxLQEntries[tid] = LQEntries - allocatedLQNum;
+    maxSQEntries[tid] = SQEntries - allocatedSQNum;
+
+    printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+            tid, maxLQEntries[tid], maxSQEntries[tid]);
+
+    maxEntriesUpToDate = true;
+}
+
+template<class Impl>
+void
+LSQ<Impl>::reassignLQPortion(int newPortionVec[],
+        int lenNewPortionVec, int newPortionDenominator)
+{
+    assert(lenNewPortionVec == numThreads);
+
+    maxEntriesUpToDate = false;
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        LQPortion[tid] = newPortionVec[tid];
+    }
+
+    denominator = newPortionDenominator;
+}
+
+template<class Impl>
+void
+LSQ<Impl>::reassignSQPortion(int newPortionVec[],
+        int lenNewPortionVec, int newPortionDenominator)
+{
+    assert(lenNewPortionVec == numThreads);
+
+    maxEntriesUpToDate = false;
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        SQPortion[tid] = newPortionVec[tid];
+    }
+
+    denominator = newPortionDenominator;
+}
+
 
 #endif//__CPU_O3_LSQ_IMPL_HH__

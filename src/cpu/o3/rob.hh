@@ -334,7 +334,7 @@ class ROB
 
     /** reassign portion of ROB for each thread. */
     void reassignPortion(int newPortionVec[],
-            int lenNewPortionVec, int newPortionDemominator);
+            int lenNewPortionVec, int newPortionDenominator);
 
   private:
     /** The sequence number of the squashed instruction. */

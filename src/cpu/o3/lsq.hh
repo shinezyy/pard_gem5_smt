@@ -66,7 +66,8 @@ class LSQ {
     enum LSQPolicy {
         Dynamic,
         Partitioned,
-        Threshold
+        Threshold,
+        Programmable
     };
 
     /** Constructs an LSQ with the given parameters. */
@@ -83,6 +84,21 @@ class LSQ {
 
     /** Sets the pointer to the list of active threads. */
     void setActiveThreads(std::list<ThreadID> *at_ptr);
+
+    int LQPortion[Impl::MaxThreads];
+    int SQPortion[Impl::MaxThreads];
+    int denominator;
+
+    /** Update maxEntries for each thread, accoding to portion. */
+    void updateMaxEntries();
+    bool maxEntriesUpToDate;
+
+    /** reassign portion of LQ and SQ for each thread. */
+    void reassignLQPortion(int newPortionVec[],
+            int lenNewPortionVec, int newPortionDenominator);
+
+    void reassignSQPortion(int newPortionVec[],
+            int lenNewPortionVec, int newPortionDenominator);
 
     /** Perform sanity checks after a drain. */
     void drainSanityCheck() const;
@@ -320,10 +336,10 @@ class LSQ {
     unsigned SQEntries;
 
     /** Max LQ Size - Used to Enforce Sharing Policies. */
-    unsigned maxLQEntries;
+    unsigned maxLQEntries[Impl::MaxThreads];
 
     /** Max SQ Size - Used to Enforce Sharing Policies. */
-    unsigned maxSQEntries;
+    unsigned maxSQEntries[Impl::MaxThreads];
 
     /** Number of Threads. */
     ThreadID numThreads;
