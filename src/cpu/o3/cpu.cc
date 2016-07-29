@@ -306,6 +306,11 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
             // Note that we can't use the rename() method because we don't
             // want special treatment for the zero register at this point
             PhysRegIndex phys_reg = freeList.getIntReg();
+            // FIXME Ugly exposure. Due to the assignment, the free reg
+            // counter per thread has to be substracted to keep the
+            // consistency.
+            rename.nrFreeRegs[tid]--;
+
             renameMap[tid].setIntEntry(ridx, phys_reg);
             commitRenameMap[tid].setIntEntry(ridx, phys_reg);
         }
@@ -326,6 +331,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     rename.setRenameMap(renameMap);
     commit.setRenameMap(commitRenameMap);
     rename.setFreeList(&freeList);
+    resourceManager.setRename(&rename);
 
     // Setup the ROB for whichever stages need it.
     commit.setROB(&rob);
@@ -648,6 +654,7 @@ FullO3CPU<Impl>::startup()
     resourceManager.reserveROB();
     resourceManager.reserveLQ();
     resourceManager.reserveSQ();
+    resourceManager.reserveRename();
     resourceManager.reconfigIssuePrio();
 }
 

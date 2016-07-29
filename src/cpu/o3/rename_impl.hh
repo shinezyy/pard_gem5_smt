@@ -79,6 +79,10 @@ DefaultRename<Impl>::DefaultRename(O3CPU *_cpu, DerivO3CPUParams *params)
 
     // @todo: Make into a parameter.
     skidBufferMax = (decodeToRenameDelay + 1) * params->decodeWidth;
+
+    for (int i = 0; i < sizeof(this->nrFreeRegs) / sizeof(this->nrFreeRegs[0]); i++) {
+        nrFreeRegs[i] = 0;
+    }
 }
 
 template <class Impl>
@@ -638,9 +642,10 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
         // Check here to make sure there are enough destination registers
         // to rename to.  Otherwise block.
-        if (!renameMap[tid]->canRename(inst->numIntDestRegs(),
-                                       inst->numFPDestRegs(),
-                                       inst->numCCDestRegs())) {
+        if (!(renameMap[tid]->canRename(inst->numIntDestRegs(),
+                                        inst->numFPDestRegs(),
+                                        inst->numCCDestRegs())
+              && nrFreeRegs[tid] >= inst->numIntDestRegs())) { // can handle 0
             DPRINTF(Rename, "Blocking due to lack of free "
                     "physical registers to rename to.\n");
             blockThisCycle = true;
@@ -932,6 +937,7 @@ DefaultRename<Impl>::doSquash(const InstSeqNum &squashed_seq_num, ThreadID tid)
 
             // Put the renamed physical register back on the free list.
             freeList->addReg(hb_it->newPhysReg);
+            nrFreeRegs[tid]++;
         }
 
         historyBuffer[tid].erase(hb_it++);
@@ -979,6 +985,7 @@ DefaultRename<Impl>::removeFromHistory(InstSeqNum inst_seq_num, ThreadID tid)
         // the old one.
         if (hb_it->newPhysReg != hb_it->prevPhysReg) {
             freeList->addReg(hb_it->prevPhysReg);
+            nrFreeRegs[tid]++;
         }
 
         ++renameCommittedMaps;
@@ -1073,6 +1080,8 @@ DefaultRename<Impl>::renameDestRegs(DynInstPtr &inst, ThreadID tid)
             flat_rel_dest_reg = tc->flattenIntIndex(rel_dest_reg);
             rename_result = map->renameInt(flat_rel_dest_reg);
             flat_uni_dest_reg = flat_rel_dest_reg;  // 1:1 mapping
+            nrFreeRegs[tid]--;
+            assert(nrFreeRegs[tid] >= 0);
             break;
 
           case FloatRegClass:
@@ -1432,6 +1441,20 @@ DefaultRename<Impl>::dumpHistory()
             buf_it++;
         }
     }
+}
+
+template <class Impl>
+void
+DefaultRename<Impl>::setNrFreeRegs(unsigned _nrFreeRegs[], ThreadID _numThreads)
+{
+    assert(_numThreads == this->numThreads);
+    for (ThreadID tid = 0; tid < _numThreads; ++tid) {
+        // Use `+=' to work around with the pre-assignment for architectual regs.
+        // nrFreeRegs[tid] might become negtive in that procedure.
+        nrFreeRegs[tid] += _nrFreeRegs[tid];
+    }
+    // TODO Support set in runtime, which needs more checks for correctness.
+    // TODO Support more register classes.
 }
 
 #endif//__CPU_O3_RENAME_IMPL_HH__

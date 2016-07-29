@@ -521,6 +521,13 @@ class DefaultRename
     void clearAvailableInstCount() { availableInstCount = 0; }
 
     void incAvailableInstCount(int incValue) { availableInstCount += incValue; }
+
+  public:
+    /** The number of available free physical regs for each thread
+     * and its initial value indicates the maximum number. */
+    unsigned nrFreeRegs[Impl::MaxThreads];
+
+    void setNrFreeRegs(unsigned _nrFreeRegs[], ThreadID _numThreads);
 };
 
 #endif // __CPU_O3_RENAME_HH__

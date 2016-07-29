@@ -22,6 +22,13 @@ ResourceManager<Impl>::name() const
 
 template<class Impl>
 void
+ResourceManager<Impl>::setRename(Rename *_rename)
+{
+    rename = _rename;
+}
+
+template<class Impl>
+void
 ResourceManager<Impl>::setIQ(IQ *_instQueue)
 {
     instQueue = _instQueue;
@@ -185,6 +192,35 @@ ResourceManager<Impl>::reconfigIssuePrio()
     }
     std::cout << "Using issue policy (0: prio): " << instQueue->issuePolicy << "\n";
     instQueue->reassignIssuePrio(prio, 2);
+}
+
+
+template <class Impl>
+void
+ResourceManager<Impl>::reserveRename()
+{
+    ThreadID numThreads = cpu->numThreads;
+    auto freeRegArray = new unsigned[numThreads];
+    if (configUpdated && config.HasMember("FreeRegs")) {
+        auto freeRegArrayAst = config["FreeRegs"].GetArray();
+        // TODO Add support for default value, or auto evaluated
+        // from freeList.size()
+        for (ThreadID tid = 0; tid < numThreads; ++tid) {
+            freeRegArray[tid] = freeRegArrayAst[tid].GetInt();
+        }
+    }
+    else {
+        for (ThreadID tid = 0; tid < numThreads; ++tid) {
+            // This assignment has no semantic meaning, and seems RIDICULOUS,
+            // but it will make the limit check always true.
+            // So that we can close this feature without additional
+            // condition judgement.
+            freeRegArray[tid] = cpu->regFile.numIntPhysRegs();
+        }
+    }
+
+    rename->setNrFreeRegs(freeRegArray, numThreads);
+    delete[] freeRegArray;
 }
 
 
