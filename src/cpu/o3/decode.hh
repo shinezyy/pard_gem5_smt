@@ -298,6 +298,8 @@ class DefaultDecode
     Stats::Scalar decodeIdleCycles;
     /** Stat for total number of blocked cycles. */
     Stats::Scalar decodeBlockedCycles;
+    /** Stat for number of blocked cycles per thread.*/
+    Stats::Vector threadDecodeBlockedCycles;
     /** Stat for total number of normal running cycles. */
     Stats::Scalar decodeRunCycles;
     /** Stat for total number of unblocking cycles. */

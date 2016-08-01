@@ -919,8 +919,8 @@ InstructionQueue<Impl>::scheduleReadyInsts()
             }
         }
 
-        // If we have an instruction that doesn't require a FU, or a
-        // valid FU, then schedule for execution.
+        // If we have an instruction that doesn't require a FU,
+        // or it got a valid FU, then schedule for execution.
         if (idx == -2 || idx != -1) {
             if (op_latency == Cycles(1)) {
                 i2e_info->size++;

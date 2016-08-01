@@ -117,6 +117,11 @@ DefaultDecode<Impl>::regStats()
         .name(name() + ".BlockedCycles")
         .desc("Number of cycles decode is blocked")
         .prereq(decodeBlockedCycles);
+    threadDecodeBlockedCycles
+        .init(cpu->numThreads)
+        .name(name() + ".threadBlockedCycles")
+        .desc("Number of cycles decode is blocked each thread")
+        .flags(Stats::pdf);
     decodeRunCycles
         .name(name() + ".RunCycles")
         .desc("Number of cycles decode is running")
@@ -594,6 +599,7 @@ DefaultDecode<Impl>::decode(bool &status_change, ThreadID tid)
 
     if (decodeStatus[tid] == Blocked) {
         ++decodeBlockedCycles;
+        ++threadDecodeBlockedCycles[tid];
     } else if (decodeStatus[tid] == Squashing) {
         ++decodeSquashCycles;
     }

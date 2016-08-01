@@ -226,6 +226,12 @@ DefaultFetch<Impl>::regStats()
         .desc("Number of cycles fetch has spent blocked")
         .prereq(fetchBlockedCycles);
 
+    threadFetchBlockedCycles
+        .init(cpu->numThreads)
+        .name(name() + ".ThreadBlockedCycles")
+        .desc("Number of cycles fetch has spent blocked each thread")
+        .flags(Stats::pdf);
+
     fetchedCacheLines
         .name(name() + ".CacheLines")
         .desc("Number of cache lines fetched")
@@ -1659,6 +1665,7 @@ DefaultFetch<Impl>::profileStall(ThreadID tid) {
         DPRINTF(Fetch, "Fetch has no active thread!\n");
     } else if (fetchStatus[tid] == Blocked) {
         ++fetchBlockedCycles;
+        ++threadFetchBlockedCycles[tid];
         DPRINTF(Fetch, "[tid:%i]: Fetch is blocked!\n", tid);
     } else if (fetchStatus[tid] == Squashing) {
         ++fetchSquashCycles;

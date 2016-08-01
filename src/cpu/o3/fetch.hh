@@ -551,6 +551,8 @@ class DefaultFetch
     Stats::Scalar fetchIdleCycles;
     /** Total number of cycles spent blocked. */
     Stats::Scalar fetchBlockedCycles;
+    /** Number of cycles spent blocked each thread. */
+    Stats::Vector threadFetchBlockedCycles;
     /** Total number of cycles spent in any other state. */
     Stats::Scalar fetchMiscStallCycles;
     /** Total number of cycles spent in waiting for drains. */
