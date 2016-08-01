@@ -30,6 +30,13 @@ ResourceManager<Impl>::setRename(Rename *_rename)
 
 template<class Impl>
 void
+ResourceManager<Impl>::setFetch(Fetch *_fetch)
+{
+    fetch = _fetch;
+}
+
+template<class Impl>
+void
 ResourceManager<Impl>::setIQ(IQ *_instQueue)
 {
     instQueue = _instQueue;
@@ -173,6 +180,37 @@ ResourceManager<Impl>::reserveROB()
     }
 
     rob->reassignPortion(portion, 2, denominator);
+}
+
+template<class Impl>
+void
+ResourceManager<Impl>::reserveDecode()
+{
+    int portion[] = {512, 512};
+    int denominator = 1024;
+
+    if(configUpdated) {
+        if(config.HasMember("DecodePortionDenominator")) {
+            denominator = config["DecodePortionDenominator"].GetInt();
+            DPRINTF(Pard, "new Decode denominator is %d\n", denominator);
+        }
+
+        if(config.HasMember("DecodePortion")) {
+            portion[0] = config["DecodePortion"].GetInt();
+            assert(portion[0] <= denominator);
+            portion[1] = denominator - portion[0];
+        } else {
+            DPRINTF(Pard, "Decode partition policy not updated\n");
+        }
+    }
+
+    DPRINTF(Pard, "Decode Denominator is %d\n", denominator);
+
+    for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
+        DPRINTF(Pard, "Decode portion[%d]: %d\n", i, portion[i]);
+    }
+
+    fetch->reassignDecodeWidth(portion, 2, denominator);
 }
 
 template<class Impl>

@@ -65,6 +65,7 @@
 #include "debug/Drain.hh"
 #include "debug/Fetch.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/Pard.hh"
 #include "mem/packet.hh"
 #include "params/DerivO3CPU.hh"
 #include "sim/byteswap.hh"
@@ -77,7 +78,9 @@ using namespace std;
 
 template<class Impl>
 DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
-    : cpu(_cpu),
+    : denominator(1024),
+      decodeWidthUpToDate(true),
+      cpu(_cpu),
       decodeToFetchDelay(params->decodeToFetchDelay),
       renameToFetchDelay(params->renameToFetchDelay),
       iewToFetchDelay(params->iewToFetchDelay),
@@ -907,6 +910,8 @@ DefaultFetch<Impl>::tick()
 
     wroteToTimeBuffer = false;
 
+    updateDecodeWidth();
+
     for (ThreadID i = 0; i < numThreads; ++i) {
         issuePipelinedIfetch[i] = false;
     }
@@ -955,8 +960,12 @@ DefaultFetch<Impl>::tick()
 
     // Send instructions enqueued into the fetch queue to decode.
     // Limit rate by fetchWidth.  Stall if decode is stalled.
-    unsigned insts_to_decode = 0;
+    unsigned insts_to_decode[Impl::MaxThreads];
     unsigned available_insts = 0;
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        insts_to_decode[tid] = 0;
+    }
 
     for (auto tid : *activeThreads) {
         if (!stalls[tid].decode) {
@@ -968,9 +977,12 @@ DefaultFetch<Impl>::tick()
     auto tid_itr = activeThreads->begin();
     std::advance(tid_itr, random_mt.random<uint8_t>(0, activeThreads->size() - 1));
 
-    while (available_insts != 0 && insts_to_decode < decodeWidth) {
+    while (available_insts != 0 && insts_to_decode[0] < decodeWidths[0]
+            && insts_to_decode[1] < decodeWidths[1]) {
         ThreadID tid = *tid_itr;
-        if (!stalls[tid].decode && !fetchQueue[tid].empty()) {
+
+        if (!stalls[tid].decode && !fetchQueue[tid].empty() &&
+                insts_to_decode[tid] < decodeWidths[tid]) {
             auto inst = fetchQueue[tid].front();
             toDecode->insts[toDecode->size++] = inst;
             DPRINTF(Fetch, "[tid:%i][sn:%i]: Sending instruction to decode from "
@@ -979,7 +991,7 @@ DefaultFetch<Impl>::tick()
 
             wroteToTimeBuffer = true;
             fetchQueue[tid].pop_front();
-            insts_to_decode++;
+            insts_to_decode[tid]++;
             available_insts--;
         }
 
@@ -1648,6 +1660,48 @@ DefaultFetch<Impl>::pipelineIcacheAccesses(ThreadID tid)
 
         fetchCacheLine(fetchAddr, tid, thisPC.instAddr());
     }
+}
+
+template<class Impl>
+void
+DefaultFetch<Impl>::updateDecodeWidth()
+{
+    if (decodeWidthUpToDate)
+        return;
+
+    DPRINTF(Pard, "Updating decode width\n");
+
+    int allocatedWidth = 0;
+
+    ThreadID tid = 0;
+
+    for (;tid < numThreads - 1; ++tid) {
+        decodeWidths[tid] = decodeWidth*portion[tid]/denominator;
+        allocatedWidth += decodeWidths[tid];
+        DPRINTF(Pard, "Thread %d decode width: %d\n", tid, decodeWidths[tid]);
+    }
+    assert(allocatedWidth <= decodeWidth);
+    decodeWidths[tid] = decodeWidth - allocatedWidth;
+
+    DPRINTF(Pard, "Thread %d decode width: %d\n", tid, decodeWidths[tid]);
+
+    decodeWidthUpToDate = true;
+}
+
+template<class Impl>
+void
+DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
+        int lenWidthVec, int newWidthDenominator)
+{
+    assert(lenWidthVec == numThreads);
+
+    decodeWidthUpToDate = false;
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        portion[tid] = newWidthVec[tid];
+    }
+
+    denominator = newWidthDenominator;
 }
 
 template<class Impl>

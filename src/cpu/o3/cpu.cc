@@ -257,6 +257,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     commit.setIEWStage(&iew);
     rename.setIEWStage(&iew);
     rename.setCommitStage(&commit);
+    resourceManager.setFetch(&fetch);
     resourceManager.setIQ(&iew.instQueue);
     resourceManager.setLSQ(&iew.ldstQueue);
 
@@ -645,6 +646,7 @@ FullO3CPU<Impl>::startup()
         isa[tid]->startup(threadContexts[tid]);
 
     resourceManager.readConfig();
+    resourceManager.reserveDecode();
     resourceManager.reserveIQ();
     resourceManager.reserveROB();
     resourceManager.reserveLQ();

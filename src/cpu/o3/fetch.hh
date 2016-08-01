@@ -366,6 +366,19 @@ class DefaultFetch
     /** The decoder. */
     TheISA::Decoder *decoder[Impl::MaxThreads];
 
+    int portion[Impl::MaxThreads];
+
+    int denominator;
+
+    unsigned decodeWidths[Impl::MaxThreads];
+
+    bool decodeWidthUpToDate;
+
+    void updateDecodeWidth();
+
+    void reassignDecodeWidth(int newWidthVec[],
+            int lenWidthVec, int newWidthDenominator);
+
   private:
     DynInstPtr buildInst(ThreadID tid, StaticInstPtr staticInst,
                          StaticInstPtr curMacroop, TheISA::PCState thisPC,

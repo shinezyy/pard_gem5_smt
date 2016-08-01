@@ -17,6 +17,7 @@ class ResourceManager {
     typedef typename CPUPol::ROB ROB;
     typedef typename CPUPol::LSQ LSQ;
     typedef typename CPUPol::Rename Rename;
+    typedef typename CPUPol::Fetch Fetch;
 
     private:
 
@@ -29,6 +30,8 @@ class ResourceManager {
         O3CPU *cpu;
 
         Rename *rename;
+
+        Fetch *fetch;
 
         // TODO Document is a typedef, so we cannot pre-declare it...
         rapidjson::Document config;
@@ -49,6 +52,8 @@ class ResourceManager {
 
         void setRename(Rename *_rename);
 
+        void setFetch(Fetch *_fetch);
+
         void reserveIQ();
 
         void reserveROB();
@@ -58,6 +63,8 @@ class ResourceManager {
         void reserveSQ();
 
         void reserveRename();
+
+        void reserveDecode();
 
         void reconfigIssuePrio();
 

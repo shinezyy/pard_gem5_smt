@@ -672,7 +672,6 @@ template<class Impl>
 void
 LSQ<Impl>::updateMaxEntries()
 {
-
     if (lsqPolicy != Programmable || maxEntriesUpToDate) {
         return;
     }
