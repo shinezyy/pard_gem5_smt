@@ -644,11 +644,6 @@ FullO3CPU<Impl>::startup()
     for (int tid = 0; tid < numThreads; ++tid)
         isa[tid]->startup(threadContexts[tid]);
 
-    fetch.startupStage();
-    decode.startupStage();
-    iew.startupStage();
-    rename.startupStage();
-    commit.startupStage();
     resourceManager.readConfig();
     resourceManager.reserveIQ();
     resourceManager.reserveROB();
@@ -656,6 +651,12 @@ FullO3CPU<Impl>::startup()
     resourceManager.reserveSQ();
     resourceManager.reserveRename();
     resourceManager.reconfigIssuePrio();
+
+    fetch.startupStage();
+    decode.startupStage();
+    iew.startupStage();
+    rename.startupStage();
+    commit.startupStage();
 }
 
 template <class Impl>

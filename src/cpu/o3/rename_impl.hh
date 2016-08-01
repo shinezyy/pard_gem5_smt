@@ -55,6 +55,7 @@
 #include "debug/Activity.hh"
 #include "debug/Rename.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
@@ -249,6 +250,13 @@ DefaultRename<Impl>::resetStage()
         freeEntries[tid].lqEntries = iew_ptr->ldstQueue.numFreeLoadEntries(tid);
         freeEntries[tid].sqEntries = iew_ptr->ldstQueue.numFreeStoreEntries(tid);
         freeEntries[tid].robEntries = commit_ptr->numROBFreeEntries(tid);
+
+        DPRINTF(Pard, "Thread %d:\n\t- free IQ: %d\n\t"
+                "- free LQ: %d\n\t- free SQ: %d\n\t"
+                "- free ROB: %d\n", tid, freeEntries[tid].iqEntries,
+                freeEntries[tid].lqEntries, freeEntries[tid].sqEntries,
+                freeEntries[tid].robEntries);
+
         emptyROB[tid] = true;
 
         stalls[tid].iew = false;

@@ -4,6 +4,8 @@
 #include <map>
 #include <rapidjson/document.h>
 
+#include "config/the_isa.hh"
+
 struct DerivO3CPUParams;
 
 template<class Impl>

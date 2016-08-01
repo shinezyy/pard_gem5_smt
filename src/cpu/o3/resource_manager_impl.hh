@@ -5,7 +5,8 @@
 #include <cstdio>
 #include <rapidjson/filereadstream.h>
 
-#include "config/the_isa.hh"
+#include "cpu/o3/comm.hh"
+#include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
 #include "cpu/o3/resource_manager.hh"
 
@@ -58,7 +59,7 @@ ResourceManager<Impl>::reserveIQ()
     if(configUpdated) {
         if(config.HasMember("InstQueuePortionDenominator")) {
             denominator = config["InstQueuePortionDenominator"].GetInt();
-            printf("new IQ denominator is %d\n", denominator);
+            DPRINTF(Pard, "new IQ denominator is %d\n", denominator);
         }
 
         if(config.HasMember("InstQueuePortion")) {
@@ -66,14 +67,14 @@ ResourceManager<Impl>::reserveIQ()
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
         } else {
-            std::cout << "Instruction queue partition policy not updated\n";
+            DPRINTF(Pard, "Instruction queue partition policy not updated\n");
         }
     }
 
-    printf("IQ Denominator is %d\n", denominator);
+    DPRINTF(Pard, "IQ Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        printf("IQ portion[%d]: %d\n", i, portion[i]);
+        DPRINTF(Pard, "IQ portion[%d]: %d\n", i, portion[i]);
     }
 
     instQueue->reassignPortion(portion, 2, denominator);
@@ -89,7 +90,7 @@ ResourceManager<Impl>::reserveLQ()
     if(configUpdated) {
         if(config.HasMember("LSQPortionDenominator")) {
             denominator = config["LSQPortionDenominator"].GetInt();
-            printf("new LSQ denominator is %d\n", denominator);
+            DPRINTF(Pard, "new LSQ denominator is %d\n", denominator);
         }
 
         if(config.HasMember("LQPortion")) {
@@ -97,14 +98,14 @@ ResourceManager<Impl>::reserveLQ()
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
         } else {
-            std::cout << "LQ partition policy not updated\n";
+            DPRINTF(Pard, "LQ partition policy not updated\n");
         }
     }
 
-    printf("LSQ Denominator is %d\n", denominator);
+    DPRINTF(Pard, "LSQ Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        printf("LQ portion[%d]: %d\n", i, portion[i]);
+        DPRINTF(Pard, "LQ portion[%d]: %d\n", i, portion[i]);
     }
 
     lsq->reassignLQPortion(portion, 2, denominator);
@@ -121,7 +122,7 @@ ResourceManager<Impl>::reserveSQ()
     if(configUpdated) {
         if(config.HasMember("LSQPortionDenominator")) {
             denominator = config["LSQPortionDenominator"].GetInt();
-            printf("new LSQ denominator is %d\n", denominator);
+            DPRINTF(Pard, "new LSQ denominator is %d\n", denominator);
         }
 
         if(config.HasMember("SQPortion")) {
@@ -129,14 +130,14 @@ ResourceManager<Impl>::reserveSQ()
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
         } else {
-            std::cout << "SQ partition policy not updated\n";
+            DPRINTF(Pard, "SQ partition policy not updated\n");
         }
     }
 
-    printf("LSQ Denominator is %d\n", denominator);
+    DPRINTF(Pard, "LSQ Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        printf("SQ portion[%d]: %d\n", i, portion[i]);
+        DPRINTF(Pard, "SQ portion[%d]: %d\n", i, portion[i]);
     }
 
     lsq->reassignSQPortion(portion, 2, denominator);
@@ -153,7 +154,7 @@ ResourceManager<Impl>::reserveROB()
     if(configUpdated) {
         if(config.HasMember("ROBPortionDenominator")) {
             denominator = config["ROBPortionDenominator"].GetInt();
-            printf("new ROB denominator is %d\n", denominator);
+            DPRINTF(Pard, "new ROB denominator is %d\n", denominator);
         }
 
         if(config.HasMember("ROBPortion")) {
@@ -161,14 +162,14 @@ ResourceManager<Impl>::reserveROB()
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
         } else {
-            std::cout << "ROB partition policy not updated\n";
+            DPRINTF(Pard, "ROB partition policy not updated\n");
         }
     }
 
-    printf("ROB Denominator is %d\n", denominator);
+    DPRINTF(Pard, "ROB Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        printf("ROB portion[%d]: %d\n", i, portion[i]);
+        DPRINTF(Pard, "ROB portion[%d]: %d\n", i, portion[i]);
     }
 
     rob->reassignPortion(portion, 2, denominator);
@@ -181,16 +182,16 @@ ResourceManager<Impl>::reconfigIssuePrio()
     int prio[] = {5, 0};
     if(configUpdated && config.HasMember("IssuePriority")) {
         auto prio_array = config["IssuePriority"].GetArray();
-        std::cout << "Priority array:\n";
+        DPRINTF(Pard, "Priority array:\n");
         for (int i = 0; i < 2; i++) {
             prio[i] = prio_array[i].GetInt();
-            std::cout << prio[i] <<", ";
+            DPRINTF(Pard, "%d, ", prio[i]);
         }
-        std::cout << std::endl;
+        DPRINTF(Pard, "\n");
     } else {
-        std::cout << "Use default issue priority\n";
+        DPRINTF(Pard, "Use default issue priority\n");
     }
-    std::cout << "Using issue policy (0: prio): " << instQueue->issuePolicy << "\n";
+    DPRINTF(Pard, "Using issue policy (0: prio): %d\n", instQueue->issuePolicy);
     instQueue->reassignIssuePrio(prio, 2);
 }
 

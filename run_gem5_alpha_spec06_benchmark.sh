@@ -28,6 +28,7 @@ SPEC_DIR=$HOME/cpu2006
 BENCHMARK=$1                    # Benchmark name, e.g. bzip2
 OUTPUT_DIR=$2                   # Directory to place run output.
 SMT=$3
+DEBUG_FLAG=$4
 
 SCRIPT_OUT=$OUTPUT_DIR/runscript.log
 # File log for this script's stdout henceforth
@@ -56,10 +57,11 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
-#$GEM5_DIR/build/ALPHA/gem5.opt_nomodify\
 #gdb --args \
+#$GEM5_DIR/build/ALPHA/gem5.opt_nomodify\
 $GEM5_DIR/build/ALPHA/gem5.opt\
     --outdir=$OUTPUT_DIR\
+    $DEBUG_FLAG\
     $GEM5_DIR/configs/spec/spec06_config.py\
     --benchmark="$BENCHMARK"\
     --benchmark_stdout=$OUTPUT_DIR\

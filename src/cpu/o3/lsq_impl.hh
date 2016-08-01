@@ -54,6 +54,7 @@
 #include "debug/Fetch.hh"
 #include "debug/LSQ.hh"
 #include "debug/Writeback.hh"
+#include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
@@ -130,7 +131,7 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
         lsqPolicy = Programmable;
 
         DPRINTF(LSQ, "LSQ sharing policy set to Programmable\n");
-        printf("LSQ sharing policy set to Programmable\n");
+        DPRINTF(Pard, "LSQ sharing policy set to Programmable\n");
 
         int allocatedLQNum = 0;
         int allocatedSQNum = 0;
@@ -675,7 +676,7 @@ LSQ<Impl>::updateMaxEntries()
     if (lsqPolicy != Programmable || maxEntriesUpToDate) {
         return;
     }
-    printf("Updating LSQ maxEntries\n");
+    DPRINTF(Pard, "Updating LSQ maxEntries\n");
     int allocatedLQNum = 0;
     int allocatedSQNum = 0;
 
@@ -688,7 +689,7 @@ LSQ<Impl>::updateMaxEntries()
         allocatedLQNum += maxLQEntries[tid];
         allocatedSQNum += maxSQEntries[tid];
 
-        printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+        DPRINTF(Pard, "Thread %d LQ Entries: %d, SQ Entries: %d\n",
                 tid, maxLQEntries[tid], maxSQEntries[tid]);
     }
 
@@ -698,7 +699,7 @@ LSQ<Impl>::updateMaxEntries()
     maxLQEntries[tid] = LQEntries - allocatedLQNum;
     maxSQEntries[tid] = SQEntries - allocatedSQNum;
 
-    printf("Thread %d LQ Entries: %d, SQ Entries: %d\n",
+    DPRINTF(Pard, "Thread %d LQ Entries: %d, SQ Entries: %d\n",
             tid, maxLQEntries[tid], maxSQEntries[tid]);
 
     maxEntriesUpToDate = true;

@@ -23,12 +23,13 @@ def get_perlbench():
     perl_input_test_dir = spec_dir+'400.perlbench/data/test/input/'
     perl_input_all_dir = spec_dir+'400.perlbench/data/all/input/'
     # TEST CMDS
-    perlbench.cmd = [perlbench.executable] + ['-I.',\
-            '-I'+perl_input_all_dir+'lib', perl_input_test_dir+'attrs.pl']
+    # perlbench.cmd = [perlbench.executable] + ['-I.',\
+    #         '-I'+perl_input_all_dir+'lib', perl_input_test_dir+'attrs.pl']
     # REF CMDS
-    # perlbench.cmd = [perlbench.executable] + ['-I'+perl_input_all_dir+'lib',\
-    # perl_input_ref_dir+'checkspam.pl',\
-    #         '2500', '5', '25', '11', '150', '1', '1', '1', '1']
+    perlbench.cmd = [perlbench.executable] +\
+            ['-I'+perl_input_all_dir+'lib',\
+             perl_input_ref_dir+'checkspam.pl',\
+             '2500', '5', '25', '11', '150', '1', '1', '1', '1']
 
     # perlbench.cmd = [perlbench.executable] + ['-I./lib',\
     # 'diffmail.pl', '4', '800', '10', '17', '19', '300']
@@ -44,9 +45,9 @@ def get_bzip2():
     bzip2_input_ref_dir = spec_dir + '401.bzip2/data/ref/input/'
     bzip2_input_test_dir = spec_dir + '401.bzip2/data/test/input/'
     # TEST CMDS
-    bzip2.cmd = [bzip2.executable] + [bzip2_input_test_dir+'dryer.jpg', '5']
+    # bzip2.cmd = [bzip2.executable] + [bzip2_input_test_dir+'dryer.jpg', '5']
     # REF CMDS
-    #bzip2.cmd = [bzip2.executable] + ['input.source', '280']
+    bzip2.cmd = [bzip2.executable] + [bzip2_input_ref_dir+'input.source', '280']
     #bzip2.cmd = [bzip2.executable] + ['chicken.jpg', '30']
     #bzip2.cmd = [bzip2.executable] + ['liberty.jpg', '30']
     #bzip2.cmd = [bzip2.executable] + ['input.program', '280']
@@ -62,9 +63,9 @@ def get_gcc():
     gcc_input_ref_dir = spec_dir+'403.gcc/data/ref/input/'
     gcc_input_test_dir = spec_dir+'403.gcc/data/test/input/'
     # TEST CMDS
-    gcc.cmd = [gcc.executable] + [gcc_input_test_dir+'cccp.i', '-o', 'cccp.s']
+    #gcc.cmd = [gcc.executable] + [gcc_input_test_dir+'cccp.i', '-o', 'cccp.s']
     # REF CMDS
-    # gcc.cmd = [gcc.executable] + ['166.i', '-o', '166.s']
+    gcc.cmd = [gcc.executable] + [gcc_input_ref_dir+'166.i', '-o', '166.s']
     #gcc.cmd = [gcc.executable] + ['200.i', '-o', '200.s']
     #gcc.cmd = [gcc.executable] + ['c-typeck.i', '-o', 'c-typeck.s']
     #gcc.cmd = [gcc.executable] + ['cp-decl.i', '-o', 'cp-decl.s']
@@ -85,9 +86,9 @@ def get_bwaves():
     bwaves_input_ref_dir = spec_dir + '410.bwaves/data/ref/input/'
     bwaves_input_test_dir = spec_dir + '410.bwaves/data/test/input/'
     # TEST CMDS
-    bwaves.cmd = [bwaves.executable] + [bwaves_input_test_dir+'bwaves.in']
+    # bwaves.cmd = [bwaves.executable] + [bwaves_input_test_dir+'bwaves.in']
     # REF CMDS
-    #bwaves.cmd = [bwaves.executable]
+    bwaves.cmd = [bwaves.executable] + [bwaves_input_ref_dir+'bwaves.in']
     #bwaves.output = out_dir + 'bwaves.out'
     return bwaves
 
@@ -113,9 +114,9 @@ def get_mcf():
     mcf_input_ref_dir = spec_dir + '429.mcf/data/ref/input/'
     mcf_input_test_dir = spec_dir + '429.mcf/data/test/input/'
     # TEST CMDS
-    mcf.cmd = [mcf.executable] + [mcf_input_test_dir + 'inp.in']
+    # mcf.cmd = [mcf.executable] + [mcf_input_test_dir + 'inp.in']
     # REF CMDS
-    #mcf.cmd = [mcf.executable] + [mcf_input_ref_dir + 'inp.in']
+    mcf.cmd = [mcf.executable] + [mcf_input_ref_dir + 'inp.in']
     #mcf.output = out_dir + 'mcf.out'
     return mcf
 
@@ -188,11 +189,11 @@ def get_gobmk():
     gobmk_input_ref_dir = spec_dir + '445.gobmk/data/ref/input/'
     gobmk_input_test_dir = spec_dir + '445.gobmk/data/test/input/'
     # TEST CMDS
-    gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-    gobmk.input = gobmk_input_test_dir+'capture.tst'
-    # REF CMDS
     # gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
-    # gobmk.input = '13x13.tst'
+    # gobmk.input = gobmk_input_test_dir + 'capture.tst'
+    # REF CMDS
+    gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
+    gobmk.input = gobmk_input_ref_dir + '13x13.tst'
     #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']
     #gobmk.input = 'nngs.tst'
     #gobmk.cmd = [gobmk.executable] + ['--quiet','--mode', 'gtp']

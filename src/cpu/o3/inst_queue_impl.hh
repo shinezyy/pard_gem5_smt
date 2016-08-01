@@ -47,11 +47,11 @@
 
 #include <limits>
 #include <vector>
-#include <iostream>
 
 #include "cpu/o3/fu_pool.hh"
 #include "cpu/o3/inst_queue.hh"
 #include "debug/IQ.hh"
+#include "debug/Pard.hh"
 #include "enums/OpClass.hh"
 #include "params/DerivO3CPU.hh"
 #include "sim/core.hh"
@@ -192,7 +192,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         maxEntries[tid] = numEntries - allocatedNum;
 
         DPRINTF(IQ, "IQ sharing policy set to Programmable\n");
-        printf("IQ sharing policy set to Programmable\n");
+        DPRINTF(Pard, "IQ sharing policy set to Programmable\n");
     } else {
         assert(0 && "Invalid IQ Sharing Policy.Options Are:{Dynamic,"
                 "Partitioned, Threshold}");
@@ -425,7 +425,7 @@ InstructionQueue<Impl>::resetState()
             portion[tid] = denominator / numThreads;
         }
         else {
-            std::cout << "Using assigned portion!\n";
+            DPRINTF(Pard, "Using assigned portion!\n");
         }
     }
 

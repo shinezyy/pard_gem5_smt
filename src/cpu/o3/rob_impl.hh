@@ -49,6 +49,7 @@
 #include "cpu/o3/rob.hh"
 #include "debug/Fetch.hh"
 #include "debug/ROB.hh"
+#include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
@@ -101,7 +102,7 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
         }
     } else if (policy == "programmable") {
         robPolicy = Programmable;
-        printf("ROB sharing policy set to Programmable\n");
+        DPRINTF(Pard, "ROB sharing policy set to Programmable\n");
         DPRINTF(Fetch, "ROB sharing policy set to Programmable\n");
 
         int allocatedNum = 0;
