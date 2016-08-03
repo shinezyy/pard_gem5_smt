@@ -338,6 +338,9 @@ class ROB
     Stats::Scalar robReads;
     // The number of rob_writes
     Stats::Scalar robWrites;
+
+  public:
+    bool isDynamicPolicy() const;
 };
 
 #endif //__CPU_O3_ROB_HH__

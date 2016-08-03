@@ -526,6 +526,21 @@ class DefaultCommit
 
     /** Number of cycles where the commit bandwidth limit is reached. */
     Stats::Scalar commitEligibleSamples;
+
+  private:
+    /** Set changedROBNumEntries[tid] to true, do global set if
+     * rob->isDynamicPolicy() */
+    void markROBNumEntriesChanged(ThreadID tid) {
+        ///@todo avoid unnecessary loop.
+        if (rob->isDynamicPolicy()) {
+            for (ThreadID t = 0; t < numThreads; t++) {
+                changedROBNumEntries[t] = true;
+            }
+        }
+        else {
+            changedROBNumEntries[tid] = true;
+        }
+    }
 };
 
 #endif // __CPU_O3_COMMIT_HH__

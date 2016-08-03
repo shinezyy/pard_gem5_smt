@@ -563,7 +563,7 @@ DefaultCommit<Impl>::squashAll(ThreadID tid)
     youngestSeqNum[tid] = lastCommitedSeqNum[tid];
 
     rob->squash(squashed_inst, tid);
-    changedROBNumEntries[tid] = true;
+    markROBNumEntriesChanged(tid);
 
     // Send back the sequence number of the squashed instruction.
     toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
@@ -878,7 +878,7 @@ DefaultCommit<Impl>::commit()
             youngestSeqNum[tid] = squashed_inst;
 
             rob->squash(squashed_inst, tid);
-            changedROBNumEntries[tid] = true;
+            markROBNumEntriesChanged(tid);
 
             toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
 
@@ -1012,7 +1012,7 @@ DefaultCommit<Impl>::commitInsts()
             ++commitSquashedInsts;
 
             // Record that the number of ROB entries has changed.
-            changedROBNumEntries[tid] = true;
+            markROBNumEntriesChanged(tid);
         } else {
             pc[tid] = head_inst->pcState();
 
@@ -1030,8 +1030,7 @@ DefaultCommit<Impl>::commitInsts()
                 ++num_committed;
                 statCommittedInstType[tid][head_inst->opClass()]++;
                 ppCommit->notify(head_inst);
-
-                changedROBNumEntries[tid] = true;
+                markROBNumEntriesChanged(tid);
 
                 // Set the doneSeqNum to the youngest committed instruction.
                 toIEW->commitInfo[tid].doneSeqNum = head_inst->seqNum;
@@ -1314,7 +1313,7 @@ DefaultCommit<Impl>::getInsts()
         if (!inst->isSquashed() &&
             commitStatus[tid] != ROBSquashing &&
             commitStatus[tid] != TrapPending) {
-            changedROBNumEntries[tid] = true;
+            markROBNumEntriesChanged(tid);
 
             DPRINTF(Commit, "Inserting PC %s [sn:%i] [tid:%i] into ROB.\n",
                     inst->pcState(), inst->seqNum, tid);

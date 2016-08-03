@@ -568,4 +568,11 @@ ROB<Impl>::findInst(ThreadID tid, InstSeqNum squash_inst)
     return NULL;
 }
 
+template <typename Impl>
+bool
+ROB<Impl>::isDynamicPolicy() const
+{
+    return robPolicy == Dynamic;
+}
+
 #endif//__CPU_O3_ROB_IMPL_HH__
