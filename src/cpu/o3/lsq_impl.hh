@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <list>
 #include <string>
+#include <numeric>
 
 #include "cpu/o3/lsq.hh"
 #include "debug/Drain.hh"
@@ -56,6 +57,12 @@
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
+
+template <typename Container, typename BinaryOp, typename Ret>
+Ret Accumulate(Container &c, Ret init, BinaryOp op)
+{
+    return std::accumulate(c.begin(), c.end(), init, op);
+}
 
 template <class Impl>
 LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
@@ -395,129 +402,75 @@ template<class Impl>
 int
 LSQ<Impl>::getCount()
 {
-    unsigned total = 0;
-
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        total += getCount(tid);
-    }
-
-    return total;
+    return Accumulate(*activeThreads, 0,
+            [this](int sum, ThreadID tid){ return sum + getCount(tid); });
 }
 
 template<class Impl>
 int
 LSQ<Impl>::numLoads()
 {
-    unsigned total = 0;
-
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        total += numLoads(tid);
-    }
-
-    return total;
+    return Accumulate(*activeThreads, 0,
+            [this](int sum, ThreadID tid){ return sum + numLoads(tid); });
 }
 
 template<class Impl>
 int
 LSQ<Impl>::numStores()
 {
-    unsigned total = 0;
-
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        total += thread[tid].numStores();
-    }
-
-    return total;
+    return Accumulate(*activeThreads, 0,
+            [this](int sum, ThreadID tid){ return sum + numStores(tid); });
 }
 
 template<class Impl>
 unsigned
 LSQ<Impl>::numFreeLoadEntries()
 {
-    unsigned total = 0;
-
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        total += thread[tid].numFreeLoadEntries();
-    }
-
-    return total;
+    return maxLQEntries - numLoads();
 }
 
 template<class Impl>
 unsigned
 LSQ<Impl>::numFreeStoreEntries()
 {
-    unsigned total = 0;
-
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        total += thread[tid].numFreeStoreEntries();
-    }
-
-    return total;
+    return maxSQEntries - numStores();
 }
 
 template<class Impl>
 unsigned
 LSQ<Impl>::numFreeLoadEntries(ThreadID tid)
 {
+    if (lsqPolicy == Dynamic) {
+        return numFreeLoadEntries();
+    }
+    else {
         return thread[tid].numFreeLoadEntries();
+    }
 }
 
 template<class Impl>
 unsigned
 LSQ<Impl>::numFreeStoreEntries(ThreadID tid)
 {
+    if (lsqPolicy == Dynamic) {
+        return numFreeStoreEntries();
+    }
+    else {
         return thread[tid].numFreeStoreEntries();
+    }
 }
 
 template<class Impl>
 bool
 LSQ<Impl>::isFull()
 {
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        if (!(thread[tid].lqFull() || thread[tid].sqFull()))
-            return false;
-    }
-
-    return true;
+    return lqFull() || sqFull();
 }
 
 template<class Impl>
 bool
 LSQ<Impl>::isFull(ThreadID tid)
 {
-    //@todo: Change to Calculate All Entries for
-    //Dynamic Policy
     if (lsqPolicy == Dynamic)
         return isFull();
     else
@@ -569,25 +522,13 @@ template<class Impl>
 bool
 LSQ<Impl>::lqFull()
 {
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        if (!thread[tid].lqFull())
-            return false;
-    }
-
-    return true;
+    return numLoads() == maxLQEntries;
 }
 
 template<class Impl>
 bool
 LSQ<Impl>::lqFull(ThreadID tid)
 {
-    //@todo: Change to Calculate All Entries for
-    //Dynamic Policy
     if (lsqPolicy == Dynamic)
         return lqFull();
     else
@@ -598,25 +539,13 @@ template<class Impl>
 bool
 LSQ<Impl>::sqFull()
 {
-    list<ThreadID>::iterator threads = activeThreads->begin();
-    list<ThreadID>::iterator end = activeThreads->end();
-
-    while (threads != end) {
-        ThreadID tid = *threads++;
-
-        if (!sqFull(tid))
-            return false;
-    }
-
-    return true;
+    return numStores() == maxSQEntries;
 }
 
 template<class Impl>
 bool
 LSQ<Impl>::sqFull(ThreadID tid)
 {
-     //@todo: Change to Calculate All Entries for
-    //Dynamic Policy
     if (lsqPolicy == Dynamic)
         return sqFull();
     else

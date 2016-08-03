@@ -131,7 +131,7 @@ class DerivO3CPU(BaseCPU):
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
     smtFetchPolicy = Param.String('SingleThread', "SMT Fetch policy")
-    smtLSQPolicy    = Param.String('Partitioned', "SMT LSQ Sharing Policy")
+    smtLSQPolicy    = Param.String('Dynamic', "SMT LSQ Sharing Policy")
     smtLSQThreshold = Param.Int(100, "SMT LSQ Threshold Sharing Parameter")
     smtIQPolicy    = Param.String('Dynamic', "SMT IQ Sharing Policy")
     smtIQThreshold = Param.Int(100, "SMT IQ Threshold Sharing Parameter")
