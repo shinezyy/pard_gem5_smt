@@ -541,6 +541,10 @@ class DefaultCommit
             changedROBNumEntries[tid] = true;
         }
     }
+
+  public:
+    bool isROBPolicyDynamic() const
+    { return rob->isDynamicPolicy(); }
 };
 
 #endif // __CPU_O3_COMMIT_HH__

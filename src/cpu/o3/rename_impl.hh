@@ -69,7 +69,8 @@ DefaultRename<Impl>::DefaultRename(O3CPU *_cpu, DerivO3CPUParams *params)
       commitWidth(params->commitWidth),
       numThreads(params->numThreads),
       maxPhysicalRegs(params->numPhysIntRegs + params->numPhysFloatRegs
-                      + params->numPhysCCRegs)
+                      + params->numPhysCCRegs),
+      availableInstCount(0)
 {
     if (renameWidth > Impl::MaxWidth)
         fatal("renameWidth (%d) is larger than compiled limit (%d),\n"
@@ -399,6 +400,8 @@ DefaultRename<Impl>::tick()
         rename(status_change, tid);
     }
 
+    clearAvailableInstCount();
+
     if (status_change) {
         updateStatus();
     }
@@ -562,6 +565,8 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
     DPRINTF(Rename, "[tid:%u]: %i available instructions to "
             "send iew.\n", tid, insts_available);
+
+    incAvailableInstCount(insts_available);
 
     DPRINTF(Rename, "[tid:%u]: %i insts pipelining from Rename | %i insts "
             "dispatched to IQ last cycle.\n",
@@ -1131,12 +1136,19 @@ template <class Impl>
 inline int
 DefaultRename<Impl>::calcFreeROBEntries(ThreadID tid)
 {
-    int num_free = freeEntries[tid].robEntries -
-                  (instsInProgress[tid] - fromIEW->iewInfo[tid].dispatched);
-
-    //DPRINTF(Rename,"[tid:%i]: %i rob free\n",tid,num_free);
-
-    return num_free;
+    if (commit_ptr->isROBPolicyDynamic()) {
+        // Calc number of all instructions in flight.
+        int numInstsInFlight = availableInstCount;
+        for (ThreadID t = 0; t < numThreads; t++) {
+            numInstsInFlight +=
+                (instsInProgress[t] - fromIEW->iewInfo[t].dispatched);
+        }
+        return freeEntries[tid].robEntries - numInstsInFlight;
+    }
+    else {
+        return freeEntries[tid].robEntries
+            - (instsInProgress[tid] - fromIEW->iewInfo[tid].dispatched);
+    }
 }
 
 template <class Impl>

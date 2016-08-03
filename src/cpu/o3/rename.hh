@@ -511,6 +511,16 @@ class DefaultRename
     Stats::Scalar renamedTempSerializing;
     /** Number of instructions inserted into skid buffers. */
     Stats::Scalar renameSkidInsts;
+
+  private:
+    /** Record the total number of instructions that can be sent to IEW,
+     * which can be extracted by ROB. It helps with numROBFreeEntries to
+     * ensure that the instructions extracted won't excced capacity limit. */
+    int availableInstCount;
+
+    void clearAvailableInstCount() { availableInstCount = 0; }
+
+    void incAvailableInstCount(int incValue) { availableInstCount += incValue; }
 };
 
 #endif // __CPU_O3_RENAME_HH__
