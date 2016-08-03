@@ -322,7 +322,12 @@ template <class Impl>
 unsigned
 ROB<Impl>::numFreeEntries(ThreadID tid)
 {
-    return maxEntries[tid] - threadEntries[tid];
+    if (robPolicy == Dynamic) {
+        return numFreeEntries();
+    }
+    else {
+        return maxEntries[tid] - threadEntries[tid];
+    }
 }
 
 template <class Impl>
