@@ -539,7 +539,9 @@ InstructionQueue<Impl>::isFull(ThreadID tid)
     if (numFreeEntries(tid) == 0) {
         return(true);
     } else {
-        return(false);
+        // Work-around for Dynamic policy.
+        // It is expected to work in Partition policy, as well.
+        return isFull();
     }
 }
 
