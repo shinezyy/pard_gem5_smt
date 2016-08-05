@@ -66,6 +66,8 @@
 #include "sim/process.hh"
 #include "sim/stat_control.hh"
 #include "sim/system.hh"
+#include "sim/async.hh"
+#include "sim/eventq.hh"
 
 #if THE_ISA == ALPHA_ISA
 #include "arch/alpha/osfpal.hh"
@@ -160,6 +162,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     : BaseO3CPU(params),
       itb(params->itb),
       dtb(params->dtb),
+      dumpCycles(0),
       tickEvent(this),
 #ifndef NDEBUG
       instcount(0),
@@ -415,7 +418,6 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     for (ThreadID tid = 0; tid < this->numThreads; tid++)
         this->thread[tid]->setFuncExeInst(0);
 
-    this->setUpSrcManagerConfigs("src_manager.config");
 }
 
 template <class Impl>
@@ -559,6 +561,14 @@ FullO3CPU<Impl>::tick()
     assert(getDrainState() != Drainable::Drained);
 
     ++numCycles;
+    ++dumpCycles;
+    if (dumpCycles >= 15000) {
+        async_event = true;
+        async_statdump = true;
+        dumpCycles = 0;
+        getEventQueue(0)->wakeup();
+    }
+
     ppCycles->notify(1);
 
 //    activity = false;
@@ -1660,6 +1670,7 @@ FullO3CPU<Impl>::wakeCPU()
         --cycles;
         idleCycles += cycles;
         numCycles += cycles;
+        dumpCycles += cycles;
         ppCycles->notify(cycles);
     }
 

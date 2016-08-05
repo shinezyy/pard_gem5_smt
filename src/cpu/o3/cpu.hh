@@ -129,6 +129,8 @@ class FullO3CPU : public BaseO3CPU
 
   private:
 
+    long long dumpCycles;
+
     /**
      * IcachePort class for instruction fetch.
      */

@@ -467,14 +467,14 @@ template<class Impl>
 unsigned
 LSQ<Impl>::numFreeLoadEntries()
 {
-    return maxLQEntries - numLoads();
+    return LQEntries - numLoads();
 }
 
 template<class Impl>
 unsigned
 LSQ<Impl>::numFreeStoreEntries()
 {
-    return maxSQEntries - numStores();
+    return SQEntries - numStores();
 }
 
 template<class Impl>
@@ -563,7 +563,7 @@ template<class Impl>
 bool
 LSQ<Impl>::lqFull()
 {
-    return numLoads() == maxLQEntries;
+    return numLoads() == LQEntries;
 }
 
 template<class Impl>
@@ -580,7 +580,7 @@ template<class Impl>
 bool
 LSQ<Impl>::sqFull()
 {
-    return numStores() == maxSQEntries;
+    return numStores() == SQEntries;
 }
 
 template<class Impl>
