@@ -350,6 +350,8 @@ class ROB
     Stats::Scalar robReads;
     // The number of rob_writes
     Stats::Scalar robWrites;
+    // The number of insts inserted into rob per thread
+    Stats::Vector robInserted;
 
   public:
     bool isDynamicPolicy() const;

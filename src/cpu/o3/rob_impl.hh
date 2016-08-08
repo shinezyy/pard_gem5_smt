@@ -232,6 +232,7 @@ ROB<Impl>::insertInst(DynInstPtr &inst)
     assert(inst);
 
     robWrites++;
+    ++robInserted[inst->threadNumber];
 
     DPRINTF(ROB, "Adding inst PC %s to the ROB.\n", inst->pcState());
 
@@ -572,6 +573,11 @@ ROB<Impl>::regStats()
     robWrites
         .name(name() + ".rob_writes")
         .desc("The number of ROB writes");
+
+    robInserted
+        .init(numThreads)
+        .name(name() + ".rob_writes_thread")
+        .desc("The number of ROB writes per thread");
 }
 
 template <class Impl>

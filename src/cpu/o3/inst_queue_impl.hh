@@ -226,6 +226,11 @@ InstructionQueue<Impl>::regStats()
         .desc("Number of instructions added to the IQ (excludes non-spec)")
         .prereq(iqInstsAdded);
 
+    iqInstsAddedPerThread
+        .init(numThreads)
+        .name(name() + ".iqInstsAddedPerThread")
+        .desc("Number of instructions added to the IQ (excludes non-spec) per thread");
+
     iqNonSpecInstsAdded
         .name(name() + ".iqNonSpecInstsAdded")
         .desc("Number of non-speculative instructions added to the IQ")
@@ -235,6 +240,11 @@ InstructionQueue<Impl>::regStats()
         .name(name() + ".iqInstsIssued")
         .desc("Number of instructions issued")
         .prereq(iqInstsIssued);
+
+    iqInstsIssuedPerThread
+        .init(numThreads)
+        .name(name() + ".iqInstsIssuedPerThread")
+        .desc("Number of instructions issued per thread");
 
     iqIntInstsIssued
         .name(name() + ".iqIntInstsIssued")
@@ -698,6 +708,7 @@ InstructionQueue<Impl>::insert(DynInstPtr &new_inst)
     }
 
     ++iqInstsAdded;
+    ++iqInstsAddedPerThread[new_inst->threadNumber];
 
     count[new_inst->threadNumber]++;
 
@@ -966,6 +977,7 @@ InstructionQueue<Impl>::scheduleReadyInsts()
 
             issuing_inst->setIssued();
             ++total_issued;
+            ++iqInstsIssuedPerThread[tid];
 
 #if TRACING_ON
             issuing_inst->issueTick = curTick() - issuing_inst->fetchTick;
@@ -991,7 +1003,7 @@ InstructionQueue<Impl>::scheduleReadyInsts()
     }
 
     numIssuedDist.sample(total_issued);
-    iqInstsIssued+= total_issued;
+    iqInstsIssued += total_issued;
 
     // If we issued any instructions, tell the CPU we had activity.
     // @todo If the way deferred memory instructions are handeled due to

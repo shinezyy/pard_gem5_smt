@@ -521,10 +521,12 @@ class InstructionQueue
 
     /** Stat for number of instructions added. */
     Stats::Scalar iqInstsAdded;
+    Stats::Vector iqInstsAddedPerThread;
     /** Stat for number of non-speculative instructions added. */
     Stats::Scalar iqNonSpecInstsAdded;
 
     Stats::Scalar iqInstsIssued;
+    Stats::Vector iqInstsIssuedPerThread;
     /** Stat for number of integer instructions issued. */
     Stats::Scalar iqIntInstsIssued;
     /** Stat for number of floating point instructions issued. */
