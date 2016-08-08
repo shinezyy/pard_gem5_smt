@@ -725,6 +725,8 @@ DefaultCommit<Impl>::tick()
         cpu->activityThisCycle();
     }
 
+    rob->increaseUsedEntries();
+
     updateStatus();
 }
 

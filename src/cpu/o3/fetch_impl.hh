@@ -1693,7 +1693,7 @@ void
 DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
         int lenWidthVec, int newWidthDenominator)
 {
-    assert(lenWidthVec == numThreads);
+    //assert(lenWidthVec == numThreads);
 
     decodeWidthUpToDate = false;
 

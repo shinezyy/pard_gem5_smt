@@ -204,7 +204,10 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       globalSeqNum(1),
       system(params->system),
       drainManager(NULL),
-      lastRunningCycle(curCycle())
+      lastRunningCycle(curCycle()),
+      windowSize(15000),
+      numPhysIntRegs(params->numPhysIntRegs),
+      numPhysFloatRegs(params->numPhysFloatRegs)
 {
     if (!params->switched_out) {
         _status = Running;
@@ -562,7 +565,13 @@ FullO3CPU<Impl>::tick()
 
     ++numCycles;
     ++dumpCycles;
-    if (dumpCycles >= 15000) {
+    if (dumpCycles >= windowSize) {
+
+        commit.rob->dumpUsedEntries();
+        rename.dumpFreeEntries();
+        iew.instQueue.dumpUsedEntries();
+        iew.ldstQueue.dumpUsedEntries();
+
         async_event = true;
         async_statdump = true;
         dumpCycles = 0;

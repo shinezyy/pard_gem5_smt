@@ -763,6 +763,12 @@ class FullO3CPU : public BaseO3CPU
      * @param filename the config file's name.
      */
     void setUpSrcManagerConfigs(const std::string filename);
+
+  public:
+    unsigned windowSize;
+
+    unsigned numPhysIntRegs;
+    unsigned numPhysFloatRegs;
 };
 
 #endif // __CPU_O3_CPU_HH__

@@ -47,6 +47,7 @@
 #include <map>
 #include <queue>
 
+#include "base/statistics.hh"
 #include "cpu/o3/lsq_unit.hh"
 #include "cpu/inst_seq.hh"
 #include "mem/port.hh"
@@ -343,6 +344,20 @@ class LSQ {
 
     /** Number of Threads. */
     ThreadID numThreads;
+
+  public:
+    uint64_t numUsedLQEntries;
+
+    uint64_t numUsedSQEntries;
+
+    void increaseUsedEntries();
+
+    void resetUsedEntries();
+
+    void dumpUsedEntries();
+
+    Stats::Scalar lqUtilization;
+    Stats::Scalar sqUtilization;
 };
 
 template <class Impl>

@@ -512,6 +512,10 @@ class DefaultRename
     /** Number of instructions inserted into skid buffers. */
     Stats::Scalar renameSkidInsts;
 
+    Stats::Scalar intRegUtilization;
+
+    Stats::Scalar floatRegUtilization;
+
   private:
     /** Record the total number of instructions that can be sent to IEW,
      * which can be extracted by ROB. It helps with numROBFreeEntries to
@@ -528,6 +532,16 @@ class DefaultRename
     unsigned nrFreeRegs[Impl::MaxThreads];
 
     void setNrFreeRegs(unsigned _nrFreeRegs[], ThreadID _numThreads);
+
+    uint64_t numFreeIntEntries;
+
+    uint64_t numFreeFloatEntries;
+
+    void increaseFreeEntries();
+
+    void resetFreeEntries();
+
+    void dumpFreeEntries();
 };
 
 #endif // __CPU_O3_RENAME_HH__

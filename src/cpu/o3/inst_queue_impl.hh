@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2011-2014 ARM Limited
+/* * Copyright (c) 2011-2014 ARM Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
@@ -94,7 +93,8 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
       denominator(1024),
       numEntries(params->numIQEntries),
       totalWidth(params->issueWidth),
-      commitToIEWDelay(params->commitToIEWDelay)
+      commitToIEWDelay(params->commitToIEWDelay),
+      numUsedEntries(0)
 {
     assert(fuPool);
 
@@ -421,6 +421,10 @@ InstructionQueue<Impl>::regStats()
         .desc("Number of floating point alu accesses")
         .flags(total);
 
+    iqUtilization
+        .name(name() + ".iq_utilization")
+        .desc("Accumulation of instruction queue used every cycle");
+
 }
 
 template <class Impl>
@@ -570,7 +574,7 @@ void
 InstructionQueue<Impl>::reassignPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
-    assert(lenNewPortionVec == numThreads);
+    //assert(lenNewPortionVec == numThreads);
 
     maxEntriesUpToDate = false;
 
@@ -586,7 +590,7 @@ void
 InstructionQueue<Impl>::reassignIssuePrio(int newPrioVec[],
         int len)
 {
-    assert(len == numThreads);
+    //assert(len == numThreads);
 
     maxEntriesUpToDate = false;
 
@@ -1733,6 +1737,29 @@ InstructionQueue<Impl>::getMaxEntries(ThreadID tid) const
 {
     assert(0 <= tid && tid < numThreads && "tid exceeds limit");
     return maxEntries[tid];
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::increaseUsedEntries()
+{
+    numUsedEntries += countInsts();
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::resetUsedEntries()
+{
+    numUsedEntries = 0;
+}
+
+template <class Impl>
+void
+InstructionQueue<Impl>::dumpUsedEntries()
+{
+    iqUtilization = double(numUsedEntries) /
+        double(numEntries*cpu->windowSize);
+    resetUsedEntries();
 }
 
 #endif//__CPU_O3_INST_QUEUE_IMPL_HH__

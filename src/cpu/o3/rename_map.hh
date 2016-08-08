@@ -369,6 +369,16 @@ class UnifiedRenameMap
             ccRegs <= ccMap.numFreeEntries();
     }
 
+  public:
+    unsigned numFreeIntEntries()
+    {
+        return intMap.numFreeEntries();
+    }
+
+    unsigned numFreeFloatEntries()
+    {
+        return floatMap.numFreeEntries();
+    }
 };
 
 #endif //__CPU_O3_RENAME_MAP_HH__

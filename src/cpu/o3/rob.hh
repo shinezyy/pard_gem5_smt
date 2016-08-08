@@ -92,7 +92,17 @@ class ROB
     /** ROB resource sharing policy for SMT mode. */
     ROBPolicy robPolicy;
 
+    /** rob utilization (accumulation). */
+    uint64_t numUsedEntries;
+
   public:
+
+    void increaseUsedEntries();
+
+    void resetUsedEntries();
+
+    void dumpUsedEntries();
+
     /** ROB constructor.
      *  @param _cpu   The cpu object pointer.
      *  @param params The cpu params including several ROB-specific parameters.
@@ -352,6 +362,8 @@ class ROB
     Stats::Scalar robWrites;
     // The number of insts inserted into rob per thread
     Stats::Vector robInserted;
+    // ROB utilization in past period
+    Stats::Scalar robUtilization;
 
   public:
     bool isDynamicPolicy() const;

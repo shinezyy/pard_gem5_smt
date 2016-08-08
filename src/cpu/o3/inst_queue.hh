@@ -586,6 +586,16 @@ class InstructionQueue
 
     Stats::Scalar intAluAccesses;
     Stats::Scalar fpAluAccesses;
+
+    uint64_t numUsedEntries;
+
+    void increaseUsedEntries();
+
+    void resetUsedEntries();
+
+    void dumpUsedEntries();
+
+    Stats::Scalar iqUtilization;
 };
 
 #endif //__CPU_O3_INST_QUEUE_HH__

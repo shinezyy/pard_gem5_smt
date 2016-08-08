@@ -188,6 +188,12 @@ DefaultRename<Impl>::regStats()
         .name(name() + ".fp_rename_lookups")
         .desc("Number of floating rename lookups")
         .prereq(fpRenameLookups);
+    intRegUtilization
+        .name(name() + ".intPhyReg_utilization")
+        .desc("Utilization of int registers");
+    floatRegUtilization
+        .name(name() + ".floatPhyReg_utilization")
+        .desc("Utilization of float registers");
 }
 
 template <class Impl>
@@ -448,6 +454,8 @@ DefaultRename<Impl>::tick()
         assert(instsInProgress[tid] >=0);
     }
 
+    increaseFreeEntries();
+
 }
 
 template<class Impl>
@@ -604,8 +612,12 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         inst = insts_to_rename.front();
 
         //For all kind of instructions, check ROB and IQ first
-        //For load instruction, check LQ size and take into account the inflight loads
-        //For store instruction, check SQ size and take into account the inflight stores
+
+        //For load instruction, check LQ size
+        //and take into account the inflight loads
+
+        //For store instruction, check SQ size
+        //and take into account the inflight stores
 
         if (inst->isLoad()) {
             if(calcFreeLQEntries(tid) <= 0) {
@@ -1463,6 +1475,31 @@ DefaultRename<Impl>::setNrFreeRegs(unsigned _nrFreeRegs[], ThreadID _numThreads)
     }
     // TODO Support set in runtime, which needs more checks for correctness.
     // TODO Support more register classes.
+}
+
+template <class Impl>
+void
+DefaultRename<Impl>::increaseFreeEntries()
+{
+    numFreeIntEntries += renameMap[0]->numFreeIntEntries();
+    numFreeFloatEntries += renameMap[0]->numFreeFloatEntries();
+}
+
+template <class Impl>
+void
+DefaultRename<Impl>::resetFreeEntries()
+{
+    numFreeIntEntries = 0;
+    numFreeFloatEntries = 0;
+}
+
+template <class Impl>
+void
+DefaultRename<Impl>::dumpFreeEntries()
+{
+    intRegUtilization = (double) numFreeIntEntries /
+        double(cpu->numPhysIntRegs*cpu->windowSize);
+    resetFreeEntries();
 }
 
 #endif//__CPU_O3_RENAME_IMPL_HH__

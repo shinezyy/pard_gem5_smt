@@ -71,7 +71,9 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
       cpu(cpu_ptr), iewStage(iew_ptr),
       LQEntries(params->LQEntries),
       SQEntries(params->SQEntries),
-      numThreads(params->numThreads)
+      numThreads(params->numThreads),
+      numUsedLQEntries(0),
+      numUsedSQEntries(0)
 {
     assert(numThreads > 0 && numThreads <= Impl::MaxThreads);
 
@@ -184,6 +186,14 @@ LSQ<Impl>::regStats()
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         thread[tid].regStats();
     }
+
+    lqUtilization
+        .name(name() + ".lq_utilization")
+        .desc("Accumulation of load queue used every cycle");
+
+    sqUtilization
+        .name(name() + ".sq_utilization")
+        .desc("Accumulation of store queue used every cycle");
 }
 
 template<class Impl>
@@ -709,7 +719,7 @@ void
 LSQ<Impl>::reassignLQPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
-    assert(lenNewPortionVec == numThreads);
+    //assert(lenNewPortionVec == numThreads);
 
     maxEntriesUpToDate = false;
 
@@ -725,7 +735,7 @@ void
 LSQ<Impl>::reassignSQPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
-    assert(lenNewPortionVec == numThreads);
+    //assert(lenNewPortionVec == numThreads);
 
     maxEntriesUpToDate = false;
 
@@ -736,5 +746,32 @@ LSQ<Impl>::reassignSQPortion(int newPortionVec[],
     denominator = newPortionDenominator;
 }
 
+template<class Impl>
+void
+LSQ<Impl>::increaseUsedEntries()
+{
+    numUsedLQEntries += numLoads();
+    numUsedSQEntries += numStores();
+}
+
+template<class Impl>
+void
+LSQ<Impl>::resetUsedEntries()
+{
+    numUsedLQEntries = 0;
+    numUsedSQEntries = 0;
+}
+
+template<class Impl>
+void
+LSQ<Impl>::dumpUsedEntries()
+{
+    lqUtilization = double(numUsedLQEntries) /
+        double(LQEntries * cpu->windowSize);
+    sqUtilization = double(numUsedSQEntries) /
+        double(SQEntries * cpu->windowSize);
+
+    resetUsedEntries();
+}
 
 #endif//__CPU_O3_LSQ_IMPL_HH__

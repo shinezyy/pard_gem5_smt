@@ -578,6 +578,10 @@ ROB<Impl>::regStats()
         .init(numThreads)
         .name(name() + ".rob_writes_thread")
         .desc("The number of ROB writes per thread");
+
+    robUtilization
+        .name(name() + ".rob_utilization")
+        .desc("The accumulation of rob used in past period");
 }
 
 template <class Impl>
@@ -604,7 +608,7 @@ void
 ROB<Impl>::reassignPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
-    assert(lenNewPortionVec == numThreads);
+    //assert(lenNewPortionVec == numThreads);
 
     maxEntriesUpToDate = false;
 
@@ -637,7 +641,27 @@ ROB<Impl>::updateMaxEntries()
     maxEntriesUpToDate = true;
 }
 
+template <class Impl>
+void
+ROB<Impl>::increaseUsedEntries()
+{
+    numUsedEntries += numInstsInROB;
+}
 
+template <class Impl>
+void
+ROB<Impl>::resetUsedEntries()
+{
+    numUsedEntries = 0;
+}
 
+template <class Impl>
+void
+ROB<Impl>::dumpUsedEntries()
+{
+    robUtilization = double(numUsedEntries) /
+        double(numEntries*cpu->windowSize);
+    resetUsedEntries();
+}
 
 #endif//__CPU_O3_ROB_IMPL_HH__

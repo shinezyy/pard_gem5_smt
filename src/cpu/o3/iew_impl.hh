@@ -1572,6 +1572,9 @@ DefaultIEW<Impl>::tick()
             instQueue.numFreeEntries(), instQueue.hasReadyInsts(),
             ldstQueue.numFreeLoadEntries(), ldstQueue.numFreeStoreEntries());
 
+    instQueue.increaseUsedEntries();
+    ldstQueue.increaseUsedEntries();
+
     updateStatus();
 
     if (wroteToTimeBuffer) {
