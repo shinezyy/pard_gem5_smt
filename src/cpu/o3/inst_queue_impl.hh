@@ -423,7 +423,8 @@ InstructionQueue<Impl>::regStats()
 
     iqUtilization
         .name(name() + ".iq_utilization")
-        .desc("Accumulation of instruction queue used every cycle");
+        .desc("Accumulation of instruction queue used every cycle")
+        .flags(display);
 
 }
 

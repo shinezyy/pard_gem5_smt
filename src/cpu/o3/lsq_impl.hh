@@ -189,11 +189,13 @@ LSQ<Impl>::regStats()
 
     lqUtilization
         .name(name() + ".lq_utilization")
-        .desc("Accumulation of load queue used every cycle");
+        .desc("Accumulation of load queue used every cycle")
+        .flags(Stats::display);
 
     sqUtilization
         .name(name() + ".sq_utilization")
-        .desc("Accumulation of store queue used every cycle");
+        .desc("Accumulation of store queue used every cycle")
+        .flags(Stats::display);
 }
 
 template<class Impl>

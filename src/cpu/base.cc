@@ -395,6 +395,7 @@ BaseCPU::regStats()
     numCycles
         .name(name() + ".numCycles")
         .desc("number of cpu cycles simulated")
+        .flags(display)
         ;
 
     numWorkItemsStarted

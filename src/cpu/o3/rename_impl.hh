@@ -190,10 +190,12 @@ DefaultRename<Impl>::regStats()
         .prereq(fpRenameLookups);
     intRegUtilization
         .name(name() + ".intPhyReg_utilization")
-        .desc("Utilization of int registers");
+        .desc("Utilization of int registers")
+        .flags(Stats::display);
     floatRegUtilization
         .name(name() + ".floatPhyReg_utilization")
-        .desc("Utilization of float registers");
+        .desc("Utilization of float registers")
+        .flags(Stats::display);
 }
 
 template <class Impl>

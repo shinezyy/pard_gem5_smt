@@ -475,7 +475,7 @@ FullO3CPU<Impl>::regStats()
         .init(numThreads)
         .name(name() + ".committedInsts")
         .desc("Number of Instructions Simulated")
-        .flags(Stats::total);
+        .flags(Stats::total | Stats::display);
 
     committedOps
         .init(numThreads)
@@ -498,13 +498,15 @@ FullO3CPU<Impl>::regStats()
     ipc
         .name(name() + ".ipc")
         .desc("IPC: Instructions Per Cycle")
-        .precision(6);
+        .precision(6)
+        .flags(Stats::display);
     ipc =  committedInsts / numCycles;
 
     totalIpc
         .name(name() + ".ipc_total")
         .desc("IPC: Total IPC of All Threads")
-        .precision(6);
+        .precision(6)
+        .flags(Stats::display);
     totalIpc =  sum(committedInsts) / numCycles;
 
     this->fetch.regStats();

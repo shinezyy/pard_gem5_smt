@@ -581,7 +581,8 @@ ROB<Impl>::regStats()
 
     robUtilization
         .name(name() + ".rob_utilization")
-        .desc("The accumulation of rob used in past period");
+        .desc("The accumulation of rob used in past period")
+        .flags(display);
 }
 
 template <class Impl>
