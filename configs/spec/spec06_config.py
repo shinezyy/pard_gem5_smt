@@ -316,6 +316,9 @@ else:
     CacheConfig.config_cache(options, system)
     MemConfig.config_mem(options, system)
 
+for cpu in system.cpu:
+    cpu.windowSize = 15000
+
 # print options
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)
