@@ -542,6 +542,11 @@ class DefaultRename
     void resetFreeEntries();
 
     void dumpFreeEntries();
+
+  private:
+    /** Print the head instruction's status for each thread.
+     * The currenct thread being stalled will be makred. */
+    void printROBHeadStatus(ThreadID tid) const;
 };
 
 #endif // __CPU_O3_RENAME_HH__

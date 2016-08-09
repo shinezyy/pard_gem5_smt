@@ -57,6 +57,7 @@
 #include "debug/O3PipeView.hh"
 #include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
+#include "enums/OpClass.hh"
 
 using namespace std;
 
@@ -516,6 +517,21 @@ DefaultRename<Impl>::rename(bool &status_change, ThreadID tid)
 
 template <class Impl>
 void
+DefaultRename<Impl>::printROBHeadStatus(ThreadID tid) const
+{
+    for (ThreadID t = 0; t < numThreads; t++) {
+        const char *mark = t == tid ? "*" : " ";
+        auto rob = commit_ptr->rob;
+        auto inst = rob->readHeadInst(t);
+        DPRINTF(Pard, "[%s] tid %d: %s, [%s], entries %d\n", mark, t,
+                inst ? inst->statusToString().c_str() : "nil",
+                inst ? Enums::OpClassStrings[inst->opClass()] : "nil",
+                rob->getThreadEntries(t));
+    }
+}
+
+template <class Impl>
+void
 DefaultRename<Impl>::renameInsts(ThreadID tid)
 {
     // Instructions can be either in the skid buffer or the queue of
@@ -568,6 +584,10 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
         incrFullStat(source);
 
+        if (source == ROB) {
+            printROBHeadStatus(tid);
+        }
+
         return;
     } else if (min_free_entries < insts_available) {
         DPRINTF(Rename, "[tid:%u]: Will have to block this cycle."
@@ -580,6 +600,10 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         blockThisCycle = true;
 
         incrFullStat(source);
+
+        if (source == ROB) {
+            printROBHeadStatus(tid);
+        }
     }
 
     InstQueue &insts_to_rename = renameStatus[tid] == Unblocking ?

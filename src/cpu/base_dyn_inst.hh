@@ -51,6 +51,7 @@
 #include <list>
 #include <string>
 #include <queue>
+#include <sstream>
 
 #include "arch/generic/tlb.hh"
 #include "arch/utility.hh"
@@ -107,29 +108,9 @@ class BaseDynInst : public ExecContext, public RefCounted
 
   protected:
     enum Status {
-        IqEntry,                 /// Instruction is in the IQ
-        RobEntry,                /// Instruction is in the ROB
-        LsqEntry,                /// Instruction is in the LSQ
-        Completed,               /// Instruction has completed
-        ResultReady,             /// Instruction has its result
-        CanIssue,                /// Instruction can issue and execute
-        Issued,                  /// Instruction has issued
-        Executed,                /// Instruction has executed
-        CanCommit,               /// Instruction can commit
-        AtCommit,                /// Instruction has reached commit
-        Committed,               /// Instruction has committed
-        Squashed,                /// Instruction is squashed
-        SquashedInIQ,            /// Instruction is squashed in the IQ
-        SquashedInLSQ,           /// Instruction is squashed in the LSQ
-        SquashedInROB,           /// Instruction is squashed in the ROB
-        RecoverInst,             /// Is a recover instruction
-        BlockingInst,            /// Is a blocking instruction
-        ThreadsyncWait,          /// Is a thread synchronization instruction
-        SerializeBefore,         /// Needs to serialize on
-                                 /// instructions ahead of it
-        SerializeAfter,          /// Needs to serialize instructions behind it
-        SerializeHandled,        /// Serialization has been handled
-        NumStatus
+      #define SYMBOL(x) x
+      #include "base_dyn_inst_status.hh"
+      #undef SYMBOL
     };
 
     enum Flags {
@@ -863,6 +844,26 @@ class BaseDynInst : public ExecContext, public RefCounted
     void mwaitAtomic(ThreadContext *tc)
     { return cpu->mwaitAtomic(tc, cpu->dtb); }
     AddressMonitor *getAddrMonitor() { return cpu->getCpuAddrMonitor(); }
+
+  private:
+    const char *status_s[NumStatus + 1] = {
+      #define SYMBOL(x) # x
+      #include "base_dyn_inst_status.hh"
+      #undef SYMBOL
+    };
+
+  public:
+    std::string statusToString() const {
+        std::stringstream ss;
+        const char *delimiter = "";
+        for (int i = 0; i < NumStatus; i++) {
+            if (status[i]) {
+                ss << delimiter << status_s[i];
+                delimiter = ",";
+            }
+        }
+        return ss.str();
+    }
 };
 
 template<class Impl>
