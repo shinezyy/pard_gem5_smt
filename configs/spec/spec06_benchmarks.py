@@ -290,10 +290,10 @@ def get_libquantum():
     libquantum=LiveProcess()
     libquantum.executable = spec_dir + '462.libquantum/exe/libquantum' + my_suffix
     # TEST CMDS
-    # libquantum.cmd = [libquantum.executable] + ['33','5']
+    libquantum.cmd = [libquantum.executable] + ['33','5']
     # REF CMDS [UPDATE 10/2/2015]: Sparsh Mittal has pointed out the correct input
     # for libquantum should be 1397 and 8, not 1297 and 8. Thanks!
-    libquantum.cmd = [libquantum.executable] + ['1397','8']
+    # libquantum.cmd = [libquantum.executable] + ['1397','8']
     #libquantum.output = out_dir + 'libquantum.out'
     return libquantum
 

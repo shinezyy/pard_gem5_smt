@@ -131,13 +131,20 @@ class DerivO3CPU(BaseCPU):
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
     smtFetchPolicy = Param.String('SingleThread', "SMT Fetch policy")
-    smtLSQPolicy    = Param.String('Dynamic', "SMT LSQ Sharing Policy")
-    smtLSQThreshold = Param.Int(100, "SMT LSQ Threshold Sharing Parameter")
-    smtIQPolicy    = Param.String('Dynamic', "SMT IQ Sharing Policy")
+
+    smtLSQPolicy    = Param.String('Threshold', "SMT LSQ Sharing Policy")
+    smtLSQThreshold = Param.Int(10, "SMT LSQ Threshold Sharing Parameter")
+    # LSQ threshold is treated as bull shit
+
+    smtIQPolicy    = Param.String('Threshold', "SMT IQ Sharing Policy")
     smtIssuePolicy  = Param.String('Priority', "SMT Issue Policy")
-    smtIQThreshold = Param.Int(100, "SMT IQ Threshold Sharing Parameter")
-    smtROBPolicy   = Param.String('Dynamic', "SMT ROB Sharing Policy")
-    smtROBThreshold = Param.Int(100, "SMT ROB Threshold Sharing Parameter")
+    smtIQThreshold = Param.Int(50, "SMT IQ Threshold Sharing Parameter")
+    # IQ threshold is counted with precentage!!
+
+    smtROBPolicy   = Param.String('Threshold', "SMT ROB Sharing Policy")
+    smtROBThreshold = Param.Int(58, "SMT ROB Threshold Sharing Parameter")
+    # ROB threshold is counted with absolute number
+
     smtCommitPolicy = Param.String('RoundRobin', "SMT Commit Policy")
 
     windowSize = Param.Int(15000, "stat dump cycle interval")

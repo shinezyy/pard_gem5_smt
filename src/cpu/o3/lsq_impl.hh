@@ -112,8 +112,9 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
         lsqPolicy = Threshold;
 
         // The following lien may be wrong ?
-        assert(params->smtLSQThreshold > LQEntries);
-        assert(params->smtLSQThreshold > SQEntries);
+        // SB Assertion
+        // assert(params->smtLSQThreshold > LQEntries);
+        // assert(params->smtLSQThreshold > SQEntries);
 
         //Divide up by threshold amount
         //@todo: Should threads check the max and the total
@@ -164,8 +165,14 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
           * in order to implement dynamic partition,
           * all of threads own LQEntries LQ and SQEntries SQ.
           */
-        thread[tid].init(cpu, iew_ptr, params, this,
-                         LQEntries, SQEntries, tid);
+        if (lsqPolicy == Threshold) {
+            thread[tid].init(cpu, iew_ptr, params, this,
+                    maxLQEntries[tid], maxSQEntries[tid], tid);
+        }
+        else {
+            thread[tid].init(cpu, iew_ptr, params, this,
+                    LQEntries, SQEntries, tid);
+        }
         thread[tid].setDcachePort(&cpu_ptr->getDataPort());
     }
 }
@@ -261,6 +268,7 @@ template <class Impl>
 void
 LSQ<Impl>::resetEntries()
 {
+    DPRINTF(Pard, "resizing LS Unit\n");
     if (lsqPolicy != Dynamic || numThreads > 1) {
         int active_threads = activeThreads->size();
 
@@ -269,7 +277,8 @@ LSQ<Impl>::resetEntries()
         if (lsqPolicy == Partitioned) {
             maxEntries = LQEntries / active_threads;
         } else if (lsqPolicy == Threshold && active_threads == 1) {
-            maxEntries = LQEntries;
+            maxEntries = maxLQEntries[0];
+            // for testing
         } else {
             maxEntries = LQEntries;
         }
