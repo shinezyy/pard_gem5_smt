@@ -769,6 +769,8 @@ class FullO3CPU : public BaseO3CPU
 
     unsigned numPhysIntRegs;
     unsigned numPhysFloatRegs;
+
+    uint64_t localCycles;
 };
 
 #endif // __CPU_O3_CPU_HH__

@@ -109,6 +109,8 @@ class ROB
      */
     ROB(O3CPU *_cpu, DerivO3CPUParams *params);
 
+    void init(DerivO3CPUParams *params);
+
     std::string name() const;
 
     /** Sets pointer to the list of active threads.

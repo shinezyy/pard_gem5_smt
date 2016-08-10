@@ -75,6 +75,12 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
       numUsedLQEntries(0),
       numUsedSQEntries(0)
 {
+}
+
+template<class Impl>
+void
+LSQ<Impl>::init(DerivO3CPUParams *params)
+{
     assert(numThreads > 0 && numThreads <= Impl::MaxThreads);
 
     //**********************************************/
@@ -147,9 +153,12 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
             allocatedLQNum += maxLQEntries[tid];
             allocatedSQNum += maxSQEntries[tid];
         }
+        DPRINTF(Pard, "allocatedLQNum: %d. allocatedSQNum: %d\n",
+                allocatedLQNum, allocatedSQNum);
 
         assert(allocatedLQNum <= LQEntries);
         assert(allocatedSQNum <= SQEntries);
+
         maxLQEntries[tid] = LQEntries - allocatedLQNum;
         maxSQEntries[tid] = SQEntries - allocatedSQNum;
 
@@ -166,17 +175,16 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
           * all of threads own LQEntries LQ and SQEntries SQ.
           */
         if (lsqPolicy == Threshold) {
-            thread[tid].init(cpu, iew_ptr, params, this,
+            thread[tid].init(cpu, iewStage, params, this,
                     maxLQEntries[tid], maxSQEntries[tid], tid);
         }
         else {
-            thread[tid].init(cpu, iew_ptr, params, this,
+            thread[tid].init(cpu, iewStage , params, this,
                     LQEntries, SQEntries, tid);
         }
-        thread[tid].setDcachePort(&cpu_ptr->getDataPort());
+        thread[tid].setDcachePort(&cpu->getDataPort());
     }
 }
-
 
 template<class Impl>
 std::string

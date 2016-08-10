@@ -1523,8 +1523,10 @@ template <class Impl>
 void
 DefaultRename<Impl>::dumpFreeEntries()
 {
-    intRegUtilization = (double) numFreeIntEntries /
-        double(cpu->numPhysIntRegs*cpu->windowSize);
+    intRegUtilization = 1 - ((double) numFreeIntEntries /
+        double(cpu->numPhysIntRegs*cpu->windowSize));
+    intRegUtilization = 1 - ((double) numFreeFloatEntries /
+        double(cpu->numPhysFloatRegs*cpu->windowSize));
     resetFreeEntries();
 }
 

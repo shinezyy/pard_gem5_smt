@@ -63,6 +63,12 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
       denominator(1024),
       numThreads(params->numThreads)
 {
+}
+
+template <class Impl>
+void
+ROB<Impl>::init(DerivO3CPUParams *params)
+{
     std::string policy = params->smtROBPolicy;
 
     //Convert string to lowercase
@@ -624,7 +630,7 @@ template <class Impl>
 void
 ROB<Impl>::updateMaxEntries()
 {
-    if (robPolicy != Programmable || maxEntriesUpToDate) {
+    if (robPolicy != Programmable || maxEntriesUpToDate || numThreads < 2) {
         return;
     }
 

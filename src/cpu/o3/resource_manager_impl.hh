@@ -220,12 +220,9 @@ ResourceManager<Impl>::reconfigIssuePrio()
     int prio[] = {5, 0};
     if(configUpdated && config.HasMember("IssuePriority")) {
         auto prio_array = config["IssuePriority"].GetArray();
-        DPRINTF(Pard, "Priority array:\n");
         for (int i = 0; i < 2; i++) {
             prio[i] = prio_array[i].GetInt();
-            DPRINTF(Pard, "%d, ", prio[i]);
         }
-        DPRINTF(Pard, "\n");
     } else {
         DPRINTF(Pard, "Use default issue priority\n");
     }

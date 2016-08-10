@@ -77,6 +77,8 @@ class LSQ {
         if (thread) delete [] thread;
     }
 
+    void init(DerivO3CPUParams *params);
+
     /** Returns the name of the LSQ. */
     std::string name() const;
 

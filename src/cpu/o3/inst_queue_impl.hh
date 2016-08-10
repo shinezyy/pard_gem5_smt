@@ -604,22 +604,26 @@ template <class Impl>
 void
 InstructionQueue<Impl>::updateMaxEntries()
 {
-    if (iqPolicy != Programmable || maxEntriesUpToDate) {
+    if (iqPolicy != Programmable || maxEntriesUpToDate || numThreads < 2) {
         return;
     }
 
-    int allocatedNum = 0;
+    assert(numThreads == 2);
 
-    ThreadID tid = 0;
-
-    for (; tid < numThreads - 1; tid++) {
-        maxEntries[tid] = numEntries * portion[tid] / denominator;
-        allocatedNum += maxEntries[tid];
+    int inc = numEntries * portion[0] / denominator - maxEntries[0];
+    if (abs(inc) > freeEntries) {
+        maxEntries[0] += freeEntries;
+        maxEntries[1] -= freeEntries;
+        maxEntriesUpToDate = false; // further adjustment is needed
+        DPRINTF(Pard, "New configuration is not satisified yes due to"
+                "limited free entries\n");
     }
-    assert(allocatedNum <= numEntries);
-    maxEntries[tid] = numEntries - allocatedNum;
-
-    maxEntriesUpToDate = true;
+    else {
+        maxEntries[0] += inc;
+        maxEntries[1] -= inc;
+        maxEntriesUpToDate = true;
+        DPRINTF(Pard, "Adjust to new configuration\n");
+    }
 }
 
 template <class Impl>

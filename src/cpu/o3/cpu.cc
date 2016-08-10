@@ -60,6 +60,7 @@
 #include "debug/Drain.hh"
 #include "debug/O3CPU.hh"
 #include "debug/Quiesce.hh"
+#include "debug/Pard.hh"
 #include "enums/MemoryMode.hh"
 #include "sim/core.hh"
 #include "sim/full_system.hh"
@@ -207,7 +208,8 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       lastRunningCycle(curCycle()),
       windowSize(params->windowSize),
       numPhysIntRegs(params->numPhysIntRegs),
-      numPhysFloatRegs(params->numPhysFloatRegs)
+      numPhysFloatRegs(params->numPhysFloatRegs),
+      localCycles(0)
 {
     if (!params->switched_out) {
         _status = Running;
@@ -421,6 +423,17 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     for (ThreadID tid = 0; tid < this->numThreads; tid++)
         this->thread[tid]->setFuncExeInst(0);
 
+    resourceManager.readConfig();
+    resourceManager.reserveDecode();
+    resourceManager.reserveIQ();
+    resourceManager.reserveROB();
+    resourceManager.reserveLQ();
+    resourceManager.reserveSQ();
+    resourceManager.reserveRename();
+    resourceManager.reconfigIssuePrio();
+
+    iew.ldstQueue.init(params);
+    rob.init(params);
 }
 
 template <class Impl>
@@ -566,6 +579,7 @@ FullO3CPU<Impl>::tick()
     assert(getDrainState() != Drainable::Drained);
 
     ++numCycles;
+    ++localCycles;
     ++dumpCycles;
     if (dumpCycles >= windowSize) {
 
@@ -578,6 +592,10 @@ FullO3CPU<Impl>::tick()
         async_statdump = true;
         dumpCycles = 0;
         getEventQueue(0)->wakeup();
+    }
+    if (localCycles >= 300000000 && localCycles < 300100000) {
+        resourceManager.readConfig();
+        resourceManager.reserveIQ();
     }
 
     ppCycles->notify(1);
@@ -666,14 +684,6 @@ FullO3CPU<Impl>::startup()
     for (int tid = 0; tid < numThreads; ++tid)
         isa[tid]->startup(threadContexts[tid]);
 
-    resourceManager.readConfig();
-    resourceManager.reserveDecode();
-    resourceManager.reserveIQ();
-    resourceManager.reserveROB();
-    resourceManager.reserveLQ();
-    resourceManager.reserveSQ();
-    resourceManager.reserveRename();
-    resourceManager.reconfigIssuePrio();
 
     fetch.startupStage();
     decode.startupStage();
@@ -1681,6 +1691,7 @@ FullO3CPU<Impl>::wakeCPU()
         --cycles;
         idleCycles += cycles;
         numCycles += cycles;
+        localCycles += cycles;
         dumpCycles += cycles;
         ppCycles->notify(cycles);
     }
