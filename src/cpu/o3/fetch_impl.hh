@@ -134,6 +134,9 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
     } else if (policy == "lsqcount") {
         fetchPolicy = LSQ;
         DPRINTF(Fetch, "Fetch policy set to LSQ count\n");
+    } else if (policy == "programmable") {
+        fetchPolicy = Programmable;
+        DPRINTF(Pard, "Fetch policy set to Programmable\n");
     } else {
         fatal("Invalid Fetch Policy. Options Are: {SingleThread,"
               " RoundRobin,LSQcount,IQcount}\n");
@@ -384,7 +387,15 @@ DefaultFetch<Impl>::resetStage()
 
         fetchQueue[tid].clear();
 
-        priorityList.push_back(tid);
+        if (fetchPolicy != Programmable) {
+            priorityList.push_back(tid);
+        }
+        else {
+            int width = fetchWidth * portion[tid] / denominator;
+            for (int i = 0; i < width; i++) {
+                priorityList.push_back(tid);
+            }
+        }
     }
 
     wroteToTimeBuffer = false;
@@ -911,6 +922,7 @@ DefaultFetch<Impl>::tick()
     wroteToTimeBuffer = false;
 
     updateDecodeWidth();
+    updateFetchWidth();
 
     for (ThreadID i = 0; i < numThreads; ++i) {
         issuePipelinedIfetch[i] = false;
@@ -977,8 +989,8 @@ DefaultFetch<Impl>::tick()
     auto tid_itr = activeThreads->begin();
     std::advance(tid_itr, random_mt.random<uint8_t>(0, activeThreads->size() - 1));
 
-    while (available_insts != 0 && insts_to_decode[0] < decodeWidths[0]
-            && insts_to_decode[1] < decodeWidths[1]) {
+    while (available_insts != 0 && (insts_to_decode[0] < decodeWidths[0]
+            || insts_to_decode[1] < decodeWidths[1])) {
         ThreadID tid = *tid_itr;
 
         if (!stalls[tid].decode && !fetchQueue[tid].empty() &&
@@ -1182,16 +1194,19 @@ DefaultFetch<Impl>::fetch(bool &status_change)
     //////////////////////////////////////////
     ThreadID tid = getFetchingThread(fetchPolicy);
 
+
+
     assert(!cpu->switchedOut());
 
     if (tid == InvalidThreadID) {
         // Breaks looping condition in tick()
         threadFetched = numFetchingThreads;
 
-        if (numThreads == 1) {  // @todo Per-thread stats
+        if (numThreads == 2) {  // @todo Per-thread stats
             profileStall(0);
         }
 
+        DPRINTF(Fetch, "Fot invalid TID [tid:%i]\n", tid);
         return;
     }
 
@@ -1493,6 +1508,9 @@ DefaultFetch<Impl>::getFetchingThread(FetchPriority &fetch_priority)
           case Branch:
             return branchCount();
 
+          case Programmable:
+            return roundRobin();
+
           default:
             return InvalidThreadID;
         }
@@ -1526,6 +1544,7 @@ DefaultFetch<Impl>::roundRobin()
 
     while (pri_iter != end) {
         high_pri = *pri_iter;
+        DPRINTF(Fetch, "enter loop, selected thread: tid:%d\n", high_pri);
 
         assert(high_pri <= numThreads);
 
@@ -1538,6 +1557,7 @@ DefaultFetch<Impl>::roundRobin()
 
             return high_pri;
         }
+        DPRINTF(Fetch, "status: %d\n", fetchStatus[high_pri]);
 
         pri_iter++;
     }
@@ -1696,6 +1716,7 @@ DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
     //assert(lenWidthVec == numThreads);
 
     decodeWidthUpToDate = false;
+    fetchWidthUpToDate = false;
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         portion[tid] = newWidthVec[tid];
@@ -1751,6 +1772,29 @@ DefaultFetch<Impl>::profileStall(ThreadID tid) {
         DPRINTF(Fetch, "[tid:%i]: Unexpected fetch stall reason (Status: %i).\n",
              tid, fetchStatus[tid]);
     }
+}
+
+template <class Impl>
+void
+DefaultFetch<Impl>::updateFetchWidth()
+{
+    if (fetchWidthUpToDate)
+        return;
+    DPRINTF(Pard, "Updating fetch width\n");
+    priorityList.clear();
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        if (fetchPolicy != Programmable) {
+            priorityList.push_back(tid);
+        }
+        else {
+            int width = fetchWidth * portion[tid] / denominator;
+            for (int i = 0; i < width; i++) {
+                priorityList.push_back(tid);
+            }
+        }
+    }
+
+    fetchWidthUpToDate = true;
 }
 
 #endif//__CPU_O3_FETCH_IMPL_HH__

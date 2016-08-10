@@ -182,7 +182,8 @@ class DefaultFetch
         RoundRobin,
         Branch,
         IQ,
-        LSQ
+        LSQ,
+        Programmable
     };
 
   private:
@@ -543,6 +544,8 @@ class DefaultFetch
     /** Event used to delay fault generation of translation faults */
     FinishTranslationEvent **finishTranslationEvents;
 
+
+
     // @todo: Consider making these vectors and tracking on a per thread basis.
     /** Stat for total number of cycles stalled due to an icache miss. */
     Stats::Scalar icacheStallCycles;
@@ -596,6 +599,12 @@ class DefaultFetch
     Stats::Formula branchRate;
     /** Number of instruction fetched per cycle. */
     Stats::Formula fetchRate;
+
+  public:
+
+
+    void updateFetchWidth();
+    bool fetchWidthUpToDate;
 };
 
 #endif //__CPU_O3_FETCH_HH__

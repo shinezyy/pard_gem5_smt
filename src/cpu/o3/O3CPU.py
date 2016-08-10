@@ -130,18 +130,18 @@ class DerivO3CPU(BaseCPU):
     numROBEntries = Param.Unsigned(192, "Number of reorder buffer entries")
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
-    smtFetchPolicy = Param.String('SingleThread', "SMT Fetch policy")
+    smtFetchPolicy = Param.String('Programmable', "SMT Fetch policy")
 
-    smtLSQPolicy    = Param.String('Threshold', "SMT LSQ Sharing Policy")
+    smtLSQPolicy    = Param.String('Programmable', "SMT LSQ Sharing Policy")
     smtLSQThreshold = Param.Int(10, "SMT LSQ Threshold Sharing Parameter")
     # LSQ threshold is treated as bull shit
 
-    smtIQPolicy    = Param.String('Threshold', "SMT IQ Sharing Policy")
+    smtIQPolicy    = Param.String('Programmable', "SMT IQ Sharing Policy")
     smtIssuePolicy  = Param.String('Priority', "SMT Issue Policy")
     smtIQThreshold = Param.Int(50, "SMT IQ Threshold Sharing Parameter")
     # IQ threshold is counted with precentage!!
 
-    smtROBPolicy   = Param.String('Threshold', "SMT ROB Sharing Policy")
+    smtROBPolicy   = Param.String('Programmable', "SMT ROB Sharing Policy")
     smtROBThreshold = Param.Int(58, "SMT ROB Threshold Sharing Parameter")
     # ROB threshold is counted with absolute number
 
