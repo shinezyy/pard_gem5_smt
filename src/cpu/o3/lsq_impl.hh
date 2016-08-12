@@ -73,7 +73,11 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
       SQEntries(params->SQEntries),
       numThreads(params->numThreads),
       numUsedLQEntries(0),
-      numUsedSQEntries(0)
+      numUsedSQEntries(0),
+      lqUtil(0),
+      sqUtil(0),
+      lqUptodate(false),
+      sqUptodate(false)
 {
 }
 
@@ -184,6 +188,14 @@ LSQ<Impl>::init(DerivO3CPUParams *params)
         }
         thread[tid].setDcachePort(&cpu->getDataPort());
     }
+    numThreadUsedLQEntries[0] = 0;
+    numThreadUsedLQEntries[1] = 0;
+    numThreadUsedSQEntries[0] = 0;
+    numThreadUsedSQEntries[1] = 0;
+    lqThreadUtil[0] = 0;
+    lqThreadUtil[1] = 0;
+    sqThreadUtil[0] = 0;
+    sqThreadUtil[1] = 0;
 }
 
 template<class Impl>
@@ -513,6 +525,14 @@ LSQ<Impl>::numFreeLoadEntries(ThreadID tid)
     if (lsqPolicy == Dynamic) {
         return numFreeLoadEntries();
     }
+    else if (lsqPolicy == Programmable) {
+        assert(numThreads == 2);
+        if (tid == 0) {
+            return numFreeLoadEntries();
+        } else {
+            return thread[1].numFreeLoadEntries();
+        }
+    }
     else {
         return thread[tid].numFreeLoadEntries();
     }
@@ -524,6 +544,14 @@ LSQ<Impl>::numFreeStoreEntries(ThreadID tid)
 {
     if (lsqPolicy == Dynamic) {
         return numFreeStoreEntries();
+    }
+    else if (lsqPolicy == Programmable) {
+        assert(numThreads == 2);
+        if (tid == 0) {
+            return numFreeStoreEntries();
+        } else {
+            return thread[1].numFreeStoreEntries();
+        }
     }
     else {
         return thread[tid].numFreeStoreEntries();
@@ -701,36 +729,108 @@ template<class Impl>
 void
 LSQ<Impl>::updateMaxEntries()
 {
-    if (lsqPolicy != Programmable || maxEntriesUpToDate) {
+    if (numThreads < 2 || lsqPolicy != Programmable ||
+            (lqUptodate && sqUptodate)) {
         return;
     }
+
     DPRINTF(Pard, "Updating LSQ maxEntries\n");
-    int allocatedLQNum = 0;
-    int allocatedSQNum = 0;
 
-    ThreadID tid = 0;
+    bool increaseThread0LQ = false;
+    bool increaseThread0SQ = false;
 
-    for (;tid < numThreads - 1; ++tid) {
-        maxLQEntries[tid] = LQEntries*LQPortion[tid]/denominator;
-        maxSQEntries[tid] = SQEntries*SQPortion[tid]/denominator;
+    unsigned LQLimit[] = {0, 0};
+    unsigned SQLimit[] = {0, 0};
 
-        allocatedLQNum += maxLQEntries[tid];
-        allocatedSQNum += maxSQEntries[tid];
+    int LQFree[] = {0, 0};
+    int SQFree[] = {0, 0};
 
+    LQLimit[0] = LQEntries * LQPortion[0] / denominator;
+    SQLimit[0] = SQEntries * SQPortion[0] / denominator;
+
+    LQLimit[1] = LQEntries - LQLimit[0];
+    SQLimit[1] = SQEntries - SQLimit[0];
+
+    if (LQLimit[0] > maxLQEntries[0])
+        increaseThread0LQ = true;
+    if (SQLimit[0] > maxSQEntries[0])
+        increaseThread0SQ = true;
+
+    if (!lqUptodate) {
+        if (increaseThread0LQ) {
+            LQFree[1] = thread[1].setLQLimit(LQLimit[1]);
+            // LQFree > 0 means allocation can be done in one time
+            if (LQFree[1] >= 0) {
+                thread[0].setLQLimit(LQLimit[0]);
+                maxLQEntries[0] = LQLimit[0];
+                maxLQEntries[1] = LQLimit[1];
+                lqUptodate = true;
+            }
+            else {
+                thread[0].setLQLimit(LQLimit[0] + LQFree[1]);
+                maxLQEntries[0] = LQLimit[0] + LQFree[1];
+                maxLQEntries[1] = LQLimit[1];
+                lqUptodate = false;
+            }
+        }
+        else {
+            LQFree[0] = thread[0].setLQLimit(LQLimit[0]);
+            // LQFree > 0 means allocation can be done in one time
+            if (LQFree[0] >= 0) {
+                thread[1].setLQLimit(LQLimit[1]);
+                maxLQEntries[0] = LQLimit[0];
+                maxLQEntries[1] = LQLimit[1];
+                lqUptodate = true;
+            }
+            else {
+                thread[1].setLQLimit(LQLimit[1] + LQFree[0]);
+                maxLQEntries[0] = LQLimit[0];
+                maxLQEntries[1] = LQLimit[1] + LQFree[0];
+                lqUptodate = false;
+            }
+        }
+    }
+
+    if (!sqUptodate) {
+        if (increaseThread0SQ) {
+            SQFree[1] = thread[1].setSQLimit(SQLimit[1]);
+            // SQFree > 0 means allocation can be done in one time
+            if (SQFree[1] >= 0) {
+                thread[0].setSQLimit(SQLimit[0]);
+                maxSQEntries[0] = SQLimit[0];
+                maxSQEntries[1] = SQLimit[1];
+                sqUptodate = true;
+            }
+            else {
+                thread[0].setSQLimit(SQLimit[0] + SQFree[1]);
+                maxSQEntries[0] = SQLimit[0] + SQFree[1];
+                maxSQEntries[1] = SQLimit[1];
+                sqUptodate = false;
+            }
+        }
+        else {
+            SQFree[0] = thread[0].setSQLimit(SQLimit[0]);
+            // SQFree > 0 means allocation can be done in one time
+            if (SQFree[0] >= 0) {
+                thread[1].setSQLimit(SQLimit[1]);
+                maxSQEntries[0] = SQLimit[0];
+                maxSQEntries[1] = SQLimit[1];
+                sqUptodate = true;
+            }
+            else {
+                thread[1].setSQLimit(SQLimit[1] + SQFree[0]);
+                maxSQEntries[0] = SQLimit[0];
+                maxSQEntries[1] = SQLimit[1] + SQFree[0];
+                sqUptodate = false;
+            }
+        }
+    }
+
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
         DPRINTF(Pard, "Thread %d LQ Entries: %d, SQ Entries: %d\n",
                 tid, maxLQEntries[tid], maxSQEntries[tid]);
     }
-
-    assert(allocatedLQNum <= LQEntries);
-    assert(allocatedSQNum <= SQEntries);
-
-    maxLQEntries[tid] = LQEntries - allocatedLQNum;
-    maxSQEntries[tid] = SQEntries - allocatedSQNum;
-
-    DPRINTF(Pard, "Thread %d LQ Entries: %d, SQ Entries: %d\n",
-            tid, maxLQEntries[tid], maxSQEntries[tid]);
-
-    maxEntriesUpToDate = true;
 }
 
 template<class Impl>
@@ -740,7 +840,7 @@ LSQ<Impl>::reassignLQPortion(int newPortionVec[],
 {
     //assert(lenNewPortionVec == numThreads);
 
-    maxEntriesUpToDate = false;
+    lqUptodate = false;
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         LQPortion[tid] = newPortionVec[tid];
@@ -756,7 +856,7 @@ LSQ<Impl>::reassignSQPortion(int newPortionVec[],
 {
     //assert(lenNewPortionVec == numThreads);
 
-    maxEntriesUpToDate = false;
+    sqUptodate = false;
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         SQPortion[tid] = newPortionVec[tid];
@@ -770,7 +870,11 @@ void
 LSQ<Impl>::increaseUsedEntries()
 {
     numUsedLQEntries += numLoads();
+    numThreadUsedLQEntries[0] += numLoads(0);
+    numThreadUsedLQEntries[1] += numLoads(1);
     numUsedSQEntries += numStores();
+    numThreadUsedSQEntries[0] += numStores(0);
+    numThreadUsedSQEntries[1] += numStores(1);
 }
 
 template<class Impl>
@@ -779,6 +883,10 @@ LSQ<Impl>::resetUsedEntries()
 {
     numUsedLQEntries = 0;
     numUsedSQEntries = 0;
+    numThreadUsedLQEntries[0] = 0;
+    numThreadUsedLQEntries[1] = 0;
+    numThreadUsedSQEntries[0] = 0;
+    numThreadUsedSQEntries[1] = 0;
 }
 
 template<class Impl>
@@ -788,6 +896,21 @@ LSQ<Impl>::dumpUsedEntries()
     lqUtilization = double(numUsedLQEntries) /
         double(LQEntries * cpu->windowSize);
     sqUtilization = double(numUsedSQEntries) /
+        double(SQEntries * cpu->windowSize);
+
+    lqUtil = double(numUsedLQEntries) /
+        double(LQEntries * cpu->windowSize);
+    sqUtil = double(numUsedSQEntries) /
+        double(SQEntries * cpu->windowSize);
+
+    lqThreadUtil[0] = double(numThreadUsedLQEntries[0]) /
+        double(LQEntries * cpu->windowSize);
+    sqThreadUtil[0] = double(numThreadUsedSQEntries[0]) /
+        double(SQEntries * cpu->windowSize);
+
+    lqThreadUtil[1] = double(numThreadUsedLQEntries[1]) /
+        double(LQEntries * cpu->windowSize);
+    sqThreadUtil[1] = double(numThreadUsedSQEntries[1]) /
         double(SQEntries * cpu->windowSize);
 
     resetUsedEntries();

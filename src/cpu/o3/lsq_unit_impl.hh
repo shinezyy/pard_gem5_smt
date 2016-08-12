@@ -165,6 +165,8 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
     // Add 1 for the sentinel entry (they are circular queues).
     LQEntries = maxLQEntries + 1;
     SQEntries = maxSQEntries + 1;
+    lqValid = LQEntries;
+    sqValid = SQEntries;
 
     //Due to uint8_t index in LSQSenderState
     assert(LQEntries <= 256);
@@ -415,8 +417,8 @@ LSQUnit<Impl>::numFreeLoadEntries()
 {
         //LQ has an extra dummy entry to differentiate
         //empty/full conditions. Subtract 1 from the free entries.
-        DPRINTF(LSQUnit, "LQ size: %d, #loads occupied: %d\n", LQEntries, loads);
-        return LQEntries - loads - 1;
+        DPRINTF(LSQUnit, "LQ size: %d, #loads occupied: %d\n", lqValid, loads);
+        return lqValid - loads - 1;
 }
 
 template <class Impl>
@@ -425,8 +427,8 @@ LSQUnit<Impl>::numFreeStoreEntries()
 {
         //SQ has an extra dummy entry to differentiate
         //empty/full conditions. Subtract 1 from the free entries.
-        DPRINTF(LSQUnit, "SQ size: %d, #stores occupied: %d\n", SQEntries, stores);
-        return SQEntries - stores - 1;
+        DPRINTF(LSQUnit, "SQ size: %d, #stores occupied: %d\n", sqValid, stores);
+        return sqValid - stores - 1;
 
  }
 
@@ -1322,5 +1324,34 @@ LSQUnit<Impl>::dumpInsts() const
 
     cprintf("\n");
 }
+
+template <class Impl>
+int
+LSQUnit<Impl>::setLQLimit(unsigned lqLimit)
+{
+    // lqLimit should take dummy entry into accound
+    // return -x to indicate need more free entries
+    if (loads + 1 > lqLimit) {
+        lqValid = loads + 1;
+    }
+    else {
+        lqValid = lqLimit;
+    }
+    return lqLimit - loads - 1;
+}
+
+template <class Impl>
+int
+LSQUnit<Impl>::setSQLimit(unsigned sqLimit)
+{
+    if (stores + 1 > sqLimit) {
+        sqValid = stores + 1;
+    }
+    else {
+        sqValid = sqLimit;
+    }
+    return sqLimit - stores - 1;
+}
+
 
 #endif//__CPU_O3_LSQ_UNIT_IMPL_HH__

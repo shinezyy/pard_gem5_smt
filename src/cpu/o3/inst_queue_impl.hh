@@ -127,7 +127,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
 
     if (_issuePolicy == "priority") {
         issuePolicy = Priority;
-    } else if (_issuePolicy == "Nodiscrimination") {
+    } else if (_issuePolicy == "nodiscrimination") {
         issuePolicy = Nodiscrimination;
     } else {
         assert(0 && "Invalid Issue Policy.Options Are:{Priority, "
@@ -615,14 +615,16 @@ InstructionQueue<Impl>::updateMaxEntries()
         maxEntries[0] += freeEntries;
         maxEntries[1] -= freeEntries;
         maxEntriesUpToDate = false; // further adjustment is needed
-        DPRINTF(Pard, "New configuration is not satisified yes due to"
+        DPRINTF(Pard, "New configuration is not satisified yet due to "
                 "limited free entries\n");
     }
     else {
         maxEntries[0] += inc;
         maxEntries[1] -= inc;
         maxEntriesUpToDate = true;
-        DPRINTF(Pard, "Adjust to new configuration\n");
+        DPRINTF(Pard, "Adjust to new configuration\n"
+                "IQ[0]: %d\nIQ[1]: %d\n",
+                maxEntries[0], maxEntries[1]);
     }
 }
 

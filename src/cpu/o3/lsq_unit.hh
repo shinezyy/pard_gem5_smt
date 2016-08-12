@@ -546,6 +546,12 @@ class LSQUnit {
 
     /** Returns whether or not the LSQ unit is stalled. */
     bool isStalled()  { return stalled; }
+
+    int setLQLimit(unsigned lqLimit);
+
+    int setSQLimit(unsigned sqLimit);
+
+    unsigned lqValid, sqValid;
 };
 
 template <class Impl>

@@ -94,7 +94,6 @@ class LSQ {
 
     /** Update maxEntries for each thread, accoding to portion. */
     void updateMaxEntries();
-    bool maxEntriesUpToDate;
 
     /** reassign portion of LQ and SQ for each thread. */
     void reassignLQPortion(int newPortionVec[],
@@ -349,14 +348,21 @@ class LSQ {
 
   public:
     uint64_t numUsedLQEntries;
+    uint64_t numThreadUsedLQEntries[2];
 
     uint64_t numUsedSQEntries;
+    uint64_t numThreadUsedSQEntries[2];
 
     void increaseUsedEntries();
 
     void resetUsedEntries();
 
     void dumpUsedEntries();
+
+    double lqUtil, sqUtil;
+    double lqThreadUtil[2], sqThreadUtil[2];
+
+    bool lqUptodate, sqUptodate;
 
     Stats::Scalar lqUtilization;
     Stats::Scalar sqUtilization;

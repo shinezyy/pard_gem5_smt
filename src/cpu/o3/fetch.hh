@@ -602,9 +602,10 @@ class DefaultFetch
 
   public:
 
-
     void updateFetchWidth();
     bool fetchWidthUpToDate;
+
+    uint64_t numFetchedInsts;
 };
 
 #endif //__CPU_O3_FETCH_HH__

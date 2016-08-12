@@ -578,6 +578,9 @@ FullO3CPU<Impl>::tick()
     assert(!switchedOut());
     assert(getDrainState() != Drainable::Drained);
 
+    int lqVec[2];
+    int sqVec[2];
+
     ++numCycles;
     ++localCycles;
     ++dumpCycles;
@@ -588,14 +591,49 @@ FullO3CPU<Impl>::tick()
         iew.instQueue.dumpUsedEntries();
         iew.ldstQueue.dumpUsedEntries();
 
+        DPRINTF(Pard, "\nlqThreadUtil[0]: %f\n"
+                "sqThreadUtil[0]: %f\n",
+                iew.ldstQueue.lqThreadUtil[0],
+                iew.ldstQueue.sqThreadUtil[0]);
+
+        if (iew.ldstQueue.lqThreadUtil[0] + 0.05 >=
+                double(iew.ldstQueue.LQPortion[0]) / iew.ldstQueue.denominator) {
+            lqVec[0] = (iew.ldstQueue.lqThreadUtil[0] + 0.05)*1024;
+            lqVec[1] = 1024 - lqVec[0];
+
+            iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
+            DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
+        } else if (iew.ldstQueue.lqThreadUtil[0] + 0.15 <
+                double(iew.ldstQueue.LQPortion[0]) / iew.ldstQueue.denominator) {
+            lqVec[0] = (iew.ldstQueue.lqThreadUtil[0] + 0.05)*1024;
+            lqVec[1] = 1024 - lqVec[0];
+
+            iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
+            DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
+        }
+
+        if (iew.ldstQueue.sqThreadUtil[0] + 0.05 >=
+                double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
+            sqVec[0] = (iew.ldstQueue.sqThreadUtil[0] + 0.05)*1024;
+            sqVec[1] = 1024 - sqVec[0];
+
+            iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
+            DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
+        } else if (iew.ldstQueue.sqThreadUtil[0] + 0.15 <
+                double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
+            sqVec[0] = (iew.ldstQueue.sqThreadUtil[0] + 0.05)*1024;
+            sqVec[1] = 1024 - sqVec[0];
+
+            iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
+            DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
+        }
+
+
+
         async_event = true;
         async_statdump = true;
         dumpCycles = 0;
         getEventQueue(0)->wakeup();
-    }
-    if (localCycles >= 300000000 && localCycles < 300100000) {
-        resourceManager.readConfig();
-        resourceManager.reserveIQ();
     }
 
     ppCycles->notify(1);

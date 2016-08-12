@@ -519,6 +519,7 @@ template <class Impl>
 void
 DefaultRename<Impl>::printROBHeadStatus(ThreadID tid) const
 {
+    return;
     for (ThreadID t = 0; t < numThreads; t++) {
         const char *mark = t == tid ? "*" : " ";
         auto rob = commit_ptr->rob;

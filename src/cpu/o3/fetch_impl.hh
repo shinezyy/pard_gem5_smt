@@ -981,7 +981,12 @@ DefaultFetch<Impl>::tick()
 
     for (auto tid : *activeThreads) {
         if (!stalls[tid].decode) {
-            available_insts += fetchQueue[tid].size();
+            if (fetchQueue[tid].size() < decodeWidths[tid]) {
+                available_insts += fetchQueue[tid].size();
+            }
+            else {
+                available_insts += decodeWidths[tid];
+            }
         }
     }
 
@@ -991,6 +996,7 @@ DefaultFetch<Impl>::tick()
 
     while (available_insts != 0 && (insts_to_decode[0] < decodeWidths[0]
             || insts_to_decode[1] < decodeWidths[1])) {
+
         ThreadID tid = *tid_itr;
 
         if (!stalls[tid].decode && !fetchQueue[tid].empty() &&
@@ -1206,7 +1212,7 @@ DefaultFetch<Impl>::fetch(bool &status_change)
             profileStall(0);
         }
 
-        DPRINTF(Fetch, "Fot invalid TID [tid:%i]\n", tid);
+        DPRINTF(Fetch, "Got invalid TID [tid:%i]\n", tid);
         return;
     }
 
@@ -1350,6 +1356,7 @@ DefaultFetch<Impl>::fetch(bool &status_change)
 
                     // Increment stat of fetched instructions.
                     ++fetchedInsts;
+                    ++numFetchedInsts; // for local utilization calculationk
 
                     if (staticInst->isMacroop()) {
                         curMacroop = staticInst;
@@ -1795,6 +1802,7 @@ DefaultFetch<Impl>::updateFetchWidth()
     }
 
     fetchWidthUpToDate = true;
+    DPRINTF(Pard, "Updated fetch width\n");
 }
 
 #endif//__CPU_O3_FETCH_IMPL_HH__
