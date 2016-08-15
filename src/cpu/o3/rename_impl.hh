@@ -137,14 +137,17 @@ DefaultRename<Impl>::regStats()
     renameIQFullEvents
         .name(name() + ".IQFullEvents")
         .desc("Number of times rename has blocked due to IQ full")
+        .flags(Stats::display)
         .prereq(renameIQFullEvents);
     renameLQFullEvents
         .name(name() + ".LQFullEvents")
         .desc("Number of times rename has blocked due to LQ full")
+        .flags(Stats::display)
         .prereq(renameLQFullEvents);
     renameSQFullEvents
         .name(name() + ".SQFullEvents")
         .desc("Number of times rename has blocked due to SQ full")
+        .flags(Stats::display)
         .prereq(renameSQFullEvents);
     renameFullRegistersEvents
         .name(name() + ".FullRegisterEvents")

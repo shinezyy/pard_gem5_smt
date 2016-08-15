@@ -197,6 +197,11 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         assert(0 && "Invalid IQ Sharing Policy.Options Are:{Dynamic,"
                 "Partitioned, Threshold}");
     }
+    numThreadUsedEntries[0] = 0;
+    numThreadUsedEntries[1] = 0;
+    iqThreadUtil[0] = 0;
+    iqThreadUtil[1] = 0;
+    iqUtil = 0;
 }
 
 template <class Impl>
@@ -610,15 +615,26 @@ InstructionQueue<Impl>::updateMaxEntries()
 
     assert(numThreads == 2);
 
-    int inc = numEntries * portion[0] / denominator - maxEntries[0];
+    int inc = int(numEntries * portion[0] / denominator) - int(maxEntries[0]);
     if (abs(inc) > freeEntries) {
-        maxEntries[0] += freeEntries;
-        maxEntries[1] -= freeEntries;
+        DPRINTF(Pard, "numEntries: %d, portion 0: %d, deno: %d\n",
+                numEntries, portion[0], denominator);
+        DPRINTF(Pard, "numEntries * portion 0: / deno: %d, maxEntries:%d\n",
+                numEntries * portion[0] / denominator, int(maxEntries[0]));
+
+        if (inc > 0) {
+            maxEntries[0] += freeEntries;
+            maxEntries[1] -= freeEntries;
+        } else {
+            maxEntries[0] -= freeEntries;
+            maxEntries[1] += freeEntries;
+        }
+
         maxEntriesUpToDate = false; // further adjustment is needed
         DPRINTF(Pard, "New configuration is not satisified yet due to "
-                "limited free entries\n");
-    }
-    else {
+                "limited free entries\ninc: %d, free: %d\n",
+                abs(inc), freeEntries);
+    } else {
         maxEntries[0] += inc;
         maxEntries[1] -= inc;
         maxEntriesUpToDate = true;
@@ -626,6 +642,7 @@ InstructionQueue<Impl>::updateMaxEntries()
                 "IQ[0]: %d\nIQ[1]: %d\n",
                 maxEntries[0], maxEntries[1]);
     }
+    assert(abs(maxEntries[0]) < 65);
 }
 
 template <class Impl>
@@ -639,7 +656,11 @@ template <class Impl>
 unsigned
 InstructionQueue<Impl>::numFreeEntries(ThreadID tid)
 {
-    return maxEntries[tid] - count[tid];
+    if ((iqPolicy == Programmable && tid == 0) || iqPolicy == Dynamic) {
+        return numFreeEntries();
+    } else {
+        return maxEntries[tid] - count[tid];
+    }
 }
 
 // Might want to do something more complex if it knows how many instructions
@@ -659,13 +680,7 @@ template <class Impl>
 bool
 InstructionQueue<Impl>::isFull(ThreadID tid)
 {
-    if (numFreeEntries(tid) == 0) {
-        return(true);
-    } else {
-        // Work-around for Dynamic policy.
-        // It is expected to work in Partition policy, as well.
-        return isFull();
-    }
+    return numFreeEntries(tid) == 0;
 }
 
 template <class Impl>
@@ -1751,6 +1766,8 @@ void
 InstructionQueue<Impl>::increaseUsedEntries()
 {
     numUsedEntries += countInsts();
+    numThreadUsedEntries[0] += count[0];
+    numThreadUsedEntries[1] += count[1];
 }
 
 template <class Impl>
@@ -1758,14 +1775,26 @@ void
 InstructionQueue<Impl>::resetUsedEntries()
 {
     numUsedEntries = 0;
+    numThreadUsedEntries[0] = 0;
+    numThreadUsedEntries[1] = 0;
 }
 
 template <class Impl>
 void
 InstructionQueue<Impl>::dumpUsedEntries()
 {
+    iqThreadUtil[0] = double(numThreadUsedEntries[0])/
+        double(numEntries*cpu->windowSize);
+
+    iqThreadUtil[1] = double(numThreadUsedEntries[1])/
+        double(numEntries*cpu->windowSize);
+
     iqUtilization = double(numUsedEntries) /
         double(numEntries*cpu->windowSize);
+
+    iqUtil = double(numUsedEntries) /
+        double(numEntries*cpu->windowSize);
+
     resetUsedEntries();
 }
 

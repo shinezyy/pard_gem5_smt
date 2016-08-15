@@ -60,6 +60,7 @@
 #include "debug/Drain.hh"
 #include "debug/IEW.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
@@ -1571,6 +1572,11 @@ DefaultIEW<Impl>::tick()
             "LQ has %i free entries. SQ has %i free entries.\n",
             instQueue.numFreeEntries(), instQueue.hasReadyInsts(),
             ldstQueue.numFreeLoadEntries(), ldstQueue.numFreeStoreEntries());
+
+    DPRINTF(IEW, "Thread [0] IQ has %i free entries (Can schedule: %i).  "
+            "LQ has %i free entries. SQ has %i free entries.\n",
+            instQueue.numFreeEntries(0), instQueue.hasReadyInsts(),
+            ldstQueue.numFreeLoadEntries(0), ldstQueue.numFreeStoreEntries(0));
 
     instQueue.increaseUsedEntries();
     ldstQueue.increaseUsedEntries();

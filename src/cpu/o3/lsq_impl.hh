@@ -180,11 +180,21 @@ LSQ<Impl>::init(DerivO3CPUParams *params)
           */
         if (lsqPolicy == Threshold) {
             thread[tid].init(cpu, iewStage, params, this,
-                    maxLQEntries[tid], maxSQEntries[tid], tid);
-        }
-        else {
+                    maxLQEntries[tid], maxSQEntries[tid], tid, false);
+        } else if (lsqPolicy == Dynamic){
             thread[tid].init(cpu, iewStage , params, this,
-                    LQEntries, SQEntries, tid);
+                    LQEntries, SQEntries, tid, true);
+        } else if (lsqPolicy == Programmable) {
+            if (tid == 0) {
+                thread[tid].init(cpu, iewStage , params, this,
+                        LQEntries, SQEntries, tid, true);
+            } else {
+                thread[tid].init(cpu, iewStage , params, this,
+                        LQEntries, SQEntries, tid, false);
+            }
+        } else {
+            thread[tid].init(cpu, iewStage, params, this,
+                    maxLQEntries[tid], maxSQEntries[tid], tid, false);
         }
         thread[tid].setDcachePort(&cpu->getDataPort());
     }
@@ -569,10 +579,11 @@ template<class Impl>
 bool
 LSQ<Impl>::isFull(ThreadID tid)
 {
-    if (lsqPolicy == Dynamic)
+    if ((lsqPolicy == Programmable && tid == 0) || lsqPolicy == Dynamic) {
         return isFull();
-    else
+    } else {
         return thread[tid].lqFull() || thread[tid].sqFull();
+    }
 }
 
 template<class Impl>
@@ -627,10 +638,11 @@ template<class Impl>
 bool
 LSQ<Impl>::lqFull(ThreadID tid)
 {
-    if (lsqPolicy == Dynamic)
+    if ((lsqPolicy == Dynamic && tid == 0) || lsqPolicy == Dynamic) {
         return lqFull();
-    else
+    } else {
         return thread[tid].lqFull();
+    }
 }
 
 template<class Impl>
@@ -644,10 +656,11 @@ template<class Impl>
 bool
 LSQ<Impl>::sqFull(ThreadID tid)
 {
-    if (lsqPolicy == Dynamic)
+    if ((lsqPolicy == Dynamic && tid == 0) || lsqPolicy == Dynamic) {
         return sqFull();
-    else
+    } else {
         return thread[tid].sqFull();
+    }
 }
 
 template<class Impl>
@@ -827,7 +840,7 @@ LSQ<Impl>::updateMaxEntries()
     }
 
 
-    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+    for (ThreadID tid = 0; tid < numThreads - 1; ++tid) {
         DPRINTF(Pard, "Thread %d LQ Entries: %d, SQ Entries: %d\n",
                 tid, maxLQEntries[tid], maxSQEntries[tid]);
     }

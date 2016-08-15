@@ -92,7 +92,7 @@ class LSQUnit {
     /** Initializes the LSQ unit with the specified number of entries. */
     void init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
             LSQ *lsq_ptr, unsigned maxLQEntries, unsigned maxSQEntries,
-            unsigned id);
+            unsigned id, bool _isDynamic);
 
     /** Returns the name of the LSQ unit. */
     std::string name() const;
@@ -201,10 +201,14 @@ class LSQUnit {
     bool isEmpty() const { return lqEmpty() && sqEmpty(); }
 
     /** Returns if the LQ is full. */
-    bool lqFull() { return loads >= (LQEntries - 1); }
+    bool lqFull() {
+        return isDynamic ? loads >= LQEntries - 1 : loads >= (lqValid - 1);
+    }
 
     /** Returns if the SQ is full. */
-    bool sqFull() { return stores >= (SQEntries - 1); }
+    bool sqFull() {
+        return isDynamic ? stores >= SQEntries - 1 : stores >= (sqValid - 1);
+    }
 
     /** Returns if the LQ is empty. */
     bool lqEmpty() const { return loads == 0; }
@@ -552,6 +556,8 @@ class LSQUnit {
     int setSQLimit(unsigned sqLimit);
 
     unsigned lqValid, sqValid;
+
+    bool isDynamic;
 };
 
 template <class Impl>

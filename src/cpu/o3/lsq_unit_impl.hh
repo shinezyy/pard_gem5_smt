@@ -57,6 +57,7 @@
 #include "debug/IEW.hh"
 #include "debug/LSQUnit.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/Pard.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 
@@ -151,8 +152,9 @@ template<class Impl>
 void
 LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
         LSQ *lsq_ptr, unsigned maxLQEntries, unsigned maxSQEntries,
-        unsigned id)
+        unsigned id, bool _isDynamic)
 {
+    isDynamic = _isDynamic;
     cpu = cpu_ptr;
     iewStage = iew_ptr;
 
@@ -415,22 +417,33 @@ template <class Impl>
 unsigned
 LSQUnit<Impl>::numFreeLoadEntries()
 {
+    if (isDynamic) {
+        DPRINTF(LSQUnit, "LQ size: %d, #loads occupied: %d\n",
+                LQEntries, loads);
+        return LQEntries - loads - 1;
+    } else {
         //LQ has an extra dummy entry to differentiate
         //empty/full conditions. Subtract 1 from the free entries.
         DPRINTF(LSQUnit, "LQ size: %d, #loads occupied: %d\n", lqValid, loads);
         return lqValid - loads - 1;
+    }
 }
 
 template <class Impl>
 unsigned
 LSQUnit<Impl>::numFreeStoreEntries()
 {
+    if (isDynamic) {
+        DPRINTF(LSQUnit, "SQ size: %d, #loads occupied: %d\n",
+                SQEntries, stores);
+        return SQEntries - stores - 1;
+    } else {
         //SQ has an extra dummy entry to differentiate
         //empty/full conditions. Subtract 1 from the free entries.
         DPRINTF(LSQUnit, "SQ size: %d, #stores occupied: %d\n", sqValid, stores);
         return sqValid - stores - 1;
-
- }
+    }
+}
 
 template <class Impl>
 void

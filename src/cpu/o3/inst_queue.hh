@@ -447,8 +447,12 @@ class InstructionQueue
     /** IQ sharing policy for SMT. */
     IQPolicy iqPolicy;
 
+  public:
     int portion[Impl::MaxThreads]; // integer of 2^n, to avoid float
+
     int denominator;
+
+  private:
 
     /** Number of Total Threads*/
     ThreadID numThreads;
@@ -589,6 +593,8 @@ class InstructionQueue
 
     uint64_t numUsedEntries;
 
+    uint64_t numThreadUsedEntries[2];
+
     void increaseUsedEntries();
 
     void resetUsedEntries();
@@ -596,6 +602,10 @@ class InstructionQueue
     void dumpUsedEntries();
 
     Stats::Scalar iqUtilization;
+
+    double iqUtil;
+
+    double iqThreadUtil[2];
 };
 
 #endif //__CPU_O3_INST_QUEUE_HH__

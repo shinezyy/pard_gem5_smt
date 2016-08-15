@@ -1798,6 +1798,8 @@ DefaultFetch<Impl>::updateFetchWidth()
             for (int i = 0; i < width; i++) {
                 priorityList.push_back(tid);
             }
+            DPRINTF(Pard, "Thread %d fetch width: %d\n",
+                    tid, width);
         }
     }
 
