@@ -615,34 +615,51 @@ InstructionQueue<Impl>::updateMaxEntries()
 
     assert(numThreads == 2);
 
-    int inc = int(numEntries * portion[0] / denominator) - int(maxEntries[0]);
-    if (abs(inc) > freeEntries) {
-        DPRINTF(Pard, "numEntries: %d, portion 0: %d, deno: %d\n",
-                numEntries, portion[0], denominator);
-        DPRINTF(Pard, "numEntries * portion 0: / deno: %d, maxEntries:%d\n",
-                numEntries * portion[0] / denominator, int(maxEntries[0]));
+    int thread_0_increment = int(numEntries * portion[0] / denominator)
+        - int(maxEntries[0]); // expected increment
 
-        if (inc > 0) {
-            maxEntries[0] += freeEntries;
-            maxEntries[1] -= freeEntries;
-        } else {
-            maxEntries[0] -= freeEntries;
-            maxEntries[1] += freeEntries;
-        }
-
-        maxEntriesUpToDate = false; // further adjustment is needed
-        DPRINTF(Pard, "New configuration is not satisified yet due to "
-                "limited free entries\ninc: %d, free: %d\n",
-                abs(inc), freeEntries);
-    } else {
-        maxEntries[0] += inc;
-        maxEntries[1] -= inc;
+    if (thread_0_increment == 0) {
         maxEntriesUpToDate = true;
-        DPRINTF(Pard, "Adjust to new configuration\n"
-                "IQ[0]: %d\nIQ[1]: %d\n",
-                maxEntries[0], maxEntries[1]);
+        return;
     }
-    assert(abs(maxEntries[0]) < 65);
+
+    bool incThread_0 = thread_0_increment > 0;
+
+    bool sat = incThread_0 ? numFreeEntries(1) >= thread_0_increment :
+        numFreeEntries(0) >= -thread_0_increment;
+
+    unsigned *taker = incThread_0 ? &maxEntries[0] : &maxEntries[1];
+    unsigned *giver = incThread_0 ? &maxEntries[1] : &maxEntries[0];
+
+    unsigned really_taken;
+
+    if (incThread_0) {
+        really_taken = sat ? thread_0_increment : numFreeEntries(1);
+    } else {
+        really_taken = sat ? -thread_0_increment : numFreeEntries(0);
+    }
+
+    if (!sat) {
+        DPRINTF(Pard, "Thread [%ld] takes only %d entries from thread [%ld],"
+                "because limited free entries\n",
+                taker - &maxEntries[0], really_taken, giver - &maxEntries[0]);
+        DPRINTF(Pard, "Thread [%ld] now has %d entries, need %d entries to "
+                "satisify new portion %d\n",
+                taker - &maxEntries[0], *taker, thread_0_increment,
+                portion[int(taker - &maxEntries[0])]);
+    }
+    else {
+        DPRINTF(Pard, "Thread [%ld] takes %d entries from thread [%ld]\n",
+                taker - &maxEntries[0], really_taken, giver - &maxEntries[0]);
+    }
+
+    *taker += really_taken;
+    *giver -= really_taken;
+
+    maxEntriesUpToDate = sat;
+
+    assert(maxEntries[0] < 65);
+    assert(maxEntries[1] < 65);
 }
 
 template <class Impl>
@@ -680,7 +697,7 @@ template <class Impl>
 bool
 InstructionQueue<Impl>::isFull(ThreadID tid)
 {
-    return numFreeEntries(tid) == 0;
+    return numFreeEntries(tid) == 0 || numFreeEntries() == 0;
 }
 
 template <class Impl>
