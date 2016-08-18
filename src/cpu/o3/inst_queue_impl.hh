@@ -427,10 +427,10 @@ InstructionQueue<Impl>::regStats()
         .flags(total);
 
     iqUtilization
+        .init(numThreads)
         .name(name() + ".iq_utilization")
         .desc("Accumulation of instruction queue used every cycle")
-        .flags(display);
-
+        .flags(display | total);
 }
 
 template <class Impl>
@@ -1806,8 +1806,8 @@ InstructionQueue<Impl>::dumpUsedEntries()
     iqThreadUtil[1] = double(numThreadUsedEntries[1])/
         double(numEntries*cpu->windowSize);
 
-    iqUtilization = double(numUsedEntries) /
-        double(numEntries*cpu->windowSize);
+    iqUtilization[0] = iqThreadUtil[0];
+    iqUtilization[1] = iqThreadUtil[1];
 
     iqUtil = double(numUsedEntries) /
         double(numEntries*cpu->windowSize);

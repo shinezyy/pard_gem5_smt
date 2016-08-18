@@ -601,7 +601,8 @@ class InstructionQueue
 
     void dumpUsedEntries();
 
-    Stats::Scalar iqUtilization;
+    Stats::Scalar iqUtilization_total;
+    Stats::Vector iqUtilization;
 
     double iqUtil;
 

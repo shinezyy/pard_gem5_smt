@@ -225,14 +225,16 @@ LSQ<Impl>::regStats()
     }
 
     lqUtilization
+        .init(numThreads)
         .name(name() + ".lq_utilization")
         .desc("Accumulation of load queue used every cycle")
-        .flags(Stats::display);
+        .flags(Stats::display | Stats::total);
 
     sqUtilization
+        .init(numThreads)
         .name(name() + ".sq_utilization")
         .desc("Accumulation of store queue used every cycle")
-        .flags(Stats::display);
+        .flags(Stats::display | Stats::total);
 }
 
 template<class Impl>
@@ -906,11 +908,6 @@ template<class Impl>
 void
 LSQ<Impl>::dumpUsedEntries()
 {
-    lqUtilization = double(numUsedLQEntries) /
-        double(LQEntries * cpu->windowSize);
-    sqUtilization = double(numUsedSQEntries) /
-        double(SQEntries * cpu->windowSize);
-
     lqUtil = double(numUsedLQEntries) /
         double(LQEntries * cpu->windowSize);
     sqUtil = double(numUsedSQEntries) /
@@ -925,6 +922,12 @@ LSQ<Impl>::dumpUsedEntries()
         double(LQEntries * cpu->windowSize);
     sqThreadUtil[1] = double(numThreadUsedSQEntries[1]) /
         double(SQEntries * cpu->windowSize);
+
+    lqUtilization[0] = lqThreadUtil[0];
+    lqUtilization[1] = lqThreadUtil[1];
+
+    sqUtilization[0] = sqThreadUtil[0];
+    sqUtilization[1] = sqThreadUtil[1];
 
     resetUsedEntries();
 }

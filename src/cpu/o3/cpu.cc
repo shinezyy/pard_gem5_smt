@@ -601,14 +601,14 @@ FullO3CPU<Impl>::tick()
 
         if (iew.instQueue.iqThreadUtil[0] + 0.05 >=
                 double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
-            iqVec[0] = (iew.instQueue.iqThreadUtil[0] + 0.05)*1024;
+            iqVec[0] = std::min((iew.instQueue.iqThreadUtil[0] + 0.15)*1024, 1.0);
             iqVec[1] = 1024 - iqVec[0];
 
             iew.instQueue.reassignPortion(iqVec, 2, 1024);
             DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
-        } else if (iew.instQueue.iqThreadUtil[0] + 0.15 <
+        } else if (iew.instQueue.iqThreadUtil[0] + 0.2 <
                 double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
-            iqVec[0] = (iew.instQueue.iqThreadUtil[0] + 0.05)*1024;
+            iqVec[0] = std::min((iew.instQueue.iqThreadUtil[0] + 0.1)*1024, 1.0);
             iqVec[1] = 1024 - iqVec[0];
 
             iew.instQueue.reassignPortion(iqVec, 2, 1024);
@@ -625,14 +625,14 @@ FullO3CPU<Impl>::tick()
 
         if (iew.ldstQueue.lqThreadUtil[0] + 0.05 >=
                 double(iew.ldstQueue.LQPortion[0]) / iew.ldstQueue.denominator) {
-            lqVec[0] = (iew.ldstQueue.lqThreadUtil[0] + 0.05)*1024;
+            lqVec[0] = std::min((iew.ldstQueue.lqThreadUtil[0] + 0.15)*1024, 1.0);
             lqVec[1] = 1024 - lqVec[0];
 
             iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
             DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
-        } else if (iew.ldstQueue.lqThreadUtil[0] + 0.15 <
+        } else if (iew.ldstQueue.lqThreadUtil[0] + 0.2 <
                 double(iew.ldstQueue.LQPortion[0]) / iew.ldstQueue.denominator) {
-            lqVec[0] = (iew.ldstQueue.lqThreadUtil[0] + 0.05)*1024;
+            lqVec[0] = std::min((iew.ldstQueue.lqThreadUtil[0] + 0.1)*1024, 1.0);
             lqVec[1] = 1024 - lqVec[0];
 
             iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
@@ -641,14 +641,14 @@ FullO3CPU<Impl>::tick()
 
         if (iew.ldstQueue.sqThreadUtil[0] + 0.05 >=
                 double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
-            sqVec[0] = (iew.ldstQueue.sqThreadUtil[0] + 0.05)*1024;
+            sqVec[0] = std::min((iew.ldstQueue.sqThreadUtil[0] + 0.15)*1024, 1.0);
             sqVec[1] = 1024 - sqVec[0];
 
             iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
             DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
-        } else if (iew.ldstQueue.sqThreadUtil[0] + 0.15 <
+        } else if (iew.ldstQueue.sqThreadUtil[0] + 0.2 <
                 double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
-            sqVec[0] = (iew.ldstQueue.sqThreadUtil[0] + 0.05)*1024;
+            sqVec[0] = std::min((iew.ldstQueue.sqThreadUtil[0] + 0.1)*1024, 1.0);
             sqVec[1] = 1024 - sqVec[0];
 
             iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);

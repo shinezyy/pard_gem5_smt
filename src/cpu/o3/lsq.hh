@@ -364,8 +364,8 @@ class LSQ {
 
     bool lqUptodate, sqUptodate;
 
-    Stats::Scalar lqUtilization;
-    Stats::Scalar sqUtilization;
+    Stats::Vector lqUtilization;
+    Stats::Vector sqUtilization;
 };
 
 template <class Impl>

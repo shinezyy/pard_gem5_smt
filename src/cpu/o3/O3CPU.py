@@ -137,11 +137,11 @@ class DerivO3CPU(BaseCPU):
     # LSQ threshold is treated as bull shit
 
     smtIQPolicy    = Param.String('Programmable', "SMT IQ Sharing Policy")
-    smtIssuePolicy  = Param.String('Priority', "SMT Issue Policy")
+    smtIssuePolicy  = Param.String('Nodiscrimination', "SMT Issue Policy")
     smtIQThreshold = Param.Int(50, "SMT IQ Threshold Sharing Parameter")
     # IQ threshold is counted with precentage!!
 
-    smtROBPolicy   = Param.String('Programmable', "SMT ROB Sharing Policy")
+    smtROBPolicy   = Param.String('Dynamic', "SMT ROB Sharing Policy")
     smtROBThreshold = Param.Int(58, "SMT ROB Threshold Sharing Parameter")
     # ROB threshold is counted with absolute number
 
