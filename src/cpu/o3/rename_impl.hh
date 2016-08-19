@@ -523,6 +523,7 @@ void
 DefaultRename<Impl>::printROBHeadStatus(ThreadID tid) const
 {
     return;
+    /*
     for (ThreadID t = 0; t < numThreads; t++) {
         const char *mark = t == tid ? "*" : " ";
         auto rob = commit_ptr->rob;
@@ -532,6 +533,7 @@ DefaultRename<Impl>::printROBHeadStatus(ThreadID tid) const
                 inst ? Enums::OpClassStrings[inst->opClass()] : "nil",
                 rob->getThreadEntries(t));
     }
+    */
 }
 
 template <class Impl>
@@ -588,10 +590,6 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
         incrFullStat(source);
 
-        if (source == ROB) {
-            printROBHeadStatus(tid);
-        }
-
         return;
     } else if (min_free_entries < insts_available) {
         DPRINTF(Rename, "[tid:%u]: Will have to block this cycle."
@@ -604,10 +602,6 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         blockThisCycle = true;
 
         incrFullStat(source);
-
-        if (source == ROB) {
-            printROBHeadStatus(tid);
-        }
     }
 
     InstQueue &insts_to_rename = renameStatus[tid] == Unblocking ?

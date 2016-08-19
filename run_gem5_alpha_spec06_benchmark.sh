@@ -59,7 +59,7 @@ echo "" | tee -a $SCRIPT_OUT
 ################# detailed
 #gdb --args \
 #$GEM5_DIR/build/ALPHA/gem5.opt_nomodify\
-$GEM5_DIR/build/ALPHA/gem5.opt\
+$GEM5_DIR/build/ALPHA/gem5.fast\
     --outdir=$OUTPUT_DIR\
     $DEBUG_FLAG\
     $GEM5_DIR/configs/spec/spec06_config.py\
