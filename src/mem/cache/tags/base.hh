@@ -212,6 +212,10 @@ class BaseTags : public ClockedObject
     virtual int extractSet(Addr addr) const = 0;
 
     virtual void forEachBlk(CacheBlkVisitor &visitor) = 0;
+
+    virtual void setThread(ThreadID tid) {}
+
+    virtual void clearThread() {}
 };
 
 class BaseTagsCallback : public Callback

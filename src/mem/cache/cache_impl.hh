@@ -340,6 +340,11 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         assert(blkSize == pkt->getSize());
         if (blk == NULL) {
             // need to do a replacement
+            // L1 will not get write back request.
+            // Therefore this allocateBlock will not affect cache partition,
+            // which need to get thread id from request.
+            // TODO make write back request record thread id
+            // (as block knows it).
             blk = allocateBlock(pkt->getAddr(), pkt->isSecure(), writebacks);
             if (blk == NULL) {
                 // no replaceable block available: give up, fwd to next level.
@@ -1096,6 +1101,7 @@ Cache::recvTimingResp(PacketPtr pkt)
     // Initial target is used just for stats
     MSHR::Target *initial_tgt = mshr->getTarget();
     CacheBlk *blk = tags->findBlock(pkt->getAddr(), pkt->isSecure());
+    DPRINTF(Cache, "findBlock returns a block with ptr %p\n", blk);
     int stats_cmd_idx = initial_tgt->pkt->cmdToIndex();
     Tick miss_latency = curTick() - initial_tgt->recvTime;
     PacketList writebacks;
@@ -1470,7 +1476,9 @@ Cache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks)
         assert(pkt->isRead() || pkt->isWriteInvalidate());
 
         // need to do a replacement
+        tags->setThread(pkt->req->threadId());
         blk = allocateBlock(addr, is_secure, writebacks);
+        tags->clearThread();
         if (blk == NULL) {
             // No replaceable block... just use temporary storage to
             // complete the current request and then get rid of it

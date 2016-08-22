@@ -74,6 +74,23 @@ class LRUPartition : public BaseSetAssoc
     CacheBlk* findVictim(Addr addr);
     void insertBlock(PacketPtr pkt, BlkType *blk);
     void invalidate(CacheBlk *blk);
+
+    void setThread(ThreadID tid) override {
+        curThreadID = tid;
+    }
+
+    void clearThread() override {
+        curThreadID = -1;
+    }
+
+  private:
+    /**
+     * Determine the upper bound ways for each thread
+     * the max numSets is 128 (to simplify implementation).
+     */
+#define MAX_NUM_SETS 128
+    int threadWayRation[MAX_NUM_SETS][2];
+    int curThreadID;
 };
 
 #endif // __MEM_CACHE_TAGS_LRUPartition_HH__

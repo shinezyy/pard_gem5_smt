@@ -49,11 +49,22 @@
 #include "mem/cache/tags/lru_partition.hh"
 #include "mem/cache/base.hh"
 
-extern int curThreadID;
 
 LRUPartition::LRUPartition(const Params *p)
     : BaseSetAssoc(p)
 {
+    assert(numSets < MAX_NUM_SETS);
+    int rationFirst = 7;
+    for (int i = 0; i < numSets; i++) {
+        threadWayRation[i][0] = rationFirst;
+        threadWayRation[i][1] = assoc - rationFirst;
+    }
+
+    for (int i = 0; i < numSets; i++) {
+        for (int j = 0; j < assoc; j++) {
+            sets[i].blks[j]->threadID = -1;
+        }
+    }
 }
 
 CacheBlk*
@@ -64,9 +75,20 @@ LRUPartition::accessBlock(Addr addr, bool is_secure, Cycles &lat, int master_id)
     if (blk != NULL) {
         // move this block to head of the MRU list
         sets[blk->set].moveToHead(blk);
+        // Check the coherence of threadID assigned when inserted.
+        // ??? The different thread can hit on the same line!?
+        // assert(curThreadID == blk->threadID);
+        assert(blk->threadID >= 0);  // invalid ones with -1
         DPRINTF(CacheRepl, "set %x: moving blk %x (%s) to MRU\n",
                 blk->set, regenerateBlkAddr(blk->tag, blk->set),
                 is_secure ? "s" : "ns");
+#ifdef DEBUG_CACHE_PARTITION
+        printf("set %03d ", blk->set);
+        for (int i = 0; i < assoc; i++) {
+            printf("%d ", sets[blk->set].blks[i]->threadID);
+        }
+        puts("");
+#endif
     }
 
     return blk;
@@ -75,14 +97,34 @@ LRUPartition::accessBlock(Addr addr, bool is_secure, Cycles &lat, int master_id)
 CacheBlk*
 LRUPartition::findVictim(Addr addr)
 {
+    assert(curThreadID >= 0);
     int set = extractSet(addr);
     // grab a replacement candidate
-    BlkType *blk = sets[set].blks[assoc - 1];
-
-    if (blk->isValid()) {
+    BlkType *blk = NULL;
+    if (threadWayRation[set][curThreadID] > 0) {  // find invlaid ones
+        int i;
+        for (i = assoc - 1; i >= 0; i--) {
+            blk = sets[set].blks[i];
+            if (blk->threadID == -1) break;
+        }
+        // Consume ration in invalid cases.
+        // This has pityfalls when performing cache coherence.
+        // But we don't care that now.
+        assert(i >= 0);
+        threadWayRation[set][curThreadID]--;
+        blk->threadID = curThreadID;
+    }
+    else {  // find last used line inside its own ways.
+        for (int i = assoc - 1; i >= 0; i--) {
+            blk = sets[set].blks[i];
+            if (blk->threadID == curThreadID) break;
+        }
+        assert(blk->threadID == curThreadID);
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
                 set, regenerateBlkAddr(blk->tag, set));
     }
+
+    assert(threadWayRation[set][curThreadID] >= 0);
 
     return blk;
 }
@@ -90,8 +132,12 @@ LRUPartition::findVictim(Addr addr)
 void
 LRUPartition::insertBlock(PacketPtr pkt, BlkType *blk)
 {
+    // insertBlock is called in the specific thread context.
+    // so we can determine that this block belongs to thread
+    // <curThreadID>
     BaseSetAssoc::insertBlock(pkt, blk);
 
+    assert(blk->threadID >= 0);
     int set = extractSet(pkt->getAddr());
     sets[set].moveToHead(blk);
 }
@@ -104,6 +150,11 @@ LRUPartition::invalidate(CacheBlk *blk)
     // should be evicted before valid blocks
     int set = blk->set;
     sets[set].moveToTail(blk);
+
+    // Reset block belonging status
+    assert(blk->threadID >= 0);
+    threadWayRation[set][blk->threadID]++;
+    blk->threadID = -1;
 }
 
 LRUPartition*

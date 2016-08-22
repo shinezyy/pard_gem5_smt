@@ -85,6 +85,9 @@ class CacheBlk
     /** Task Id associated with this block */
     uint32_t task_id;
 
+    /** Indicate this block belongs to which thread */
+    ThreadID threadID;
+
     /** The address space ID of this block. */
     int asid;
     /** Data block tag value. */

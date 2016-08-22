@@ -321,6 +321,7 @@ for cpu in system.cpu:
 
 for cpu in system.cpu:
     cpu.icache.tags = LRUPartition()
+    cpu.dcache.tags = LRUPartition()
 
 # print options
 root = Root(full_system = False, system = system)
