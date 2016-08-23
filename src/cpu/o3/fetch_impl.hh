@@ -189,6 +189,7 @@ DefaultFetch<Impl>::regStats()
     icacheStallCycles
         .name(name() + ".icacheStallCycles")
         .desc("Number of cycles fetch is stalled on an Icache miss")
+        .flags(Stats::display)
         .prereq(icacheStallCycles);
 
     fetchedInsts

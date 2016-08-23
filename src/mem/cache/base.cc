@@ -224,7 +224,7 @@ BaseCache::regStats()
             .init(system->maxMasters())
             .name(name() + "." + cstr + "_misses")
             .desc("number of " + cstr + " misses")
-            .flags(total | nozero | nonan)
+            .flags(total | nozero | nonan | display)
             ;
         for (int i = 0; i < system->maxMasters(); i++) {
             misses[access_idx].subname(i, system->getMasterName(i));
@@ -332,7 +332,7 @@ BaseCache::regStats()
         missRate[access_idx]
             .name(name() + "." + cstr + "_miss_rate")
             .desc("miss rate for " + cstr + " accesses")
-            .flags(total | nozero | nonan)
+            .flags(total | nozero | nonan | display)
             ;
         missRate[access_idx] = misses[access_idx] / accesses[access_idx];
 

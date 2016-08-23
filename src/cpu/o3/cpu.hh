@@ -751,6 +751,8 @@ class FullO3CPU : public BaseO3CPU
     Stats::Scalar miscRegfileReads;
     Stats::Scalar miscRegfileWrites;
 
+    Stats::Vector numInstsPerThread;
+
   protected:
     typedef std::map<std::string, int> SrcManagerConfig;
     SrcManagerConfig srcManagerConfig;

@@ -319,6 +319,10 @@ else:
 for cpu in system.cpu:
     cpu.windowSize = 15000
 
+for cpu in system.cpu:
+    cpu.icache.tags = LRUPartition()
+    cpu.dcache.tags = LRUPartition()
+
 # print options
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)

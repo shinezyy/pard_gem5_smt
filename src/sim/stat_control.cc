@@ -127,6 +127,7 @@ Global::Global()
         .desc("Number of instructions simulated")
         .precision(0)
         .prereq(simInsts)
+        .flags(display)
         ;
 
     simOps

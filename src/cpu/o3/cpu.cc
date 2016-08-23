@@ -568,6 +568,12 @@ FullO3CPU<Impl>::regStats()
         .name(name() + ".misc_regfile_writes")
         .desc("number of misc regfile writes")
         .prereq(miscRegfileWrites);
+
+    numInstsPerThread
+        .name(name() + ".num_insts")
+        .desc("number of insts executed by each thread")
+        .flags(Stats::display)
+        .init(numThreads);
 }
 
 template <class Impl>
@@ -737,6 +743,10 @@ FullO3CPU<Impl>::tick()
         updateThreadPriority();
 
     tryDrain();
+
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        numInstsPerThread[tid] = thread[tid]->numInst;
+    }
 }
 
 template <class Impl>
