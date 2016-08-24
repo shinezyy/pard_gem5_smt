@@ -54,7 +54,7 @@ LRUPartition::LRUPartition(const Params *p)
     : BaseSetAssoc(p)
 {
     assert(numSets < MAX_NUM_SETS);
-    int rationFirst = 7;
+    int rationFirst = p->thread_0_assoc;
     for (int i = 0; i < numSets; i++) {
         threadWayRation[i][0] = rationFirst;
         threadWayRation[i][1] = assoc - rationFirst;
