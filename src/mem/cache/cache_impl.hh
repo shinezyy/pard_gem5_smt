@@ -340,12 +340,9 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         assert(blkSize == pkt->getSize());
         if (blk == NULL) {
             // need to do a replacement
-            // L1 will not get write back request.
-            // Therefore this allocateBlock will not affect cache partition,
-            // which need to get thread id from request.
-            // TODO make write back request record thread id
-            // (as block knows it).
+            tags->setThread(pkt->req->threadId());
             blk = allocateBlock(pkt->getAddr(), pkt->isSecure(), writebacks);
+            tags->clearThread();
             if (blk == NULL) {
                 // no replaceable block available: give up, fwd to next level.
                 incMissCount(pkt);
@@ -1340,6 +1337,7 @@ Cache::writebackBlk(CacheBlk *blk)
     Request *writebackReq =
         new Request(tags->regenerateBlkAddr(blk->tag, blk->set), blkSize, 0,
                 Request::wbMasterId);
+    writebackReq->setThread(blk->threadID);
     if (blk->isSecure())
         writebackReq->setFlags(Request::SECURE);
 
