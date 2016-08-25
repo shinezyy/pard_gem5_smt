@@ -360,6 +360,13 @@ class Request
         privateFlags.set(VALID_CONTEXT_ID|VALID_THREAD_ID);
     }
 
+    void
+    setThread(ThreadID tid)
+    {
+        _threadId = tid;
+        privateFlags.set(VALID_THREAD_ID);
+    }
+
     /**
      * Set up a virtual (e.g., CPU) request in a previously
      * allocated Request object.
