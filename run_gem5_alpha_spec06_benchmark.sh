@@ -20,8 +20,6 @@
 ############ DIRECTORY VARIABLES: MODIFY ACCORDINGLY #############
 # Install location of gem5
 GEM5_DIR=$(dirname $0)
-# Install location of your SPEC2006 benchmarks
-SPEC_DIR=$HOME/cpu2006
 ##################################################################
 
 # Get command line input. We will need to check these.
@@ -39,7 +37,6 @@ echo "Command line:"                                | tee $SCRIPT_OUT
 echo "$0 $*"                                        | tee -a $SCRIPT_OUT
 echo "================= Hardcoded directories ==================" | tee -a $SCRIPT_OUT
 echo "GEM5_DIR:                                     $GEM5_DIR" | tee -a $SCRIPT_OUT
-echo "SPEC_DIR:                                     $SPEC_DIR" | tee -a $SCRIPT_OUT
 echo "==================== Script inputs =======================" | tee -a $SCRIPT_OUT
 echo "BENCHMARK:                                    $BENCHMARK" | tee -a $SCRIPT_OUT
 echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
@@ -58,8 +55,8 @@ echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
 #gdb --args \
-#$GEM5_DIR/build/ALPHA/gem5.opt_nomodify\
-$GEM5_DIR/build/ALPHA/gem5.fast\
+#$GEM5_DIR/build/ALPHA/gem5.fast\
+$GEM5_DIR/build/ALPHA/gem5.opt\
     --outdir=$OUTPUT_DIR\
     $DEBUG_FLAG\
     $GEM5_DIR/configs/spec/spec06_config.py\

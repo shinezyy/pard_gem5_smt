@@ -5,15 +5,18 @@ from m5.objects import *
 import os
 
 # These three directory paths are not currently used.
-#gem5_dir = '<FULL_PATH_TO_YOUR_GEM5_INSTALL>'
-spec_dir = os.path.expanduser('~/cpu2006/benchspec/CPU2006/')
-#out_dir = '<FULL_PATH_TO_DESIRED_OUTPUT_DIRECTORY>'
-# my_suffix = '_base.gcc-arm-A7-little-endian-NVM'
+# Add a new environment variable in your bashrc: cpu_2006_dir=<CPU2006 path>
+spec_dir = os.environ['cpu_2006_dir']+'/'
 my_suffix = '_base.gcc-alpha-4.3'
-# my_suffix = '_base.gcc43-64bit'
+edu_flag = False
 
-#temp
-#binary_dir = spec_dir
+
+def init_env():
+    global edu_flag
+    if 'spec_version' in os.environ:
+        if os.environ['spec_version'] == 'education':
+            edu_flag = True
+
 
 #400.perlbench
 def get_perlbench():
@@ -58,6 +61,7 @@ def get_bzip2():
 
 #403.gcc
 def get_gcc():
+    init_env()
     gcc = LiveProcess()
     gcc.executable = spec_dir+'403.gcc/exe/gcc' + my_suffix
     gcc_input_ref_dir = spec_dir+'403.gcc/data/ref/input/'
@@ -65,7 +69,7 @@ def get_gcc():
     # TEST CMDS
     #gcc.cmd = [gcc.executable] + [gcc_input_test_dir+'cccp.i', '-o', 'cccp.s']
     # REF CMDS
-    gcc.cmd = [gcc.executable] + [gcc_input_ref_dir+'166.i', '-o', '166.s']
+    cmd = [gcc.executable] + [gcc_input_ref_dir+'166.i', '-o', '166.s']
     #gcc.cmd = [gcc.executable] + ['200.i', '-o', '200.s']
     #gcc.cmd = [gcc.executable] + ['c-typeck.i', '-o', 'c-typeck.s']
     #gcc.cmd = [gcc.executable] + ['cp-decl.i', '-o', 'cp-decl.s']
@@ -75,7 +79,11 @@ def get_gcc():
     #gcc.cmd = [gcc.executable] + ['s04.i', '-o', 's04.s']
     #gcc.cmd = [gcc.executable] + ['scilab.i', '-o', 'scilab.s']
     #gcc.output = out_dir + 'gcc.out'
-    return gcc
+
+    if edu_flag:
+        print 'spec edu version'
+        cmd[1] = cmd[1]+'n'
+    gcc.cmd = cmd
 
     return gcc
 

@@ -103,6 +103,7 @@ if options.smt:
 
 
 def get_benchmark_process(benchmark_name):
+    spec06_benchmarks.init_env()
     if benchmark_name == 'perlbench':
         print '--> perlbench'
         process = spec06_benchmarks.get_perlbench()
