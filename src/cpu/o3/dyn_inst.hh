@@ -337,6 +337,22 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     {
         return this->staticInst->memAccInst()->execute(this, this->traceData);
     }
+
+  private:
+
+    bool everMispredicted;
+
+  public:
+
+    bool setMispred()
+    {
+        everMispredicted = true;
+    }
+
+    bool EverMispred()
+    {
+        return everMispredicted;
+    }
 };
 
 #endif // __CPU_O3_ALPHA_DYN_INST_HH__

@@ -133,6 +133,9 @@ BaseO3DynInst<Impl>::initVars()
     commitTick = -1;
     storeTick = -1;
 #endif
+
+    // For PTA:
+    everMispredicted = false;
 }
 
 template <class Impl>
