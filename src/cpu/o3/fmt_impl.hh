@@ -9,103 +9,103 @@
 
 #define map_item_checking 1
 
-template<class Impl>
+    template<class Impl>
 FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
-  : cpu(cpu_ptr),
-  numThreads(params->numThreads)
+    : cpu(cpu_ptr),
+    numThreads(params->numThreads)
 {
 }
 
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::setStage(Fetch *_fetch, Decode *_decode, IEW *_iew)
 {
-  fetch = _fetch;
-  decode = _decode;
-  iew = _iew;
+    fetch = _fetch;
+    decode = _decode;
+    iew = _iew;
 }
 
 #if 0
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::init(std::vector<DynInstPtr> &v_bran, uint64_t timeStamp)
 {
-  ThreadID tid = 0;
-  for (auto&& it : v_bran) {
-    addBranch(it, tid++, timeStamp);
-  }
+    ThreadID tid = 0;
+    for (auto&& it : v_bran) {
+        addBranch(it, tid++, timeStamp);
+    }
 }
 #endif
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
 {
 #if map_item_checking
-  if (table[tid].find(bran->seqNum) != table[tid].end()) {
-    fatal("Reinsert existing instruction to FMT in thread %d, at"
-        "time stamp %" PRId64 "\n", tid, timeStamp);
-  }
+    if (table[tid].find(bran->seqNum) != table[tid].end()) {
+        fatal("Reinsert existing instruction to FMT in thread %d, at"
+                "time stamp %" PRId64 "\n", tid, timeStamp);
+    }
 #endif
 
-  BranchEntry *be = &table[tid][bran->seqNum];
-  bzero((void *)be, sizeof(uint64_t)*4);
-  be->initTimeStamp = timeStamp;
+    BranchEntry *be = &table[tid][bran->seqNum];
+    bzero((void *)be, sizeof(uint64_t)*4);
+    be->initTimeStamp = timeStamp;
 }
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
 {
 #if map_item_checking
-  if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-    fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-  }
+    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
+        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
+    }
 #endif
 
-  table[tid].lower_bound(inst->seqNum)->second.baseSlots++;
+    table[tid].lower_bound(inst->seqNum)->second.baseSlots++;
 }
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
 {
 #if map_item_checking
-  if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-    fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-  }
+    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
+        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
+    }
 #endif
 
-  table[tid].lower_bound(inst->seqNum)->second.waitSlots++;
+    table[tid].lower_bound(inst->seqNum)->second.waitSlots++;
 }
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
 #if map_item_checking
-  if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-    fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-  }
+    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
+        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
+    }
 #endif
 
-  table[tid].lower_bound(inst->seqNum)->second.missSlots++;
+    table[tid].lower_bound(inst->seqNum)->second.missSlots++;
 }
 
-template<class Impl>
+    template<class Impl>
 void FMT<Impl>::resolveBranch(bool right, DynInstPtr &bran, ThreadID tid)
 {
 #if map_item_checking
     if (table[tid].find(bran->seqNum) != table[tid].end()) {
-      fatal("Reinsert existing instruction to FMT in thread %d\n", tid);
+        fatal("Reinsert existing instruction to FMT in thread %d\n", tid);
     }
 #endif
-  if (right) {
-    globalBase[tid] += table[tid][bran->seqNum].baseSlots;
-    globalMiss[tid] += table[tid][bran->seqNum].missSlots;
-    globalWait[tid] += table[tid][bran->seqNum].waitSlots;
+    if (right) {
+        globalBase[tid] += table[tid][bran->seqNum].baseSlots;
+        globalMiss[tid] += table[tid][bran->seqNum].missSlots;
+        globalWait[tid] += table[tid][bran->seqNum].waitSlots;
 
-  } else {
+    } else {
 
-    globalMiss[tid] += table[tid][bran->seqNum].baseSlots;
-    globalMiss[tid] += table[tid][bran->seqNum].missSlots;
-    globalMiss[tid] += table[tid][bran->seqNum].waitSlots;
-  }
+        globalMiss[tid] += table[tid][bran->seqNum].baseSlots;
+        globalMiss[tid] += table[tid][bran->seqNum].missSlots;
+        globalMiss[tid] += table[tid][bran->seqNum].waitSlots;
+    }
 }
 
 

@@ -11,80 +11,80 @@ struct DerivO3CPUParams;
 template <class Impl>
 class FMT {
 
-  typedef typename Impl::CPUPol CPUPol;
-  typedef typename Impl::O3CPU O3CPU;
-  typedef typename Impl::DynInst DynInst;
-  typedef typename Impl::DynInstPtr DynInstPtr;
-  typedef typename CPUPol::Fetch Fetch;
-  typedef typename CPUPol::Decode Decode;
-  typedef typename CPUPol::IEW IEW;
+    typedef typename Impl::CPUPol CPUPol;
+    typedef typename Impl::O3CPU O3CPU;
+    typedef typename Impl::DynInst DynInst;
+    typedef typename Impl::DynInstPtr DynInstPtr;
+    typedef typename CPUPol::Fetch Fetch;
+    typedef typename CPUPol::Decode Decode;
+    typedef typename CPUPol::IEW IEW;
 
 
-  public:
+    public:
 
-  struct BranchEntry {
+    struct BranchEntry {
 
-    uint64_t baseSlots;
+        uint64_t baseSlots;
 
-    uint64_t waitSlots;
+        uint64_t waitSlots;
 
-    uint64_t missSlots;
+        uint64_t missSlots;
 
-    uint64_t initTimeStamp;
-  };
-
-
-  private:
-
-  O3CPU *cpu;
-
-  Fetch *fetch;
-
-  Decode *decode;
-
-  IEW *iew;
-
-  std::map<InstSeqNum, BranchEntry> table[Impl::MaxThreads];
-
-  uint64_t globalBase[Impl::MaxThreads];
-
-  uint64_t globalMiss[Impl::MaxThreads];
-
-  uint64_t globalWait[Impl::MaxThreads];
-
-  ThreadID numThreads;
+        uint64_t initTimeStamp;
+    };
 
 
-  public:
+    private:
 
-  std::string name() const;
+    O3CPU *cpu;
 
-  FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
+    Fetch *fetch;
 
-  // Add the first instruction of each thread into the table
-  // void init(std::vector<DynInstPtr> &v_bran, uint64_t timeStamp);
+    Decode *decode;
+
+    IEW *iew;
+
+    std::map<InstSeqNum, BranchEntry> table[Impl::MaxThreads];
+
+    uint64_t globalBase[Impl::MaxThreads];
+
+    uint64_t globalMiss[Impl::MaxThreads];
+
+    uint64_t globalWait[Impl::MaxThreads];
+
+    ThreadID numThreads;
 
 
-  void setStage(Fetch *_fetch, Decode *_decode, IEW *_iew);
+    public:
 
-  void addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp);
+    std::string name() const;
 
-  void incBaseSlot(DynInstPtr &bran, ThreadID tid);
+    FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
-  void incWaitSlot(DynInstPtr &bran, ThreadID tid);
+    // Add the first instruction of each thread into the table
+    // void init(std::vector<DynInstPtr> &v_bran, uint64_t timeStamp);
 
-  /* When there is a miss event for tid,
-   * and dispatched another thread
-   */
-  void incMissSlot(DynInstPtr &bran, ThreadID tid);
 
-  /* If prediction is right:
-   * add timestamp difference counts to global dispatching count;
-   * else:
-   * add timestamp difference to global branch misprediction count,
-   * and count slots after the branch instruction as miss event slots.
-   */
-  void resolveBranch(bool right, DynInstPtr &bran, ThreadID tid);
+    void setStage(Fetch *_fetch, Decode *_decode, IEW *_iew);
+
+    void addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp);
+
+    void incBaseSlot(DynInstPtr &bran, ThreadID tid);
+
+    void incWaitSlot(DynInstPtr &bran, ThreadID tid);
+
+    /* When there is a miss event for tid,
+     * and dispatched another thread
+     */
+    void incMissSlot(DynInstPtr &bran, ThreadID tid);
+
+    /* If prediction is right:
+     * add timestamp difference counts to global dispatching count;
+     * else:
+     * add timestamp difference to global branch misprediction count,
+     * and count slots after the branch instruction as miss event slots.
+     */
+    void resolveBranch(bool right, DynInstPtr &bran, ThreadID tid);
 
 };
 
