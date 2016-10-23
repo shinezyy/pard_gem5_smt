@@ -1,6 +1,7 @@
 #ifndef __CPU_O3_FMT_HH__
 #define __CPU_O3_FMT_HH__
 
+
 #include <cstdint>
 
 #include "config/the_isa.hh"
@@ -43,7 +44,7 @@ class FMT {
 
   IEW *iew;
 
-  std::map<DynInstPtr, BranchEntry> table[Impl::MaxThreads];
+  std::map<InstSeqNum, BranchEntry> table[Impl::MaxThreads];
 
   uint64_t globalBase[Impl::MaxThreads];
 
@@ -61,16 +62,21 @@ class FMT {
   FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
   // Add the first instruction of each thread into the table
-  void init(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp);
+  // void init(std::vector<DynInstPtr> &v_bran, uint64_t timeStamp);
+
 
   void setStage(Fetch *_fetch, Decode *_decode, IEW *_iew);
 
   void addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp);
 
-  /* when dispatching an instruction, what should also be done is
-   * to increase other threads' waiting slot
-   */
   void incBaseSlot(DynInstPtr &bran, ThreadID tid);
+
+  void incWaitSlot(DynInstPtr &bran, ThreadID tid);
+
+  /* When there is a miss event for tid,
+   * and dispatched another thread
+   */
+  void incMissSlot(DynInstPtr &bran, ThreadID tid);
 
   /* If prediction is right:
    * add timestamp difference counts to global dispatching count;
