@@ -99,6 +99,8 @@ class DefaultCommit
     typedef typename CPUPol::Fetch Fetch;
     typedef typename CPUPol::IEW IEW;
 
+    typedef typename CPUPol::Fmt Fmt;
+
     typedef O3ThreadState<Impl> Thread;
 
     /** Event class used to schedule a squash due to a trap (fault or
@@ -542,9 +544,15 @@ class DefaultCommit
         }
     }
 
+    Fmt *fmt;
+
   public:
     bool isROBPolicyDynamic() const
-    { return rob->isDynamicPolicy(); }
+    {
+        return rob->isDynamicPolicy();
+    }
+
+    void setFmt(Fmt *_fmt);
 };
 
 #endif // __CPU_O3_COMMIT_HH__

@@ -273,6 +273,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     fmt.setStage(&fetch, &decode, &iew);
     fetch.setFmt(&fmt);
     iew.setFmt(&fmt);
+    commit.setFmt(&fmt);
 
     ThreadID active_threads;
     if (FullSystem) {

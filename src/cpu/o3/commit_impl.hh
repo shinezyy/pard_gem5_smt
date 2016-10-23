@@ -1031,6 +1031,11 @@ DefaultCommit<Impl>::commitInsts()
             bool commit_success = commitHead(head_inst, num_committed);
 
             if (commit_success) {
+
+                if (head_inst->isControl() && !head_inst->EverMispred()) {
+                    fmt->resolveBranch(true, head_inst, tid);
+                }
+
                 ++num_committed;
                 statCommittedInstType[tid][head_inst->opClass()]++;
                 ppCommit->notify(head_inst);
@@ -1513,6 +1518,13 @@ DefaultCommit<Impl>::oldestReady()
     } else {
         return InvalidThreadID;
     }
+}
+
+template <class Impl>
+void
+DefaultCommit<Impl>::setFmt(Fmt *_fmt)
+{
+    fmt = _fmt;
 }
 
 #endif//__CPU_O3_COMMIT_IMPL_HH__

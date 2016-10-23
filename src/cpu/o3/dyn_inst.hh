@@ -344,7 +344,7 @@ class BaseO3DynInst : public BaseDynInst<Impl>
 
   public:
 
-    bool setMispred()
+    void setMispred()
     {
         everMispredicted = true;
     }
