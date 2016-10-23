@@ -175,6 +175,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       iew(this, params),
       commit(this, params),
       resourceManager(this, params),
+      fmt(this, params),
 
       regFile(params->numPhysIntRegs,
               params->numPhysFloatRegs,
@@ -268,6 +269,10 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     resourceManager.setFetch(&fetch);
     resourceManager.setIQ(&iew.instQueue);
     resourceManager.setLSQ(&iew.ldstQueue);
+
+    fmt.setStage(&fetch, &decode, &iew);
+    fetch.setFmt(&fmt);
+    iew.setFmt(&fmt);
 
     ThreadID active_threads;
     if (FullSystem) {

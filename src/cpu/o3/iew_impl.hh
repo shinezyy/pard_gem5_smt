@@ -1675,4 +1675,11 @@ DefaultIEW<Impl>::clearNumIQFullALL()
     }
 }
 
+template<class Impl>
+void
+DefaultIEW<Impl>::setFmt(Fmt *_fmt)
+{
+    fmt = _fmt;
+}
+
 #endif//__CPU_O3_IEW_IMPL_IMPL_HH__

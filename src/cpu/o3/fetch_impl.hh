@@ -611,6 +611,8 @@ DefaultFetch<Impl>::lookupAndUpdateNextPC(
     inst->setPredTarg(nextPC);
     inst->setPredTaken(predict_taken);
 
+    fmt->addBranch(inst, tid, cpu->localCycles);
+
     ++fetchedBranches;
 
     if (predict_taken) {
@@ -1806,6 +1808,14 @@ DefaultFetch<Impl>::updateFetchWidth()
 
     fetchWidthUpToDate = true;
     DPRINTF(Pard, "Updated fetch width\n");
+}
+
+
+template<class Impl>
+void
+DefaultFetch<Impl>::setFmt(Fmt *_fmt)
+{
+    fmt = _fmt;
 }
 
 #endif//__CPU_O3_FETCH_IMPL_HH__

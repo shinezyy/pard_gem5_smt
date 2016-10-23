@@ -558,6 +558,8 @@ class FullO3CPU : public BaseO3CPU
 
     typename CPUPolicy::ResManager resourceManager;
 
+    typename CPUPolicy::Fmt fmt;
+
     /** The register file. */
     PhysRegFile regFile;
 

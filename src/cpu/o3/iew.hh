@@ -95,6 +95,8 @@ class DefaultIEW
     typedef typename CPUPol::RenameStruct RenameStruct;
     typedef typename CPUPol::IssueStruct IssueStruct;
 
+    typedef typename CPUPol::Fmt Fmt;
+
   public:
     /** Overall IEW stage status. Used to determine if the CPU can
      * deschedule itself due to a lack of activity.
@@ -486,12 +488,20 @@ class DefaultIEW
     Stats::Formula wbPenalizedRate;
 
   private:
+
     std::vector<int> numIQFull;
 
+    Fmt *fmt;
+
   public:
+
     int getNumIQFull(ThreadID tid) const;
+
     void clearNumIQFull(ThreadID tid);
+
     void clearNumIQFullALL();
+
+    void setFmt(Fmt *_fmt);
 };
 
 #endif // __CPU_O3_IEW_HH__

@@ -1,6 +1,8 @@
 #ifndef __CPU_O3_FMT_IMPL_HH__
 #define __CPU_O3_FMT_IMPL_HH__
 
+#define __STDC_FORMAT_MACROS // for PRIu64 macro
+#include <cinttypes>
 
 #include "cpu/o3/comm.hh"
 #include "debug/FMT.hh"
@@ -42,7 +44,7 @@ void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
 #if map_item_checking
     if (table[tid].find(bran->seqNum) != table[tid].end()) {
         fatal("Reinsert existing instruction to FMT in thread %d, at"
-                "time stamp %" PRId64 "\n", tid, timeStamp);
+                "time stamp %" PRIu64 "\n", tid, timeStamp);
     }
 #endif
 
