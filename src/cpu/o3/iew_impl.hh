@@ -1140,6 +1140,28 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
 
         toRename->iewInfo[tid].dispatched++;
 
+        // check other threads' status
+        for (ThreadID i = 0; i < numThreads; i++) {
+            if (i == tid) {
+                fmt->incBaseSlot(inst, i);
+            } else {
+                if (dispatchStatus[i] == Unblocking ||
+                        dispatchStatus[i] == Running ||
+                        dispatchStatus[i] == Idle) {
+
+                    fmt->incWaitSlot(inst, i);
+                } else {
+                    /** If there is a front-end miss, then thread tid can be
+                      * dispatched;
+                      * Else if there is a backend miss and ROB full,
+                      * then no thread can be issue, and the following
+                      * increasement cannot be done
+                      */
+                    fmt->incMissSlot(inst, i);
+                }
+            }
+        }
+
         ++iewDispatchedInsts;
 
 #if TRACING_ON
