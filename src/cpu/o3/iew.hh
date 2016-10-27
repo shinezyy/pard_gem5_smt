@@ -493,6 +493,8 @@ class DefaultIEW
 
     Fmt *fmt;
 
+    uint32_t tempWaitSlots[Impl::MaxThreads];
+
   public:
 
     int getNumIQFull(ThreadID tid) const;

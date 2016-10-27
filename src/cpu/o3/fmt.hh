@@ -88,4 +88,4 @@ class FMT {
 
 };
 
-#endif // __CPU_O3_FETCH_HH__
+#endif // __CPU_O3_VOC_HH__

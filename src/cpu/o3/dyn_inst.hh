@@ -342,6 +342,8 @@ class BaseO3DynInst : public BaseDynInst<Impl>
 
     bool everMispredicted;
 
+    uint32_t priorWaitSlots;
+
   public:
 
     void setMispred()
@@ -352,6 +354,16 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     bool EverMispred()
     {
         return everMispredicted;
+    }
+
+    void setWaitSlot(uint32_t n)
+    {
+        priorWaitSlots = n;
+    }
+
+    uint32_t getWaitSlot()
+    {
+        return priorWaitSlots;
     }
 };
 

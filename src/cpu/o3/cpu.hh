@@ -560,6 +560,7 @@ class FullO3CPU : public BaseO3CPU
 
     typename CPUPolicy::Fmt fmt;
 
+    typename CPUPolicy::Voc voc;
     /** The register file. */
     PhysRegFile regFile;
 

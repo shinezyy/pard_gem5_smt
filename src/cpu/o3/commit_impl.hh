@@ -1289,6 +1289,7 @@ DefaultCommit<Impl>::commitHead(DynInstPtr &head_inst, unsigned inst_num)
 
     // Finally clear the head ROB entry.
     rob->retireHead(tid);
+    voc->freeVrob(tid, head_inst);
 
 #if TRACING_ON
     if (DTRACE(O3PipeView)) {
@@ -1520,11 +1521,5 @@ DefaultCommit<Impl>::oldestReady()
     }
 }
 
-template <class Impl>
-void
-DefaultCommit<Impl>::setFmt(Fmt *_fmt)
-{
-    fmt = _fmt;
-}
 
 #endif//__CPU_O3_COMMIT_IMPL_HH__

@@ -174,8 +174,10 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       rename(this, params),
       iew(this, params),
       commit(this, params),
+
       resourceManager(this, params),
       fmt(this, params),
+      voc(this, params),
 
       regFile(params->numPhysIntRegs,
               params->numPhysFloatRegs,
@@ -274,6 +276,9 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     fetch.setFmt(&fmt);
     iew.setFmt(&fmt);
     commit.setFmt(&fmt);
+
+    voc.setStage(&fetch, &decode, &iew, &commit);
+    rob.setVoc(&voc);
 
     ThreadID active_threads;
     if (FullSystem) {

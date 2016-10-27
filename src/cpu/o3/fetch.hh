@@ -613,7 +613,11 @@ class DefaultFetch
 
     uint64_t numFetchedInsts;
 
-    void setFmt(Fmt *_fmt);
+    void setFmt(Fmt *_fmt)
+    {
+        fmt = _fmt;
+    }
+
 };
 
 #endif //__CPU_O3_FETCH_HH__

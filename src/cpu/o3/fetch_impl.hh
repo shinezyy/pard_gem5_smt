@@ -1811,11 +1811,4 @@ DefaultFetch<Impl>::updateFetchWidth()
 }
 
 
-template<class Impl>
-void
-DefaultFetch<Impl>::setFmt(Fmt *_fmt)
-{
-    fmt = _fmt;
-}
-
 #endif//__CPU_O3_FETCH_IMPL_HH__

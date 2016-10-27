@@ -107,6 +107,7 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         dispatchStatus[tid] = Running;
         fetchRedirect[tid] = false;
+        tempWaitSlots[tid] = 0;
     }
 
     updateLSQNextCycle = false;
@@ -1144,12 +1145,14 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         for (ThreadID i = 0; i < numThreads; i++) {
             if (i == tid) {
                 fmt->incBaseSlot(inst, i);
+                inst->setWaitSlot(tempWaitSlots[i]);
             } else {
                 if (dispatchStatus[i] == Unblocking ||
                         dispatchStatus[i] == Running ||
                         dispatchStatus[i] == Idle) {
 
                     fmt->incWaitSlot(inst, i);
+                    tempWaitSlots[tid] += 1;
                 } else {
                     /** If there is a front-end miss, then thread tid can be
                       * dispatched;
