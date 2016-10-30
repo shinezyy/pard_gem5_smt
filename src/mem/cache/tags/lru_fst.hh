@@ -83,6 +83,10 @@ class LRUFst : public BaseSetAssoc
         curThreadID = -1;
     }
 
+    bool isInterfered() override {
+        return interfered;
+    }
+
   private:
     /**
      * Determine the upper bound ways for each thread
@@ -102,6 +106,8 @@ class LRUFst : public BaseSetAssoc
      */
     int interferedSetPerThread[MAX_NUM_SETS][2];
     int curThreadID;
+
+    bool interfered = false;
 };
 
 #endif // __MEM_CACHE_TAGS_LRUFst_HH__

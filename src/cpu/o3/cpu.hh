@@ -753,6 +753,11 @@ class FullO3CPU : public BaseO3CPU
 
     Stats::Vector numInstsPerThread;
 
+    // Records the cycles that cpu gets stalled due to interference.
+    // TODO Whether it is really stalled and the cycles needs to be
+    // counted needs further consideration!
+    Stats::Vector excessCycles;
+
   protected:
     typedef std::map<std::string, int> SrcManagerConfig;
     SrcManagerConfig srcManagerConfig;

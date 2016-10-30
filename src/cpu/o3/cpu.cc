@@ -82,6 +82,8 @@ struct BaseCPUParams;
 using namespace TheISA;
 using namespace std;
 
+extern int interferedByCachePerThread[];
+
 BaseO3CPU::BaseO3CPU(BaseCPUParams *params)
     : BaseCPU(params)
 {
@@ -574,6 +576,12 @@ FullO3CPU<Impl>::regStats()
         .desc("number of insts executed by each thread")
         .flags(Stats::display)
         .init(numThreads);
+
+    excessCycles
+        .init(numThreads)
+        .name(name() + ".excess_cycles")
+        .desc("cycles that the thread experiences during interference caused by otehr threads")
+        .flags(Stats::display);
 }
 
 template <class Impl>
@@ -589,6 +597,11 @@ FullO3CPU<Impl>::tick()
     int lqVec[2];
     int sqVec[2];
 
+    for (int i = 0; i < numThreads; i++) {
+        if (interferedByCachePerThread[i] == 1) {
+            excessCycles[i]++;
+        }
+    }
     ++numCycles;
     ++localCycles;
     ++dumpCycles;
@@ -1828,6 +1841,11 @@ FullO3CPU<Impl>::wakeCPU()
         localCycles += cycles;
         dumpCycles += cycles;
         ppCycles->notify(cycles);
+        for (int i = 0; i < numThreads; i++) {
+            if (interferedByCachePerThread[i]) {
+                excessCycles[i] += cycles;
+            }
+        }
     }
 
     schedule(tickEvent, clockEdge());

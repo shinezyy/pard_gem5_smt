@@ -329,6 +329,9 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
     // that can modify its value.
     tags->setThread(pkt->req->threadId());
     blk = tags->accessBlock(pkt->getAddr(), pkt->isSecure(), lat, id);
+    if (tags->isInterfered()) {
+        pkt->isInterfered = true;
+    }
     tags->clearThread();
 
     DPRINTF(Cache, "%s%s addr %#llx size %d (%s) %s\n", pkt->cmdString(),
@@ -720,6 +723,9 @@ Cache::recvTimingReq(PacketPtr pkt)
                 // account the additional delay of the xbar.
                 allocateWriteBuffer(pkt, forward_time, true);
             } else {
+                // TODO This block seems to never be reached
+                // as it is under `satisfied == false' condition,
+                // which means that `blk' is NULL.
                 if (blk && blk->isValid()) {
                     // should have flushed and have no valid block
                     assert(!pkt->req->isUncacheable());
@@ -1071,6 +1077,13 @@ Cache::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 void
 Cache::recvTimingResp(PacketPtr pkt)
 {
+    // TODO Can we make sure that this pkt's request is fulfilled?
+    extern int interferedByCachePerThread[];
+    // TODO Will using counter instead of boolean value make a difference?
+    if (pkt->isInterfered) {
+        interferedByCachePerThread[pkt->req->threadId()] = 0;
+    }
+
     assert(pkt->isResponse());
 
     MSHR *mshr = dynamic_cast<MSHR*>(pkt->senderState);

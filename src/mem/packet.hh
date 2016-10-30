@@ -977,6 +977,13 @@ class Packet : public Printable
      * @return string with the request's type and start<->end addresses
      */
     std::string print() const;
+
+  public:
+    /**
+     * This boolean value indicates that a memory request of a thread
+     * gets blocked due to another thread.
+     */
+    bool isInterfered;
 };
 
 #endif //__MEM_PACKET_HH

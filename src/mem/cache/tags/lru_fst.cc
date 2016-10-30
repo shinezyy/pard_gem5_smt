@@ -49,6 +49,8 @@
 #include "mem/cache/tags/lru_fst.hh"
 #include "mem/cache/base.hh"
 
+#define MAX_THREAD_NUM 2
+int interferedByCachePerThread[MAX_THREAD_NUM];
 
 LRUFst::LRUFst(const Params *p)
     : BaseSetAssoc(p)
@@ -70,6 +72,8 @@ LRUFst::LRUFst(const Params *p)
 CacheBlk*
 LRUFst::accessBlock(Addr addr, bool is_secure, Cycles &lat, int master_id)
 {
+    interfered = false;
+
     CacheBlk *blk = BaseSetAssoc::accessBlock(addr, is_secure, lat, master_id);
 
     if (blk != NULL) {
@@ -87,7 +91,8 @@ LRUFst::accessBlock(Addr addr, bool is_secure, Cycles &lat, int master_id)
         // We get a miss and the bit vector tells us some ways belongs to this
         // thread have been evicted by the other thread.
         interferedSetPerThread[extractSet(addr)][curThreadID] = 0;
-        // TODO Update the CPU's state to indicate that it got interfered in cache.
+        interferedByCachePerThread[curThreadID] = 1;
+        interfered = true;
 
         // TODO Why not using a counter instead of a bit, which can
         // record how many ways has been evicted by others,

@@ -216,6 +216,13 @@ class BaseTags : public ClockedObject
     virtual void setThread(ThreadID tid) {}
 
     virtual void clearThread() {}
+
+    /**
+     * Indicating that one thread gets miss because that
+     * another thread evicts its cache line.
+     * It should be queried right after the call to accessBlock.
+     */
+    virtual bool isInterfered() { return false; }
 };
 
 class BaseTagsCallback : public Callback
