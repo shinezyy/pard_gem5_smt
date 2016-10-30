@@ -327,7 +327,9 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
     int id = pkt->req->hasContextId() ? pkt->req->contextId() : -1;
     // Here lat is the value passed as parameter to accessBlock() function
     // that can modify its value.
+    tags->setThread(pkt->req->threadId());
     blk = tags->accessBlock(pkt->getAddr(), pkt->isSecure(), lat, id);
+    tags->clearThread();
 
     DPRINTF(Cache, "%s%s addr %#llx size %d (%s) %s\n", pkt->cmdString(),
             pkt->req->isInstFetch() ? " (ifetch)" : "",
