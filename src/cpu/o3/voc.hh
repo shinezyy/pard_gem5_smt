@@ -55,6 +55,8 @@ class VOC {
         commit = _commit;
     }
 
+    void allocVrob(ThreadID tid, DynInstPtr& inst);
+
     void freeVrob(ThreadID tid, DynInstPtr& inst);
 
     void setVrobSize(ThreadID tid, uint32_t n);

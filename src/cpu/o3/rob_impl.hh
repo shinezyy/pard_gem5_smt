@@ -676,6 +676,8 @@ ROB<Impl>::updateMaxEntries()
 
     *taker += really_taken;
     *giver -= really_taken;
+    voc->setVrobSize(0, maxEntries[0]);
+    voc->setVrobSize(1, maxEntries[1]);
 
     maxEntriesUpToDate = sat;
 

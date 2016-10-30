@@ -15,9 +15,20 @@ VOC<Impl>::VOC(O3CPU *cpu_ptr, DerivO3CPUParams *params):
 }
 
 template<class Impl>
+void VOC<Impl>::allocVrob(ThreadID tid, DynInstPtr& inst)
+{
+    counter[tid] -= inst->getWaitSlot() + 1;
+}
+
+template<class Impl>
 void VOC<Impl>::freeVrob(ThreadID tid, DynInstPtr& inst)
 {
-    counter[tid] += inst->getWaitSlot();
+    counter[tid] += inst->getWaitSlot() + 1;
+}
+
+template<class Impl>
+void VOC<Impl>::setVrobSize(ThreadID tid, uint32_t n)
+{
 }
 
 #endif  // __CPU_O3_VOC_IMPL_HH__

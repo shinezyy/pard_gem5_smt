@@ -1144,8 +1144,9 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         // check other threads' status
         for (ThreadID i = 0; i < numThreads; i++) {
             if (i == tid) {
-                fmt->incBaseSlot(inst, i);
                 inst->setWaitSlot(tempWaitSlots[i]);
+                fmt->incBaseSlot(inst, i);
+                voc->allocVrob(i, inst);
             } else {
                 if (dispatchStatus[i] == Unblocking ||
                         dispatchStatus[i] == Running ||
@@ -1710,5 +1711,13 @@ DefaultIEW<Impl>::setFmt(Fmt *_fmt)
 {
     fmt = _fmt;
 }
+
+template<class Impl>
+void
+DefaultIEW<Impl>::setVoc(Voc *_voc)
+{
+    voc = _voc;
+}
+
 
 #endif//__CPU_O3_IEW_IMPL_IMPL_HH__
