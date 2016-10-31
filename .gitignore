@@ -18,3 +18,4 @@ m5out
 *.txt
 spec_run
 tags
+.clang_complete
