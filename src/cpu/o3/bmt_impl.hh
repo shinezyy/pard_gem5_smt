@@ -65,6 +65,12 @@ void BMT<Impl>::update(DynInstPtr& inst)
 {
     const StaticInstPtr& stInst = inst->staticInst;
 
+    if (stInst->numSrcRegs() == 0 && !inst->isLoad()) {
+        return;
+    }
+
+    bool hasDep = false;
+
     for (typename std::vector<BME>::iterator it = table.begin();
             it != table.end(); it++) {
 
@@ -81,11 +87,12 @@ void BMT<Impl>::update(DynInstPtr& inst)
 
                 it->numDefRegs += stInst->numDestRegs();
                 it->dic += 1;
+                hasDep = true;
                 break;
             }
         }
 
-        // no dependency
+        // no dependency on current row, clear destRegs
         if (i == stInst->numDestRegs()) {
 
             for (int d = 0; d < stInst->numDestRegs(); d++) {
@@ -94,6 +101,10 @@ void BMT<Impl>::update(DynInstPtr& inst)
             }
             it->numDefRegs -= stInst->numDestRegs();
         }
+    }
+
+    if (!hasDep && inst->isLoad()) {
+        allocEntry(inst);
     }
 }
 

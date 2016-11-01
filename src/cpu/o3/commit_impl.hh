@@ -1368,9 +1368,13 @@ DefaultCommit<Impl>::updateComInstStats(DynInstPtr &inst)
 {
     ThreadID tid = inst->threadNumber;
 
-    if (!inst->isMicroop() || inst->isLastMicroop())
+    if (!inst->isMicroop() || inst->isLastMicroop()) {
         instsCommitted[tid]++;
+    }
     opsCommitted[tid]++;
+
+    // update bmt
+    //bmt->update(inst);
 
     // To match the old model, don't count nops and instruction
     // prefetches towards the total commit count.
@@ -1393,6 +1397,8 @@ DefaultCommit<Impl>::updateComInstStats(DynInstPtr &inst)
         if (inst->isLoad()) {
             statComLoads[tid]++;
         }
+
+        bmt->allocEntry(inst);
     }
 
     if (inst->isMemBarrier()) {

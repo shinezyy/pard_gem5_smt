@@ -556,11 +556,16 @@ class FullO3CPU : public BaseO3CPU
     /** The commit stage. */
     typename CPUPolicy::Commit commit;
 
+    /** Pard related */
     typename CPUPolicy::ResManager resourceManager;
 
     typename CPUPolicy::Fmt fmt;
 
     typename CPUPolicy::Voc voc;
+
+    typename CPUPolicy::Bmt bmt;
+
+
     /** The register file. */
     PhysRegFile regFile;
 

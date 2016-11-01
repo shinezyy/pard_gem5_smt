@@ -101,6 +101,7 @@ class DefaultCommit
 
     typedef typename CPUPol::Fmt Fmt;
     typedef typename CPUPol::Voc Voc;
+    typedef typename CPUPol::Bmt Bmt;
 
     typedef O3ThreadState<Impl> Thread;
 
@@ -547,6 +548,7 @@ class DefaultCommit
 
     Fmt *fmt;
     Voc *voc;
+    Bmt *bmt;
 
   public:
     bool isROBPolicyDynamic() const
@@ -563,6 +565,12 @@ class DefaultCommit
     {
         voc = _voc;
     }
+
+    void setBmt(Bmt *_bmt)
+    {
+        bmt = _bmt;
+    }
+
 };
 
 #endif // __CPU_O3_COMMIT_HH__

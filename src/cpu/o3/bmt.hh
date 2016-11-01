@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "config/the_isa.hh"
-#include "cpu/o3/dyn_inst.hh"
 
 struct DerivO3CPUParams;
 
