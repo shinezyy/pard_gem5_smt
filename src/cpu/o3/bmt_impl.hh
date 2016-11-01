@@ -12,7 +12,8 @@
     BMT<Impl>::BMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
 : cpu(cpu_ptr),
     numThreads(params->numThreads),
-    numROBEntries(params->numROBEntries)
+    numROBEntries(params->numROBEntries),
+    numLQEntries(params->LQEntries)
 {
 }
 
@@ -20,23 +21,41 @@
     template<class Impl>
 void BMT<Impl>::init(DerivO3CPUParams *params)
 {
-    table.resize(params->LQEntries);
-    bmt_ptr = 0;
+    for (unsigned i = 0; i < numLQEntries; i++) {
+        BME dummy;
+        bzero((void *)&dummy, sizeof(BME));
+        table.push_back(dummy);
+    }
 }
 
 
     template<class Impl>
 void BMT<Impl>::allocEntry(DynInstPtr& inst)
 {
-    StaticInstPtr& stInst = inst->staticInst;
-    BME *ent = &table[bmt_ptr];
+    const StaticInstPtr& stInst = inst->staticInst;
+    BME *ent;
+    int i;
 
-    ent->llid = inst->InstSeqNum % numROBEntries;
+    for (i = 0; i < table.size(); i++) {
+        if (table[i].numDefRegs == 0) {
+            ent = &table[i];
+            break;
+        }
+    }
+
+    if (i == table.size()) {
+        panic("No BMT entry left\n");
+    }
+
+    ent->llid = inst->seqNum % numROBEntries;
+
     for (int i = 0; i < stInst->numDestRegs(); i++) {
+
         ent->orbv[stInst->destRegIdx(i)] = 1;
     }
+
     ent->dic = 1; // or 0 ?
-    ent->dlp = inst;
+    ent->numDefRegs = 1;
     ent->tid = inst->threadNumber;
 }
 
@@ -44,20 +63,24 @@ void BMT<Impl>::allocEntry(DynInstPtr& inst)
     template<class Impl>
 void BMT<Impl>::update(DynInstPtr& inst)
 {
-    StaticInstPtr& stInst = inst->staticInst;
+    const StaticInstPtr& stInst = inst->staticInst;
 
-    for (std::vector<BME>::iterator it = table.begin();
+    for (typename std::vector<BME>::iterator it = table.begin();
             it != table.end(); it++) {
 
-        for (int i = 0; i < stInst->numDestRegs(); i++) {
-            RegIndex srcReg = stInst->SrcRegIdx(i);
+        int i;
+        for (i = 0; i < stInst->numDestRegs(); i++) {
+            RegIndex srcReg = stInst->srcRegIdx(i);
 
             if (it->orbv[srcReg] == 1) {
 
                 for (int d = 0; d < stInst->numDestRegs(); d++) {
 
-                    it->orbv[stInst->renamedDestRegIdx(d)] = 1;
+                    it->orbv[stInst->destRegIdx(d)] = 1;
                 }
+
+                it->numDefRegs += stInst->numDestRegs();
+                it->dic += 1;
                 break;
             }
         }
@@ -67,8 +90,9 @@ void BMT<Impl>::update(DynInstPtr& inst)
 
             for (int d = 0; d < stInst->numDestRegs(); d++) {
 
-                it->orbv[stInst->renamedDestRegIdx(d)] = 0;
+                it->orbv[stInst->destRegIdx(d)] = 0;
             }
+            it->numDefRegs -= stInst->numDestRegs();
         }
     }
 }
@@ -77,6 +101,15 @@ void BMT<Impl>::update(DynInstPtr& inst)
 template<class Impl>
 int BMT<Impl>::computeMLP(ThreadID tid) {
 
+    int i, counter = 0;
+
+    for (i = 0; i < table.size(); i++) {
+        if (table[i].numDefRegs == 1) {
+            counter += 1;
+        }
+    }
+
+    return counter;
 }
 
 

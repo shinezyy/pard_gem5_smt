@@ -61,6 +61,7 @@ if 'O3CPU' in env['CPU_MODELS']:
     Source('resource_manager.cc')
     Source('fmt.cc')
     Source('voc.cc')
+    Source('bmt.cc')
 
     DebugFlag('CommitRate')
     DebugFlag('IEW')
@@ -77,6 +78,9 @@ if 'O3CPU' in env['CPU_MODELS']:
     DebugFlag('Pard')
     DebugFlag('FMT')
     DebugFlag('VOC')
+    DebugFlag('BMT')
+
+    CompoundFlag('PardAll', ['Pard', 'FMT', 'VOC', 'BMT'])
 
     CompoundFlag('O3CPUAll', [ 'Fetch', 'Decode', 'Rename', 'IEW', 'Commit',
         'IQ', 'ROB', 'FreeList', 'LSQ', 'LSQUnit', 'StoreSet', 'MemDepUnit',
