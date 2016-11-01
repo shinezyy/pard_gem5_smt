@@ -33,6 +33,9 @@ class FMT {
         uint64_t initTimeStamp;
     };
 
+    typedef typename std::map<InstSeqNum, BranchEntry>::reverse_iterator
+        BranchEntryIterator;
+
 
     private:
 
@@ -57,7 +60,10 @@ class FMT {
 
     public:
 
-    std::string name() const;
+    std::string name() const
+    {
+        return cpu->name() + ".fmt";
+    }
 
     FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
@@ -68,6 +74,8 @@ class FMT {
     void setStage(Fetch *_fetch, Decode *_decode, IEW *_iew);
 
     void addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp);
+
+    // BranchEntryT *getCounter(DynInstPtr& inst, ThreadID tid);
 
     void incBaseSlot(DynInstPtr &bran, ThreadID tid);
 
@@ -88,4 +96,4 @@ class FMT {
 
 };
 
-#endif // __CPU_O3_VOC_HH__
+#endif // __CPU_O3_FMT_HH__

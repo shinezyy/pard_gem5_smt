@@ -75,4 +75,4 @@ class BMT {
     int computeMLP(ThreadID tid);
 };
 
-#endif // __CPU_O3_VOC_HH__
+#endif // __CPU_O3_BMT_HH__

@@ -9,13 +9,19 @@
 #include "params/DerivO3CPU.hh"
 #include "cpu/o3/fmt.hh"
 
-#define map_item_checking 1
 
     template<class Impl>
 FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
     : cpu(cpu_ptr),
     numThreads(params->numThreads)
 {
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+
+        table[tid][0].baseSlots = 0;
+        table[tid][0].waitSlots = 0;
+        table[tid][0].missSlots = 0;
+        table[tid][0].initTimeStamp = 0;
+    }
 }
 
 
@@ -41,13 +47,6 @@ void FMT<Impl>::init(std::vector<DynInstPtr> &v_bran, uint64_t timeStamp)
     template<class Impl>
 void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
 {
-#if map_item_checking
-    if (table[tid].find(bran->seqNum) != table[tid].end()) {
-        fatal("Reinsert existing instruction to FMT in thread %d, at"
-                "time stamp %" PRIu64 "\n", tid, timeStamp);
-    }
-#endif
-
     BranchEntry *be = &table[tid][bran->seqNum];
     bzero((void *)be, sizeof(uint64_t)*4);
     be->initTimeStamp = timeStamp;
@@ -56,47 +55,30 @@ void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
     template<class Impl>
 void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
 {
-#if map_item_checking
-    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-    }
-#endif
-
-    table[tid].lower_bound(inst->seqNum)->second.baseSlots++;
+    BranchEntryIterator it = table[tid].rbegin();
+    for (; it->first > inst->seqNum; it++);
+    it->second.baseSlots++;
 }
 
     template<class Impl>
 void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
 {
-#if map_item_checking
-    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-    }
-#endif
-
-    table[tid].lower_bound(inst->seqNum)->second.waitSlots++;
+    BranchEntryIterator it = table[tid].rbegin();
+    for (; it->first > inst->seqNum; it++);
+    it->second.waitSlots++;
 }
 
     template<class Impl>
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
-#if map_item_checking
-    if (table[tid].lower_bound(inst->seqNum) == table[tid].end()) {
-        fatal("Increasing Nonexisting instruction in FMT in thread %d\n", tid);
-    }
-#endif
-
-    table[tid].lower_bound(inst->seqNum)->second.missSlots++;
+    BranchEntryIterator it = table[tid].rbegin();
+    for (; it->first > inst->seqNum; it++);
+    it->second.missSlots++;
 }
 
     template<class Impl>
 void FMT<Impl>::resolveBranch(bool right, DynInstPtr &bran, ThreadID tid)
 {
-#if map_item_checking
-    if (table[tid].find(bran->seqNum) != table[tid].end()) {
-        fatal("Reinsert existing instruction to FMT in thread %d\n", tid);
-    }
-#endif
     if (right) {
         globalBase[tid] += table[tid][bran->seqNum].baseSlots;
         globalMiss[tid] += table[tid][bran->seqNum].missSlots;
@@ -111,6 +93,4 @@ void FMT<Impl>::resolveBranch(bool right, DynInstPtr &bran, ThreadID tid)
 }
 
 
-
-
-#endif  // __CPU_O3_FETCH_IMPL_HH__
+#endif  // __CPU_O3_FMT_IMPL_HH__

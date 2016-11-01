@@ -280,7 +280,10 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
 
     voc.setStage(&fetch, &decode, &iew, &commit);
     rob.setVoc(&voc);
+    iew.setVoc(&voc);
+    commit.setVoc(&voc);
 
+    bmt.init(params);
     commit.setBmt(&bmt);
 
     ThreadID active_threads;

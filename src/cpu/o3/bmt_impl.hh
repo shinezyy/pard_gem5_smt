@@ -1,5 +1,5 @@
-#ifndef __CPU_O3_FMT_IMPL_HH__
-#define __CPU_O3_FMT_IMPL_HH__
+#ifndef __CPU_O3_BMT_IMPL_HH__
+#define __CPU_O3_BMT_IMPL_HH__
 
 
 #include "cpu/o3/comm.hh"
@@ -33,7 +33,7 @@ void BMT<Impl>::init(DerivO3CPUParams *params)
 void BMT<Impl>::allocEntry(DynInstPtr& inst)
 {
     const StaticInstPtr& stInst = inst->staticInst;
-    BME *ent;
+    BME *ent = nullptr;
     int i;
 
     for (i = 0; i < table.size(); i++) {
@@ -43,8 +43,12 @@ void BMT<Impl>::allocEntry(DynInstPtr& inst)
         }
     }
 
+    DPRINTF(BMT, "Alloc bmt entry [%d]\n", i);
+
     if (i == table.size()) {
         panic("No BMT entry left\n");
+    } else {
+        DPRINTF(BMT, "Alloc bmt entry [%d]\n", i);
     }
 
     ent->llid = inst->seqNum % numROBEntries;
@@ -124,4 +128,4 @@ int BMT<Impl>::computeMLP(ThreadID tid) {
 }
 
 
-#endif  // __CPU_O3_FETCH_IMPL_HH__
+#endif  // __CPU_O3_BMT_IMPL_HH__
