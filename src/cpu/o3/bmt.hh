@@ -51,7 +51,7 @@ class BMT {
 
     O3CPU *cpu;
 
-    std::vector<BME> table;
+    std::vector<BME> table[Impl::MaxThreads];
 
     ThreadID numThreads;
 
@@ -62,6 +62,11 @@ class BMT {
 
     public:
 
+    std::string name() const
+    {
+        return cpu->name() + ".bmt";
+    }
+
     BMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
     // allocate a BME for the loading inst, and initiate the entry
@@ -71,6 +76,8 @@ class BMT {
     void update(DynInstPtr& inst);
 
     void init(DerivO3CPUParams *params);
+
+    void merge(DynInstPtr& inst);
 
     int computeMLP(ThreadID tid);
 };

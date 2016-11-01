@@ -24,11 +24,14 @@ void BMT<Impl>::init(DerivO3CPUParams *params)
     for (unsigned i = 0; i < numLQEntries; i++) {
         BME dummy;
         bzero((void *)&dummy, sizeof(BME));
-        table.push_back(dummy);
+        for (int t = 0; t < numThreads; t++) {
+            table.push_back(dummy);
+        }
     }
 }
 
-
+#if 0
+// Need to be rebase..
     template<class Impl>
 void BMT<Impl>::allocEntry(DynInstPtr& inst)
 {
@@ -43,12 +46,23 @@ void BMT<Impl>::allocEntry(DynInstPtr& inst)
         }
     }
 
-    DPRINTF(BMT, "Alloc bmt entry [%d]\n", i);
-
     if (i == table.size()) {
+
+        for (int d = 0; d < table.size(); d++) {
+            for (int r = 0; r < numLQEntries; r++) {
+                if (table[d].orbv[r]) {
+                    printf(" *");
+                } else {
+                    printf(" o");
+                }
+            }
+            printf("\n");
+        }
+
         panic("No BMT entry left\n");
+
     } else {
-        DPRINTF(BMT, "Alloc bmt entry [%d]\n", i);
+        DPRINTF(BMT, "Allocate BMT entry [%d]\n", i);
     }
 
     ent->llid = inst->seqNum % numROBEntries;
@@ -59,8 +73,41 @@ void BMT<Impl>::allocEntry(DynInstPtr& inst)
     }
 
     ent->dic = 1; // or 0 ?
-    ent->numDefRegs = 1;
+    ent->numDefRegs = stInst->numDestRegs();
     ent->tid = inst->threadNumber;
+}
+
+
+    template<class Impl>
+void BMT<Impl>::merge(DynInstPtr& inst)
+{
+    BME *inh = nullptr;
+    const StaticInstPtr& stInst = inst->staticInst;
+
+    for (i = 0; i < stInst->numDestRegs(); i++) {
+
+        for (typename std::vector<BME>::iterator it = table.begin();
+                it != table.end(); it++) {
+
+            RegIndex srcReg = stInst->srcRegIdx(i);
+            if (it->orbv[srcReg] == 1) {
+
+                if (inh == nullptr) {
+                    inh = &*it;
+                } else {
+
+                    // Transfer defined register
+                    for (int d = 0; d < numLQEntries; d++) {
+                        if (it->orbv[d]) {
+                            it->orbv[d] = 0;
+                            inh->orbv[d] = 1;
+                            inh->numDefRegs += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -69,11 +116,15 @@ void BMT<Impl>::update(DynInstPtr& inst)
 {
     const StaticInstPtr& stInst = inst->staticInst;
 
-    if (stInst->numSrcRegs() == 0 && !inst->isLoad()) {
-        return;
-    }
+    /* Stupid code ?
+       if (stInst->numSrcRegs() == 0 && !inst->isLoad()) {
+       return;
+       }
+     */
 
     bool hasDep = false;
+
+    vector<BME *> defSet;
 
     for (typename std::vector<BME>::iterator it = table.begin();
             it != table.end(); it++) {
@@ -84,12 +135,26 @@ void BMT<Impl>::update(DynInstPtr& inst)
 
             if (it->orbv[srcReg] == 1) {
 
-                for (int d = 0; d < stInst->numDestRegs(); d++) {
-
-                    it->orbv[stInst->destRegIdx(d)] = 1;
+                // Whether two family joint...
+                bool joint = false;
+                for (int j = 0; j < defSet.size(); j++) {
+                    if (defSet[j]->orbv[srcReg] == 1) {
+                        joint = true;
+                    }
                 }
 
-                it->numDefRegs += stInst->numDestRegs();
+                for (int d = 0; d < stInst->numDestRegs(); d++) {
+
+                    // A new register defined by this instruction family
+                    if (it->orbv[stInst->destRegIdx(d)] == 0 ) {
+
+
+                        it->numDefRegs += 1;
+                        it->orbv[stInst->destRegIdx(d)] = 1;
+                        defSet.push_back(&*it);
+                    }
+                }
+
                 it->dic += 1;
                 hasDep = true;
                 break;
@@ -100,10 +165,14 @@ void BMT<Impl>::update(DynInstPtr& inst)
         if (i == stInst->numDestRegs()) {
 
             for (int d = 0; d < stInst->numDestRegs(); d++) {
-
                 it->orbv[stInst->destRegIdx(d)] = 0;
+                it->numDefRegs -= 1;
             }
-            it->numDefRegs -= stInst->numDestRegs();
+
+
+            if (it->numDefRegs == 0) {
+                DPRINTF(BMT, "Deallocate BMT entry [%d]", i);
+            }
         }
     }
 
@@ -112,14 +181,16 @@ void BMT<Impl>::update(DynInstPtr& inst)
     }
 }
 
+#endif
+
 
 template<class Impl>
 int BMT<Impl>::computeMLP(ThreadID tid) {
 
     int i, counter = 0;
 
-    for (i = 0; i < table.size(); i++) {
-        if (table[i].numDefRegs == 1) {
+    for (i = 0; i < table[tid].size(); i++) {
+        if (table[tid][i].numDefRegs != 0) {
             counter += 1;
         }
     }
