@@ -634,18 +634,55 @@ ROB<Impl>::updateMaxEntries()
         return;
     }
 
-    int allocatedNum = 0;
+    assert(numThreads == 2);
 
-    ThreadID tid = 0;
+    int thread_0_increment = int(numEntries * portion[0] / denominator)
+        - int(maxEntries[0]); // expected increment
 
-    for (; tid < numThreads - 1; tid++) {
-        maxEntries[tid] = numEntries * portion[tid] / denominator;
-        allocatedNum += maxEntries[tid];
+    if (thread_0_increment == 0) {
+        maxEntriesUpToDate = true;
+        return;
     }
-    assert(allocatedNum <= numEntries);
-    maxEntries[tid] = numEntries - allocatedNum;
 
-    maxEntriesUpToDate = true;
+    bool incThread_0 = thread_0_increment > 0;
+
+    bool sat = incThread_0 ? numFreeEntries(1) >= thread_0_increment :
+        numFreeEntries(0) >= -thread_0_increment;
+
+    unsigned *taker = incThread_0 ? &maxEntries[0] : &maxEntries[1];
+    unsigned *giver = incThread_0 ? &maxEntries[1] : &maxEntries[0];
+
+    unsigned really_taken;
+
+    if (incThread_0) {
+        really_taken = sat ? thread_0_increment : numFreeEntries(1);
+    } else {
+        really_taken = sat ? -thread_0_increment : numFreeEntries(0);
+    }
+
+    if (!sat) {
+        DPRINTF(Pard, "Thread [%ld] takes only %d entries from thread [%ld],"
+                "because limited free entries\n",
+                taker - &maxEntries[0], really_taken, giver - &maxEntries[0]);
+        DPRINTF(Pard, "Thread [%ld] now has %d entries, need %d entries to "
+                "satisify new portion %d\n",
+                taker - &maxEntries[0], *taker, thread_0_increment,
+                portion[int(taker - &maxEntries[0])]);
+    }
+    else {
+        DPRINTF(Pard, "Thread [%ld] takes %d entries from thread [%ld]\n",
+                taker - &maxEntries[0], really_taken, giver - &maxEntries[0]);
+    }
+
+    *taker += really_taken;
+    *giver -= really_taken;
+    voc->setVrobSize(0, maxEntries[0]);
+    voc->setVrobSize(1, maxEntries[1]);
+
+    maxEntriesUpToDate = sat;
+
+    assert(maxEntries[0] < numEntries);
+    assert(maxEntries[1] < numEntries);
 }
 
 template <class Impl>

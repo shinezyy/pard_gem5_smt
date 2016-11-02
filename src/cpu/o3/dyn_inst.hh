@@ -337,6 +337,34 @@ class BaseO3DynInst : public BaseDynInst<Impl>
     {
         return this->staticInst->memAccInst()->execute(this, this->traceData);
     }
+
+  private:
+
+    bool everMispredicted;
+
+    uint32_t priorWaitSlots;
+
+  public:
+
+    void setMispred()
+    {
+        everMispredicted = true;
+    }
+
+    bool EverMispred()
+    {
+        return everMispredicted;
+    }
+
+    void setWaitSlot(uint32_t n)
+    {
+        priorWaitSlots = n;
+    }
+
+    uint32_t getWaitSlot()
+    {
+        return priorWaitSlots;
+    }
 };
 
 #endif // __CPU_O3_ALPHA_DYN_INST_HH__

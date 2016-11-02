@@ -83,6 +83,7 @@ class DefaultFetch
     typedef typename CPUPol::FetchStruct FetchStruct;
     typedef typename CPUPol::TimeStruct TimeStruct;
     typedef typename CPUPol::IEW IEW;
+    typedef typename CPUPol::Fmt Fmt;
 
     /** Typedefs from ISA. */
     typedef TheISA::MachInst MachInst;
@@ -600,12 +601,23 @@ class DefaultFetch
     /** Number of instruction fetched per cycle. */
     Stats::Formula fetchRate;
 
+  private:
+
+    Fmt *fmt;
+
   public:
 
     void updateFetchWidth();
+
     bool fetchWidthUpToDate;
 
     uint64_t numFetchedInsts;
+
+    void setFmt(Fmt *_fmt)
+    {
+        fmt = _fmt;
+    }
+
 };
 
 #endif //__CPU_O3_FETCH_HH__

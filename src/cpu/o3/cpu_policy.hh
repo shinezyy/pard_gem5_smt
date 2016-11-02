@@ -48,6 +48,9 @@
 #include "cpu/o3/rob.hh"
 #include "cpu/o3/store_set.hh"
 #include "cpu/o3/resource_manager.hh"
+#include "cpu/o3/fmt.hh"
+#include "cpu/o3/voc.hh"
+#include "cpu/o3/bmt.hh"
 
 /**
  * Struct that defines the key classes to be used by the CPU.  All
@@ -89,6 +92,13 @@ struct SimpleCPUPolicy
 
     /** Typedef for resource manager. */
     typedef ResourceManager<Impl> ResManager;
+
+    /** Typedef for front-end miss evnet table */
+    typedef FMT<Impl> Fmt;
+
+    typedef VOC<Impl> Voc;
+
+    typedef BMT<Impl> Bmt;
 
     /** The struct for communication between fetch and decode. */
     typedef DefaultFetchDefaultDecode<Impl> FetchStruct;

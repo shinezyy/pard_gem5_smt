@@ -107,6 +107,7 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         dispatchStatus[tid] = Running;
         fetchRedirect[tid] = false;
+        tempWaitSlots[tid] = 0;
     }
 
     updateLSQNextCycle = false;
@@ -489,6 +490,10 @@ DefaultIEW<Impl>::squashDueToBranch(DynInstPtr &inst, ThreadID tid)
 {
     DPRINTF(IEW, "[tid:%i]: Squashing from a specific instruction, PC: %s "
             "[sn:%i].\n", tid, inst->pcState(), inst->seqNum);
+
+    // For convenience, I resolve mispredicted branch here
+
+    fmt->resolveBranch(false, inst, tid);
 
     if (!toCommit->squash[tid] ||
             inst->seqNum < toCommit->squashedSeqNum[tid]) {
@@ -1136,6 +1141,31 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
 
         toRename->iewInfo[tid].dispatched++;
 
+        // check other threads' status
+        for (ThreadID i = 0; i < numThreads; i++) {
+            if (i == tid) {
+                inst->setWaitSlot(tempWaitSlots[i]);
+                fmt->incBaseSlot(inst, i);
+                voc->allocVrob(i, inst);
+            } else {
+                if (dispatchStatus[i] == Unblocking ||
+                        dispatchStatus[i] == Running ||
+                        dispatchStatus[i] == Idle) {
+
+                    fmt->incWaitSlot(inst, i);
+                    tempWaitSlots[tid] += 1;
+                } else {
+                    /** If there is a front-end miss, then thread tid can be
+                      * dispatched;
+                      * Else if there is a backend miss and ROB full,
+                      * then no thread can be issue, and the following
+                      * increasement cannot be done
+                      */
+                    fmt->incMissSlot(inst, i);
+                }
+            }
+        }
+
         ++iewDispatchedInsts;
 
 #if TRACING_ON
@@ -1148,6 +1178,17 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
+
+        for (ThreadID t = 0; t < numThreads; t++) {
+
+            for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
+                if (t != tid) {
+                    fmt->incWaitSlot(inst, t);
+                } else {
+                    fmt->incMissSlot(inst, t);
+                }
+            }
+        }
     }
 
     if (dispatchStatus[tid] == Idle && dis_num_inst) {
@@ -1674,5 +1715,20 @@ DefaultIEW<Impl>::clearNumIQFullALL()
         clearNumIQFull(tid);
     }
 }
+
+template<class Impl>
+void
+DefaultIEW<Impl>::setFmt(Fmt *_fmt)
+{
+    fmt = _fmt;
+}
+
+template<class Impl>
+void
+DefaultIEW<Impl>::setVoc(Voc *_voc)
+{
+    voc = _voc;
+}
+
 
 #endif//__CPU_O3_IEW_IMPL_IMPL_HH__

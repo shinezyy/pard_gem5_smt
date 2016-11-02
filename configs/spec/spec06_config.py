@@ -328,6 +328,9 @@ for cpu in system.cpu:
     # cpu.l2cache.tags = LRUPartition() # L2 partition
     # cpu.l2cache.tags.thread_0_assoc = 6
 
-# print options
+# options.take_checkpoints=100000
+# options.at_instruction=True
+# options.checkpoint_restore=100000
+
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)
