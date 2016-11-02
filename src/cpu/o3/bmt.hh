@@ -30,20 +30,14 @@ class BMT {
         InstSeqNum llid;
 
         // Output Register Bit Vector
-        uint8_t orbv[64];
+        uint64_t orbv;
 
         // dependent instruction counter
         int dic;
 
-        /* number of architectual register defined by this Load and its
-         * dependent instructions
-         */
-        int numDefRegs;
-
         // Pointer to the Long-latency Load
-        // DynInstPtr& dlp;
+        // DynInstPtr &dlp;
 
-        ThreadID tid;
     };
 
 
@@ -70,16 +64,25 @@ class BMT {
     BMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
     // allocate a BME for the loading inst, and initiate the entry
-    void allocEntry(DynInstPtr& inst);
+    void allocEntry(DynInstPtr &inst, ThreadID tid);
 
     // update the orbv and dic when an instruction commit
-    void update(DynInstPtr& inst);
+    void update(DynInstPtr &inst);
 
     void init(DerivO3CPUParams *params);
 
-    void merge(DynInstPtr& inst);
+    void merge(DynInstPtr &inst);
 
     int computeMLP(ThreadID tid);
+
+    int count1(uint64_t x)
+    {
+        return __builtin_popcount(x);
+    }
+
+    uint64_t getSrcRegs(DynInstPtr &inst);
+
+    uint64_t getDestRegs(DynInstPtr &inst);
 };
 
 #endif // __CPU_O3_BMT_HH__

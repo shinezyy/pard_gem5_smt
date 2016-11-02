@@ -25,172 +25,97 @@ void BMT<Impl>::init(DerivO3CPUParams *params)
         BME dummy;
         bzero((void *)&dummy, sizeof(BME));
         for (int t = 0; t < numThreads; t++) {
-            table.push_back(dummy);
+            table[t].push_back(dummy);
         }
     }
 }
 
-#if 0
-// Need to be rebase..
-    template<class Impl>
-void BMT<Impl>::allocEntry(DynInstPtr& inst)
-{
-    const StaticInstPtr& stInst = inst->staticInst;
-    BME *ent = nullptr;
-    int i;
 
-    for (i = 0; i < table.size(); i++) {
-        if (table[i].numDefRegs == 0) {
-            ent = &table[i];
-            break;
+    template<class Impl>
+void BMT<Impl>::allocEntry(DynInstPtr &inst, ThreadID tid)
+{
+    for (unsigned i = 0; i < numLQEntries; i++) {
+        if (table[tid][i].orbv == 0) {
+            table[tid][i].orbv |= getDestRegs(inst);
+        }
+    }
+}
+
+    template<class Impl>
+void BMT<Impl>::merge(DynInstPtr &inst)
+{
+    BME* first = nullptr;
+    ThreadID tid = inst->threadNumber;
+    uint64_t srcVec = getSrcRegs(inst);
+    uint64_t destVec = getDestRegs(inst);
+    uint64_t oldOrbv = 0;
+
+    for (int i = 0; i < numLQEntries; i++) {
+
+        if ((srcVec & table[tid][i].orbv) != 0) {
+
+            if (first == nullptr) {
+                first = &table[tid][i];
+                oldOrbv = first->orbv;
+
+            } else {
+                first->orbv |= table[tid][i].orbv;
+                table[tid][i].dic = 0;
+            }
+        }
+    }
+    first->orbv |= destVec;
+    first->dic += count1(first->orbv ^ oldOrbv);
+}
+
+
+    template<class Impl>
+void BMT<Impl>::update(DynInstPtr &inst)
+{
+    int depCount = 0;
+    uint64_t srcVec = getSrcRegs(inst);
+    ThreadID tid = inst->threadNumber;
+    BME *dep = nullptr;
+
+    // Tell out if inst is dependent on some families
+    for (int i = 0; i < numLQEntries; i++) {
+        if ((srcVec & table[tid][i].orbv) != 0) {
+            depCount += 1;
+            dep = &table[tid][i];
         }
     }
 
-    if (i == table.size()) {
+    if (depCount == 0) {
+        if (inst->isLoad()) {
+            allocEntry(inst, tid);
 
-        for (int d = 0; d < table.size(); d++) {
-            for (int r = 0; r < numLQEntries; r++) {
-                if (table[d].orbv[r]) {
-                    printf(" *");
-                } else {
-                    printf(" o");
-                }
+        } else {
+            // override these output registers
+            uint64_t dstVec = getDestRegs(inst);
+
+            for (int i = 0; i < numLQEntries; i++) {
+                table[tid][i].orbv &= ~dstVec;
             }
-            printf("\n");
         }
 
-        panic("No BMT entry left\n");
+    } else if (depCount == 1) {
+        // update dep
+        dep->orbv |= getDestRegs(inst);
+        dep->dic += 1;
 
     } else {
-        DPRINTF(BMT, "Allocate BMT entry [%d]\n", i);
+        merge(inst); // merge two dependency tree
     }
 
-    ent->llid = inst->seqNum % numROBEntries;
-
-    for (int i = 0; i < stInst->numDestRegs(); i++) {
-
-        ent->orbv[stInst->destRegIdx(i)] = 1;
-    }
-
-    ent->dic = 1; // or 0 ?
-    ent->numDefRegs = stInst->numDestRegs();
-    ent->tid = inst->threadNumber;
 }
-
 
     template<class Impl>
-void BMT<Impl>::merge(DynInstPtr& inst)
+int BMT<Impl>::computeMLP(ThreadID tid)
 {
-    BME *inh = nullptr;
-    const StaticInstPtr& stInst = inst->staticInst;
-
-    for (i = 0; i < stInst->numDestRegs(); i++) {
-
-        for (typename std::vector<BME>::iterator it = table.begin();
-                it != table.end(); it++) {
-
-            RegIndex srcReg = stInst->srcRegIdx(i);
-            if (it->orbv[srcReg] == 1) {
-
-                if (inh == nullptr) {
-                    inh = &*it;
-                } else {
-
-                    // Transfer defined register
-                    for (int d = 0; d < numLQEntries; d++) {
-                        if (it->orbv[d]) {
-                            it->orbv[d] = 0;
-                            inh->orbv[d] = 1;
-                            inh->numDefRegs += 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-    template<class Impl>
-void BMT<Impl>::update(DynInstPtr& inst)
-{
-    const StaticInstPtr& stInst = inst->staticInst;
-
-    /* Stupid code ?
-       if (stInst->numSrcRegs() == 0 && !inst->isLoad()) {
-       return;
-       }
-     */
-
-    bool hasDep = false;
-
-    vector<BME *> defSet;
-
-    for (typename std::vector<BME>::iterator it = table.begin();
-            it != table.end(); it++) {
-
-        int i;
-        for (i = 0; i < stInst->numDestRegs(); i++) {
-            RegIndex srcReg = stInst->srcRegIdx(i);
-
-            if (it->orbv[srcReg] == 1) {
-
-                // Whether two family joint...
-                bool joint = false;
-                for (int j = 0; j < defSet.size(); j++) {
-                    if (defSet[j]->orbv[srcReg] == 1) {
-                        joint = true;
-                    }
-                }
-
-                for (int d = 0; d < stInst->numDestRegs(); d++) {
-
-                    // A new register defined by this instruction family
-                    if (it->orbv[stInst->destRegIdx(d)] == 0 ) {
-
-
-                        it->numDefRegs += 1;
-                        it->orbv[stInst->destRegIdx(d)] = 1;
-                        defSet.push_back(&*it);
-                    }
-                }
-
-                it->dic += 1;
-                hasDep = true;
-                break;
-            }
-        }
-
-        // no dependency on current row, clear destRegs
-        if (i == stInst->numDestRegs()) {
-
-            for (int d = 0; d < stInst->numDestRegs(); d++) {
-                it->orbv[stInst->destRegIdx(d)] = 0;
-                it->numDefRegs -= 1;
-            }
-
-
-            if (it->numDefRegs == 0) {
-                DPRINTF(BMT, "Deallocate BMT entry [%d]", i);
-            }
-        }
-    }
-
-    if (!hasDep && inst->isLoad()) {
-        allocEntry(inst);
-    }
-}
-
-#endif
-
-
-template<class Impl>
-int BMT<Impl>::computeMLP(ThreadID tid) {
-
     int i, counter = 0;
 
     for (i = 0; i < table[tid].size(); i++) {
-        if (table[tid][i].numDefRegs != 0) {
+        if (table[tid][i].orbv != 0) {
             counter += 1;
         }
     }
@@ -198,5 +123,26 @@ int BMT<Impl>::computeMLP(ThreadID tid) {
     return counter;
 }
 
+    template<class Impl>
+uint64_t BMT<Impl>::getSrcRegs(DynInstPtr &inst)
+{
+    const StaticInstPtr& stInst = inst->staticInst;
+    uint64_t vec = 0;
+    for (int i = 0; i < stInst->numSrcRegs(); i++) {
+        vec |= 1 << stInst->srcRegIdx(i);
+    }
+    return vec;
+}
+
+    template<class Impl>
+uint64_t BMT<Impl>::getDestRegs(DynInstPtr &inst)
+{
+    const StaticInstPtr& stInst = inst->staticInst;
+    uint64_t vec = 0;
+    for (int i = 0; i < stInst->numDestRegs(); i++) {
+        vec |= 1 << stInst->destRegIdx(i);
+    }
+    return vec;
+}
 
 #endif  // __CPU_O3_BMT_IMPL_HH__

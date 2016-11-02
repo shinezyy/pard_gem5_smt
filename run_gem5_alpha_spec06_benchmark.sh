@@ -54,8 +54,8 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
-#gdb --args \
 #$GEM5_DIR/build/ALPHA/gem5.fast\
+#gdb --args \
 $GEM5_DIR/build/ALPHA/gem5.opt\
     --outdir=$OUTPUT_DIR\
     $DEBUG_FLAG\

@@ -1374,7 +1374,7 @@ DefaultCommit<Impl>::updateComInstStats(DynInstPtr &inst)
     opsCommitted[tid]++;
 
     // update bmt
-    //bmt->update(inst);
+    bmt->update(inst);
 
     // To match the old model, don't count nops and instruction
     // prefetches towards the total commit count.
@@ -1397,8 +1397,6 @@ DefaultCommit<Impl>::updateComInstStats(DynInstPtr &inst)
         if (inst->isLoad()) {
             statComLoads[tid]++;
         }
-
-        bmt->allocEntry(inst);
     }
 
     if (inst->isMemBarrier()) {
