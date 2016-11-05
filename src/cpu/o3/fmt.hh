@@ -35,6 +35,9 @@ class FMT {
     public:
 
     typedef typename std::map<InstSeqNum, BranchEntry>::reverse_iterator
+        rBranchEntryIterator;
+
+    typedef typename std::map<InstSeqNum, BranchEntry>::iterator
         BranchEntryIterator;
 
     private:
@@ -47,7 +50,7 @@ class FMT {
 
     IEW *iew;
 
-    std::map<InstSeqNum, BranchEntry> table[Impl::MaxThreads];
+    std::vector<std::map<InstSeqNum, BranchEntry> > table;
 
     uint64_t globalBase[Impl::MaxThreads];
 

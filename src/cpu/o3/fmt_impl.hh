@@ -15,7 +15,11 @@ FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
     : cpu(cpu_ptr),
     numThreads(params->numThreads)
 {
-    DPRINTF(FMT, "numThreads: %d\n", numThreads);
+    std::map<InstSeqNum, BranchEntry> entry;
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        table.push_back(entry);
+    }
+
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         BranchEntry dummy;
         bzero((void *)&dummy, sizeof(BranchEntry));
@@ -87,7 +91,7 @@ void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
 void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
 {
     assert(table[tid].rbegin() != table[tid].rend());
-    BranchEntryIterator it = table[tid].rbegin();
+    rBranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.baseSlots++;
     numBaseSlots[tid]++;
@@ -97,7 +101,7 @@ void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
 void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
 {
     assert(table[tid].rbegin() != table[tid].rend());
-    BranchEntryIterator it = table[tid].rbegin();
+    rBranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.waitSlots++;
     numWaitSlots[tid]++;
@@ -109,8 +113,10 @@ void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
     DPRINTF(FMT, "tid = %d\n", tid);
     DPRINTF(FMT, "Size of table[%d] is %d\n", tid, table[tid].size());
     assert(!table[tid].empty());
-    BranchEntryIterator it = table[tid].rbegin();
-    for (; it->first > inst->seqNum; it++);
+    BranchEntryIterator it = (table[tid]).end();
+    while (it->first > inst->seqNum && it != table[tid].begin()) {
+        --it;
+    }
     it->second.missSlots++;
     numMissSlots[tid]++;
 }

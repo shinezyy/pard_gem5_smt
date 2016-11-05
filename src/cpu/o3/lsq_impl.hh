@@ -160,8 +160,8 @@ LSQ<Impl>::init(DerivO3CPUParams *params)
         DPRINTF(Pard, "allocatedLQNum: %d. allocatedSQNum: %d\n",
                 allocatedLQNum, allocatedSQNum);
 
-        assert(allocatedLQNum <= LQEntries);
-        assert(allocatedSQNum <= SQEntries);
+        // assert(allocatedLQNum <= LQEntries);
+        // assert(allocatedSQNum <= SQEntries);
 
         maxLQEntries[tid] = LQEntries - allocatedLQNum;
         maxSQEntries[tid] = SQEntries - allocatedSQNum;
