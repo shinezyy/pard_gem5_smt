@@ -8,6 +8,18 @@
 
 struct DerivO3CPUParams;
 
+struct BranchEntry {
+
+    uint64_t baseSlots;
+
+    uint64_t waitSlots;
+
+    uint64_t missSlots;
+
+    uint64_t initTimeStamp;
+};
+
+
 template <class Impl>
 class FMT {
 
@@ -22,20 +34,8 @@ class FMT {
 
     public:
 
-    struct BranchEntry {
-
-        uint64_t baseSlots;
-
-        uint64_t waitSlots;
-
-        uint64_t missSlots;
-
-        uint64_t initTimeStamp;
-    };
-
     typedef typename std::map<InstSeqNum, BranchEntry>::reverse_iterator
         BranchEntryIterator;
-
 
     private:
 

@@ -17,12 +17,17 @@ FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
 {
     DPRINTF(FMT, "numThreads: %d\n", numThreads);
     for (ThreadID tid = 0; tid < numThreads; tid++) {
+        BranchEntry dummy;
+        bzero((void *)&dummy, sizeof(BranchEntry));
+        table[tid].insert(std::make_pair(0, dummy));
 
-        table[tid][0].baseSlots = 0;
-        table[tid][0].waitSlots = 0;
-        table[tid][0].missSlots = 0;
-        table[tid][0].initTimeStamp = 0;
         DPRINTF(FMT, "Initiate branch entries for thread %d\n", tid);
+        DPRINTF(FMT, "Size of table[%d] is %d\n", tid, table[tid].size());
+        DPRINTF(FMT, "initTimeStamp is %d\n", table[tid][0].initTimeStamp);
+        DPRINTF(FMT, "initTimeStamp is %d\n", \
+                table[tid].begin()->second.initTimeStamp);
+        DPRINTF(FMT, "initTimeStamp is %d\n", \
+                table[tid].rbegin()->second.initTimeStamp);
     }
 }
 
@@ -102,7 +107,8 @@ void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
     DPRINTF(FMT, "tid = %d\n", tid);
-    assert(table[tid].rbegin() != table[tid].rend());
+    DPRINTF(FMT, "Size of table[%d] is %d\n", tid, table[tid].size());
+    assert(!table[tid].empty());
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.missSlots++;
