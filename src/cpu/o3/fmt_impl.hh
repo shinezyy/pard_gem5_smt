@@ -26,6 +26,30 @@ FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
 
 
     template<class Impl>
+void FMT<Impl>::regStats()
+{
+    using namespace Stats;
+
+    numBaseSlots
+        .init(numThreads)
+        .name(name() + ".numBaseSlots")
+        .desc("Number of slots dispatching instruction")
+        .flags(display);
+
+    numMissSlots
+        .init(numThreads)
+        .name(name() + ".numMissSlots")
+        .desc("Number of slots wasted because of stall")
+        .flags(display);
+
+    numWaitSlots
+        .init(numThreads)
+        .name(name() + ".numWaitSlots")
+        .desc("Number of slots wasted because of waiting another thread")
+        .flags(display);
+}
+
+    template<class Impl>
 void FMT<Impl>::setStage(Fetch *_fetch, Decode *_decode, IEW *_iew)
 {
     fetch = _fetch;
@@ -58,6 +82,7 @@ void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.baseSlots++;
+    numBaseSlots[tid]++;
 }
 
     template<class Impl>
@@ -66,6 +91,7 @@ void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.waitSlots++;
+    numWaitSlots[tid]++;
 }
 
     template<class Impl>
@@ -74,6 +100,7 @@ void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.missSlots++;
+    numMissSlots[tid]++;
 }
 
     template<class Impl>

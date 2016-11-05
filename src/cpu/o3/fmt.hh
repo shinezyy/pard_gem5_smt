@@ -57,6 +57,11 @@ class FMT {
 
     ThreadID numThreads;
 
+    Stats::Vector numBaseSlots;
+
+    Stats::Vector numWaitSlots;
+
+    Stats::Vector numMissSlots;
 
     public:
 
@@ -64,6 +69,8 @@ class FMT {
     {
         return cpu->name() + ".fmt";
     }
+
+    void regStats();
 
     FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params);
 
