@@ -157,7 +157,8 @@ DefaultIEW<Impl>::regStats()
 
     iewDispatchedInsts
         .name(name() + ".iewDispatchedInsts")
-        .desc("Number of instructions dispatched to IQ");
+        .desc("Number of instructions dispatched to IQ")
+        .flags(display);
 
     iewDispSquashedInsts
         .name(name() + ".iewDispSquashedInsts")
@@ -1178,15 +1179,14 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
+    }
 
-        for (ThreadID t = 0; t < numThreads; t++) {
-
-            for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
-                if (t != tid) {
-                    fmt->incWaitSlot(inst, t);
-                } else {
-                    fmt->incMissSlot(inst, t);
-                }
+    for (ThreadID t = 0; t < numThreads; t++) {
+        for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
+            if (t != tid) {
+                fmt->incWaitSlot(inst, t);
+            } else {
+                fmt->incMissSlot(inst, t);
             }
         }
     }

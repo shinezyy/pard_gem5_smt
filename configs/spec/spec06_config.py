@@ -319,6 +319,7 @@ else:
 
 for cpu in system.cpu:
     cpu.windowSize = 15000
+    cpu.max_insts_any_thread = 200*(10**6)
 
 for cpu in system.cpu:
     cpu.icache.tags = LRUPartition()
@@ -327,6 +328,7 @@ for cpu in system.cpu:
     cpu.dcache.tags.thread_0_assoc = 7
     # cpu.l2cache.tags = LRUPartition() # L2 partition
     # cpu.l2cache.tags.thread_0_assoc = 6
+
 
 # options.take_checkpoints=100000
 # options.at_instruction=True

@@ -591,6 +591,8 @@ FullO3CPU<Impl>::regStats()
         .desc("number of insts executed by each thread")
         .flags(Stats::display)
         .init(numThreads);
+
+    this->fmt.regStats();
 }
 
 template <class Impl>
