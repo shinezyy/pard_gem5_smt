@@ -42,19 +42,19 @@ void FMT<Impl>::regStats()
     using namespace Stats;
 
     numBaseSlots
-        .init(numThreads)
+        .init(cpu->numThreads)
         .name(name() + ".numBaseSlots")
         .desc("Number of slots dispatching instruction")
         .flags(display);
 
     numMissSlots
-        .init(numThreads)
+        .init(cpu->numThreads)
         .name(name() + ".numMissSlots")
         .desc("Number of slots wasted because of stall")
         .flags(display);
 
     numWaitSlots
-        .init(numThreads)
+        .init(cpu->numThreads)
         .name(name() + ".numWaitSlots")
         .desc("Number of slots wasted because of waiting another thread")
         .flags(display);
@@ -110,13 +110,11 @@ void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
     template<class Impl>
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
-    DPRINTF(FMT, "tid = %d\n", tid);
-    DPRINTF(FMT, "Size of table[%d] is %d\n", tid, table[tid].size());
     assert(!table[tid].empty());
-    BranchEntryIterator it = (table[tid]).end();
-    while (it->first > inst->seqNum && it != table[tid].begin()) {
-        --it;
-    }
+    assert(table[tid].rbegin() != table[tid].rend());
+
+    rBranchEntryIterator it = table[tid].rbegin();
+    for (; it->first > inst->seqNum; it++);
     it->second.missSlots++;
     numMissSlots[tid]++;
 }

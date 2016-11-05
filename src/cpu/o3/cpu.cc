@@ -545,6 +545,7 @@ FullO3CPU<Impl>::regStats()
     this->iew.regStats();
     this->commit.regStats();
     this->rob.regStats();
+    this->fmt.regStats();
 
     intRegfileReads
         .name(name() + ".int_regfile_reads")
@@ -592,7 +593,6 @@ FullO3CPU<Impl>::regStats()
         .flags(Stats::display)
         .init(numThreads);
 
-    this->fmt.regStats();
 }
 
 template <class Impl>
