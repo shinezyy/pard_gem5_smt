@@ -79,6 +79,10 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
       lqUptodate(false),
       sqUptodate(false)
 {
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        LQPortion[tid] = denominator/numThreads;
+        SQPortion[tid] = denominator/numThreads;
+    }
 }
 
 template<class Impl>
@@ -154,14 +158,19 @@ LSQ<Impl>::init(DerivO3CPUParams *params)
         for (;tid < numThreads - 1; ++tid) {
             maxLQEntries[tid] = LQEntries*LQPortion[tid]/denominator;
             maxSQEntries[tid] = SQEntries*SQPortion[tid]/denominator;
+            DPRINTF(Pard, "LQEntries: %d\n", LQEntries);
+            DPRINTF(Pard, "LQPortion[%d]: %d\n", tid, LQPortion[tid]);
+            DPRINTF(Pard, "Allocate LQNum[%d]: %d\n", tid, maxLQEntries[tid]);
+            DPRINTF(Pard, "Allocate SQNum[%d]: %d\n", tid, maxSQEntries[tid]);
+
             allocatedLQNum += maxLQEntries[tid];
             allocatedSQNum += maxSQEntries[tid];
         }
         DPRINTF(Pard, "allocatedLQNum: %d. allocatedSQNum: %d\n",
                 allocatedLQNum, allocatedSQNum);
 
-        // assert(allocatedLQNum <= LQEntries);
-        // assert(allocatedSQNum <= SQEntries);
+        assert(allocatedLQNum <= LQEntries);
+        assert(allocatedSQNum <= SQEntries);
 
         maxLQEntries[tid] = LQEntries - allocatedLQNum;
         maxSQEntries[tid] = SQEntries - allocatedSQNum;

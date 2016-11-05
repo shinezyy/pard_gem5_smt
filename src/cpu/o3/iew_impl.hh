@@ -493,7 +493,6 @@ DefaultIEW<Impl>::squashDueToBranch(DynInstPtr &inst, ThreadID tid)
             "[sn:%i].\n", tid, inst->pcState(), inst->seqNum);
 
     // For convenience, I resolve mispredicted branch here
-
     fmt->resolveBranch(false, inst, tid);
 
     if (!toCommit->squash[tid] ||
@@ -1147,7 +1146,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
             if (i == tid) {
                 inst->setWaitSlot(tempWaitSlots[i]);
                 fmt->incBaseSlot(inst, i);
-                voc->allocVrob(i, inst);
+                //voc->allocVrob(i, inst);
             } else {
                 if (dispatchStatus[i] == Unblocking ||
                         dispatchStatus[i] == Running ||
@@ -1176,19 +1175,20 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
     }
 
     if (!insts_to_dispatch.empty()) {
+
+        for (ThreadID t = 0; t < numThreads; t++) {
+            for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
+                if (t != tid) {
+                    fmt->incWaitSlot(inst, t);
+                } else {
+                    fmt->incMissSlot(inst, t);
+                }
+            }
+        }
+
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
-    }
-
-    for (ThreadID t = 0; t < numThreads; t++) {
-        for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
-            if (t != tid) {
-                fmt->incWaitSlot(inst, t);
-            } else {
-                fmt->incMissSlot(inst, t);
-            }
-        }
     }
 
     if (dispatchStatus[tid] == Idle && dis_num_inst) {

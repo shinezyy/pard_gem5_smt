@@ -1289,7 +1289,7 @@ DefaultCommit<Impl>::commitHead(DynInstPtr &head_inst, unsigned inst_num)
 
     // Finally clear the head ROB entry.
     rob->retireHead(tid);
-    voc->freeVrob(tid, head_inst);
+    //voc->freeVrob(tid, head_inst);
 
 #if TRACING_ON
     if (DTRACE(O3PipeView)) {
@@ -1374,7 +1374,7 @@ DefaultCommit<Impl>::updateComInstStats(DynInstPtr &inst)
     opsCommitted[tid]++;
 
     // update bmt
-    bmt->update(inst);
+    //bmt->update(inst);
 
     // To match the old model, don't count nops and instruction
     // prefetches towards the total commit count.
