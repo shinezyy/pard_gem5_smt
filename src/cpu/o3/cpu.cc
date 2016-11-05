@@ -597,16 +597,142 @@ FullO3CPU<Impl>::regStats()
 
 template <class Impl>
 void
+FullO3CPU<Impl>::redistribute()
+{
+    int iqVec[2];
+    int lqVec[2];
+    int sqVec[2];
+
+    /* redistribute IQ portions START*/
+    double iqUtilThreshold = 0.6;
+
+    DPRINTF(Pard, "\nUtil: %f\nIQ ThreadUtil[0]: %f\nIQ ThreadUtil[1]: %f\n",
+            iew.instQueue.iqUtil,
+            iew.instQueue.iqThreadUtil[0],
+            iew.instQueue.iqThreadUtil[1]);
+
+    if (iew.instQueue.iqUtil > iqUtilThreshold
+            && iew.instQueue.iqThreadUtil[1] >
+            iew.instQueue.iqThreadUtil[0]){
+        // On this condition, cache might be overloading,
+        // so we need to limit the second thread
+
+        iqVec[0] = std::max(
+                int((iew.instQueue.iqThreadUtil[0] + 0.15)*1024), 820);
+        iqVec[1] = 1024 - iqVec[0];
+
+        iew.instQueue.reassignPortion(iqVec, 2, 1024);
+        DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
+
+    } else if (iew.instQueue.iqThreadUtil[0] + 0.05 >=
+            double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
+        iqVec[0] = std::min(
+                int((iew.instQueue.iqThreadUtil[0] + 0.15)*1024), 1024);
+        iqVec[1] = 1024 - iqVec[0];
+
+        iew.instQueue.reassignPortion(iqVec, 2, 1024);
+        DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
+    } else if (iew.instQueue.iqThreadUtil[0] + 0.2 <
+            double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
+        iqVec[0] = std::min(
+                int((iew.instQueue.iqThreadUtil[0] + 0.1)*1024), 1024);
+        iqVec[1] = 1024 - iqVec[0];
+
+        iew.instQueue.reassignPortion(iqVec, 2, 1024);
+        DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
+    }
+    /* redistribute IQ portions END*/
+
+    /* redistribute LSQ portions START*/
+
+    DPRINTF(Pard, "\nLQ ThreadUtil[0]: %f\nLQ ThreadUtil[1]: %f\n"
+            "SQ ThreadUtil[0]: %f\nSQ ThreadUtil[1]: %f\n",
+            iew.ldstQueue.lqThreadUtil[0],iew.ldstQueue.lqThreadUtil[1],
+            iew.ldstQueue.sqThreadUtil[0],iew.ldstQueue.sqThreadUtil[1]);
+
+    double t0Threshold = 0.3;
+    double lqUtilThreshold = 0.6;
+    double sqUtilThreshold = 0.6;
+
+    if (iew.ldstQueue.lqUtil > t0Threshold) {
+        if (iew.ldstQueue.lqUtil > lqUtilThreshold) {
+            // On this condition, cache might be overloading,
+            // so we need to limit the second thread
+
+            lqVec[0] = std::max(
+                    int((iew.ldstQueue.lqThreadUtil[0] + 0.15)*1024), 820);
+            lqVec[1] = 1024 - lqVec[0];
+
+            iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
+            DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
+        }
+
+    } else if (iew.ldstQueue.lqThreadUtil[0] + 0.05 >=
+            double(iew.ldstQueue.LQPortion[0]) /
+            iew.ldstQueue.denominator) {
+
+        lqVec[0] = std::min(
+                int((iew.ldstQueue.lqThreadUtil[0] + 0.15)*1024), 1024);
+        lqVec[1] = 1024 - lqVec[0];
+
+        iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
+        DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
+    } else if (iew.ldstQueue.lqThreadUtil[0] + 0.2 <
+            double(iew.ldstQueue.LQPortion[0]) /
+            iew.ldstQueue.denominator) {
+
+        lqVec[0] = std::min(
+                int((iew.ldstQueue.lqThreadUtil[0] + 0.1)*1024), 1024);
+        lqVec[1] = 1024 - lqVec[0];
+
+        iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
+        DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
+    }
+
+
+    if (iew.ldstQueue.sqUtil > t0Threshold) {
+        if (iew.ldstQueue.sqUtil > sqUtilThreshold) {
+            // On this condition, cache might be overloading,
+            // so we need to limit the second thread
+
+            sqVec[0] = std::max(
+                    int((iew.ldstQueue.sqThreadUtil[0] + 0.15)*1024), 820);
+            sqVec[1] = 1024 - sqVec[0];
+
+            iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
+            DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
+        }
+
+    } else if (iew.ldstQueue.sqThreadUtil[0] + 0.05 >=
+            double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
+
+        sqVec[0] = std::min(
+                int((iew.ldstQueue.sqThreadUtil[0] + 0.15)*1024), 1024);
+        sqVec[1] = 1024 - sqVec[0];
+
+        iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
+        DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
+    } else if (iew.ldstQueue.sqThreadUtil[0] + 0.2 <
+            double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
+
+        sqVec[0] = std::min(
+                int((iew.ldstQueue.sqThreadUtil[0] + 0.1)*1024), 1024);
+        sqVec[1] = 1024 - sqVec[0];
+
+        iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
+        DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
+    }
+    /* redistribute LSQ portions END */
+
+}
+
+template <class Impl>
+void
 FullO3CPU<Impl>::tick()
 {
     DPRINTF(O3CPU, "\n\nFullO3CPU: Ticking main, FullO3CPU.\n");
     assert(!switchedOut());
     assert(getDrainState() != Drainable::Drained);
-
-    int iqVec[2];
-
-    int lqVec[2];
-    int sqVec[2];
 
     ++numCycles;
     ++localCycles;
@@ -618,128 +744,9 @@ FullO3CPU<Impl>::tick()
         iew.instQueue.dumpUsedEntries();
         iew.ldstQueue.dumpUsedEntries();
 
-        /* redistribute IQ portions START*/
-        double iqUtilThreshold = 0.6;
-
-        DPRINTF(Pard, "\nUtil: %f\nIQ ThreadUtil[0]: %f\nIQ ThreadUtil[1]: %f\n",
-                iew.instQueue.iqUtil,
-                iew.instQueue.iqThreadUtil[0],
-                iew.instQueue.iqThreadUtil[1]);
-
-        if (iew.instQueue.iqUtil > iqUtilThreshold
-                    && iew.instQueue.iqThreadUtil[1] >
-                    iew.instQueue.iqThreadUtil[0]){
-                // On this condition, cache might be overloading,
-                // so we need to limit the second thread
-
-            iqVec[0] = std::max(
-                    int((iew.instQueue.iqThreadUtil[0] + 0.15)*1024), 820);
-            iqVec[1] = 1024 - iqVec[0];
-
-            iew.instQueue.reassignPortion(iqVec, 2, 1024);
-            DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
-
-        } else if (iew.instQueue.iqThreadUtil[0] + 0.05 >=
-                double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
-            iqVec[0] = std::min(
-                    int((iew.instQueue.iqThreadUtil[0] + 0.15)*1024), 1024);
-            iqVec[1] = 1024 - iqVec[0];
-
-            iew.instQueue.reassignPortion(iqVec, 2, 1024);
-            DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
-        } else if (iew.instQueue.iqThreadUtil[0] + 0.2 <
-                double(iew.instQueue.portion[0]) / iew.instQueue.denominator) {
-            iqVec[0] = std::min(
-                    int((iew.instQueue.iqThreadUtil[0] + 0.1)*1024), 1024);
-            iqVec[1] = 1024 - iqVec[0];
-
-            iew.instQueue.reassignPortion(iqVec, 2, 1024);
-            DPRINTF(Pard, "IQ Vec: %d, %d\n", iqVec[0], iqVec[1]);
+        if (autoControl) {
+            redistribute();
         }
-        /* redistribute IQ portions END*/
-
-        /* redistribute LSQ portions START*/
-
-        DPRINTF(Pard, "\nLQ ThreadUtil[0]: %f\nLQ ThreadUtil[1]: %f\n"
-                "SQ ThreadUtil[0]: %f\nSQ ThreadUtil[1]: %f\n",
-                iew.ldstQueue.lqThreadUtil[0],iew.ldstQueue.lqThreadUtil[1],
-                iew.ldstQueue.sqThreadUtil[0],iew.ldstQueue.sqThreadUtil[1]);
-
-        double t0Threshold = 0.3;
-        double lqUtilThreshold = 0.6;
-        double sqUtilThreshold = 0.6;
-
-        if (iew.ldstQueue.lqUtil > t0Threshold) {
-            if (iew.ldstQueue.lqUtil > lqUtilThreshold) {
-                // On this condition, cache might be overloading,
-                // so we need to limit the second thread
-
-                lqVec[0] = std::max(
-                        int((iew.ldstQueue.lqThreadUtil[0] + 0.15)*1024), 820);
-                lqVec[1] = 1024 - lqVec[0];
-
-                iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
-                DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
-            }
-
-        } else if (iew.ldstQueue.lqThreadUtil[0] + 0.05 >=
-                double(iew.ldstQueue.LQPortion[0]) /
-                iew.ldstQueue.denominator) {
-
-            lqVec[0] = std::min(
-                    int((iew.ldstQueue.lqThreadUtil[0] + 0.15)*1024), 1024);
-            lqVec[1] = 1024 - lqVec[0];
-
-            iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
-            DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
-        } else if (iew.ldstQueue.lqThreadUtil[0] + 0.2 <
-                double(iew.ldstQueue.LQPortion[0]) /
-                iew.ldstQueue.denominator) {
-
-            lqVec[0] = std::min(
-                    int((iew.ldstQueue.lqThreadUtil[0] + 0.1)*1024), 1024);
-            lqVec[1] = 1024 - lqVec[0];
-
-            iew.ldstQueue.reassignLQPortion(lqVec, 2, 1024);
-            DPRINTF(Pard, "LQ Vec: %d, %d\n", lqVec[0], lqVec[1]);
-        }
-
-
-        if (iew.ldstQueue.sqUtil > t0Threshold) {
-            if (iew.ldstQueue.sqUtil > sqUtilThreshold) {
-                // On this condition, cache might be overloading,
-                // so we need to limit the second thread
-
-                sqVec[0] = std::max(
-                        int((iew.ldstQueue.sqThreadUtil[0] + 0.15)*1024), 820);
-                sqVec[1] = 1024 - sqVec[0];
-
-                iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
-                DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
-            }
-
-        } else if (iew.ldstQueue.sqThreadUtil[0] + 0.05 >=
-                double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
-
-            sqVec[0] = std::min(
-                    int((iew.ldstQueue.sqThreadUtil[0] + 0.15)*1024), 1024);
-            sqVec[1] = 1024 - sqVec[0];
-
-            iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
-            DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
-        } else if (iew.ldstQueue.sqThreadUtil[0] + 0.2 <
-                double(iew.ldstQueue.SQPortion[0]) / iew.ldstQueue.denominator) {
-
-            sqVec[0] = std::min(
-                    int((iew.ldstQueue.sqThreadUtil[0] + 0.1)*1024), 1024);
-            sqVec[1] = 1024 - sqVec[0];
-
-            iew.ldstQueue.reassignSQPortion(sqVec, 2, 1024);
-            DPRINTF(Pard, "SQ Vec: %d, %d\n", sqVec[0], sqVec[1]);
-        }
-        /* redistribute LSQ portions END */
-
-
 
         async_event = true;
         async_statdump = true;

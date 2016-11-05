@@ -616,6 +616,9 @@ ROB<Impl>::reassignPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
     //assert(lenNewPortionVec == numThreads);
+    if (robPolicy != Programmable) {
+        return;
+    }
 
     maxEntriesUpToDate = false;
 

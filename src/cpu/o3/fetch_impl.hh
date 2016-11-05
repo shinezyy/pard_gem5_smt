@@ -94,7 +94,8 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
       fetchBufferMask(fetchBufferSize - 1),
       fetchQueueSize(params->fetchQueueSize),
       numThreads(params->numThreads),
-      numFetchingThreads(params->smtNumFetchingThreads)
+      numFetchingThreads(params->smtNumFetchingThreads),
+      fetchWidthUpToDate(true)
 {
     if (numThreads > Impl::MaxThreads)
         fatal("numThreads (%d) is larger than compiled limit (%d),\n"
@@ -1698,6 +1699,7 @@ DefaultFetch<Impl>::updateDecodeWidth()
 {
     if (decodeWidthUpToDate)
         return;
+    assert(fetchPolicy == Programmable);
 
     DPRINTF(Pard, "Updating decode width\n");
 
@@ -1724,6 +1726,9 @@ DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
         int lenWidthVec, int newWidthDenominator)
 {
     //assert(lenWidthVec == numThreads);
+    if (fetchPolicy != Programmable) {
+        return;
+    }
 
     decodeWidthUpToDate = false;
     fetchWidthUpToDate = false;
@@ -1790,6 +1795,8 @@ DefaultFetch<Impl>::updateFetchWidth()
 {
     if (fetchWidthUpToDate)
         return;
+    assert(fetchPolicy == Programmable);
+
     DPRINTF(Pard, "Updating fetch width\n");
     priorityList.clear();
     for (ThreadID tid = 0; tid < numThreads; ++tid) {

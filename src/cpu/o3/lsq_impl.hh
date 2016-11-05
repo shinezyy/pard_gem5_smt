@@ -854,6 +854,9 @@ LSQ<Impl>::reassignLQPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
     //assert(lenNewPortionVec == numThreads);
+    if (lsqPolicy != Programmable) {
+        return;
+    }
 
     lqUptodate = false;
 
@@ -870,6 +873,9 @@ LSQ<Impl>::reassignSQPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
     //assert(lenNewPortionVec == numThreads);
+    if (lsqPolicy != Programmable) {
+        return;
+    }
 
     sqUptodate = false;
 

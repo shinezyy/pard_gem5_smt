@@ -774,6 +774,10 @@ class FullO3CPU : public BaseO3CPU
      */
     void setUpSrcManagerConfigs(const std::string filename);
 
+    bool autoControl;
+
+    void redistribute();
+
   public:
     unsigned windowSize;
 

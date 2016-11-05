@@ -581,6 +581,9 @@ InstructionQueue<Impl>::reassignPortion(int newPortionVec[],
         int lenNewPortionVec, int newPortionDenominator)
 {
     //assert(lenNewPortionVec == numThreads);
+    if (iqPolicy != Programmable) {
+        return;
+    }
 
     maxEntriesUpToDate = false;
 
@@ -597,6 +600,9 @@ InstructionQueue<Impl>::reassignIssuePrio(int newPrioVec[],
         int len)
 {
     //assert(len == numThreads);
+    if (iqPolicy != Programmable) {
+        return;
+    }
 
     maxEntriesUpToDate = false;
 

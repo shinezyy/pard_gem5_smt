@@ -15,12 +15,14 @@ FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
     : cpu(cpu_ptr),
     numThreads(params->numThreads)
 {
+    DPRINTF(FMT, "numThreads: %d\n", numThreads);
     for (ThreadID tid = 0; tid < numThreads; tid++) {
 
         table[tid][0].baseSlots = 0;
         table[tid][0].waitSlots = 0;
         table[tid][0].missSlots = 0;
         table[tid][0].initTimeStamp = 0;
+        DPRINTF(FMT, "Initiate branch entries for thread %d\n", tid);
     }
 }
 
@@ -79,6 +81,7 @@ void FMT<Impl>::addBranch(DynInstPtr &bran, ThreadID tid, uint64_t timeStamp)
     template<class Impl>
 void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
 {
+    assert(table[tid].rbegin() != table[tid].rend());
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.baseSlots++;
@@ -88,6 +91,7 @@ void FMT<Impl>::incBaseSlot(DynInstPtr &inst, ThreadID tid)
     template<class Impl>
 void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
 {
+    assert(table[tid].rbegin() != table[tid].rend());
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.waitSlots++;
@@ -97,6 +101,8 @@ void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
     template<class Impl>
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
+    DPRINTF(FMT, "tid = %d\n", tid);
+    assert(table[tid].rbegin() != table[tid].rend());
     BranchEntryIterator it = table[tid].rbegin();
     for (; it->first > inst->seqNum; it++);
     it->second.missSlots++;
