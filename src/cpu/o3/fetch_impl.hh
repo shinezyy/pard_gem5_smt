@@ -160,6 +160,7 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
         // Create space to buffer the cache line data,
         // which may not hold the entire cache line.
         fetchBuffer[tid] = new uint8_t[fetchBufferSize];
+        decodeWidths[tid] = decodeWidth;
     }
     // Construct the FinishTranslationEvent collection
     // according to the number of thread.
@@ -977,11 +978,13 @@ DefaultFetch<Impl>::tick()
     // Send instructions enqueued into the fetch queue to decode.
     // Limit rate by fetchWidth.  Stall if decode is stalled.
     unsigned insts_to_decode[Impl::MaxThreads];
+    unsigned insts_to_decode_all;
     unsigned available_insts = 0;
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         insts_to_decode[tid] = 0;
     }
+    insts_to_decode_all = 0;
 
     for (auto tid : *activeThreads) {
         if (!stalls[tid].decode) {
@@ -999,12 +1002,14 @@ DefaultFetch<Impl>::tick()
     std::advance(tid_itr, random_mt.random<uint8_t>(0, activeThreads->size() - 1));
 
     while (available_insts != 0 && (insts_to_decode[0] < decodeWidths[0]
-            || insts_to_decode[1] < decodeWidths[1])) {
+            || insts_to_decode[1] < decodeWidths[1]) &&
+            insts_to_decode_all < decodeWidth) {
 
         ThreadID tid = *tid_itr;
 
         if (!stalls[tid].decode && !fetchQueue[tid].empty() &&
-                insts_to_decode[tid] < decodeWidths[tid]) {
+                insts_to_decode[tid] < decodeWidths[tid] &&
+                insts_to_decode_all < decodeWidth) {
             auto inst = fetchQueue[tid].front();
             toDecode->insts[toDecode->size++] = inst;
             DPRINTF(Fetch, "[tid:%i][sn:%i]: Sending instruction to decode from "
@@ -1013,7 +1018,9 @@ DefaultFetch<Impl>::tick()
 
             wroteToTimeBuffer = true;
             fetchQueue[tid].pop_front();
+
             insts_to_decode[tid]++;
+            insts_to_decode_all++;
             available_insts--;
         }
 

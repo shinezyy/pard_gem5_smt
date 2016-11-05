@@ -27,11 +27,6 @@ FMT<Impl>::FMT(O3CPU *cpu_ptr, DerivO3CPUParams *params)
 
         DPRINTF(FMT, "Initiate branch entries for thread %d\n", tid);
         DPRINTF(FMT, "Size of table[%d] is %d\n", tid, table[tid].size());
-        DPRINTF(FMT, "initTimeStamp is %d\n", table[tid][0].initTimeStamp);
-        DPRINTF(FMT, "initTimeStamp is %d\n", \
-                table[tid].begin()->second.initTimeStamp);
-        DPRINTF(FMT, "initTimeStamp is %d\n", \
-                table[tid].rbegin()->second.initTimeStamp);
     }
 }
 

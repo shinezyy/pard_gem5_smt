@@ -83,7 +83,7 @@ class DerivO3CPU(BaseCPU):
                "Issue/Execute/Writeback delay")
     issueToExecuteDelay = Param.Cycles(1, "Issue to execute delay (internal "
               "to the IEW stage)")
-    dispatchWidth = Param.Unsigned(8, "Dispatch width")
+    dispatchWidth = Param.Unsigned(4, "Dispatch width")
     issueWidth = Param.Unsigned(8, "Issue width")
     wbWidth = Param.Unsigned(8, "Writeback width")
     fuPool = Param.FUPool(DefaultFUPool(), "Functional Unit pool")
@@ -131,17 +131,17 @@ class DerivO3CPU(BaseCPU):
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
 
-    smtFetchPolicy = Param.String('Programmable', "SMT Fetch policy")
-    # smtFetchPolicy = Param.String('RoundRobin', "SMT Fetch policy")
+    #smtFetchPolicy = Param.String('Programmable', "SMT Fetch policy")
+    smtFetchPolicy = Param.String('RoundRobin', "SMT Fetch policy")
 
-    smtLSQPolicy    = Param.String('Programmable', "SMT LSQ Sharing Policy")
-    # smtLSQPolicy    = Param.String('Dynamic', "SMT LSQ Sharing Policy")
+    #smtLSQPolicy    = Param.String('Programmable', "SMT LSQ Sharing Policy")
+    smtLSQPolicy    = Param.String('Dynamic', "SMT LSQ Sharing Policy")
 
     smtLSQThreshold = Param.Int(10, "SMT LSQ Threshold Sharing Parameter")
     # LSQ threshold is treated as bull shit
 
-    smtIQPolicy    = Param.String('Programmable', "SMT IQ Sharing Policy")
-    # smtIQPolicy    = Param.String('Dynamic', "SMT IQ Sharing Policy")
+    #smtIQPolicy    = Param.String('Programmable', "SMT IQ Sharing Policy")
+    smtIQPolicy    = Param.String('Dynamic', "SMT IQ Sharing Policy")
 
     smtIssuePolicy  = Param.String('Nodiscrimination', "SMT Issue Policy")
     smtIQThreshold = Param.Int(50, "SMT IQ Threshold Sharing Parameter")
@@ -161,7 +161,7 @@ class DerivO3CPU(BaseCPU):
     needsTSO = Param.Bool(buildEnv['TARGET_ISA'] == 'x86',
                           "Enable TSO Memory model")
 
-    autoControl = Param.Bool(True, "Enable auto control")
+    autoControl = Param.Bool(False, "Enable auto control")
 
     def addCheckerCpu(self):
         if buildEnv['TARGET_ISA'] in ['arm']:
