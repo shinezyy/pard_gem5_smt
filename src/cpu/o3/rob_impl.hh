@@ -252,6 +252,7 @@ ROB<Impl>::insertInst(DynInstPtr &inst)
     if(numInstsInROB == numEntries) {
         log_var(numInstsInROB);
         log_var(numEntries);
+        log_var(inst->threadNumber);
     }
 
     assert(numInstsInROB != numEntries);
@@ -362,7 +363,8 @@ ROB<Impl>::numFreeEntries(ThreadID tid)
     if ((robPolicy == Programmable && tid == 0) || robPolicy == Dynamic) {
         return numFreeEntries();
     } else {
-        return maxEntries[tid] - threadEntries[tid];
+        return std::min(maxEntries[tid] - threadEntries[tid],
+                numFreeEntries());
     }
 }
 
@@ -620,6 +622,13 @@ bool
 ROB<Impl>::isDynamicPolicy() const
 {
     return robPolicy == Dynamic;
+}
+
+template <typename Impl>
+bool
+ROB<Impl>::isProgrammablePolicy() const
+{
+    return robPolicy == Programmable;
 }
 
 template <class Impl>

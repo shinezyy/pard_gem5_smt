@@ -1312,8 +1312,7 @@ DefaultCommit<Impl>::getInsts()
     DPRINTF(Commit, "Getting instructions from Rename stage.\n");
 
     // Read any renamed instructions and place them into the ROB.
-    int insts_to_process = std::min((int)renameWidth, fromRename->size,
-            );
+    int insts_to_process = std::min((int)renameWidth, fromRename->size);
 
     for (int inst_num = 0; inst_num < insts_to_process; ++inst_num) {
         DynInstPtr inst;

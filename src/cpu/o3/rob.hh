@@ -376,6 +376,8 @@ class ROB
   public:
     bool isDynamicPolicy() const;
 
+    bool isProgrammablePolicy() const;
+
     void setVoc(Voc *_voc)
     {
         voc = _voc;

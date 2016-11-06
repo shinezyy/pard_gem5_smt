@@ -556,6 +556,11 @@ class DefaultCommit
         return rob->isDynamicPolicy();
     }
 
+    bool isROBPolicyProgrammable() const
+    {
+        return rob->isDynamicPolicy();
+    }
+
     void setFmt(Fmt *_fmt)
     {
         fmt = _fmt;
