@@ -758,7 +758,11 @@ FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
     vec[0] = 1024 - expectedSlowdown;
     vec[1] = expectedSlowdown;
 
+    DPRINTF(Pard, "expectedSlowdown: %d\n", expectedSlowdown);
+
     if (rob) {
+        DPRINTF(Pard, "reserving ROB, vec[0]: %d, vec[1]: %d\n",
+                vec[0], vec[1]);
         commit.rob->reassignPortion(vec, 2, 1024);
     }
     if (lq) {
@@ -776,7 +780,7 @@ FullO3CPU<Impl>::freeResource()
 {
     int vec[2];
     vec[0] = 0;
-    vec[0] = 1024;
+    vec[1] = 1024;
 
     commit.rob->reassignPortion(vec, 2, 1024);
     iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
@@ -802,8 +806,9 @@ FullO3CPU<Impl>::fmtBasedDist()
 
         locateSource(&robFull, &lqFull, &sqFull);
         reserveResource(robFull, lqFull, sqFull);
-
-    }
+    } else {
+        freeResource();
+    };
 
     // reset
     for (ThreadID t = 0; t < numThreads; ++t) {

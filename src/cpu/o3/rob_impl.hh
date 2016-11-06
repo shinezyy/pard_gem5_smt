@@ -51,6 +51,7 @@
 #include "debug/ROB.hh"
 #include "debug/Pard.hh"
 #include "params/DerivO3CPU.hh"
+#include "cpu/o3/log.hh"
 
 using namespace std;
 
@@ -111,17 +112,23 @@ ROB<Impl>::init(DerivO3CPUParams *params)
         DPRINTF(Pard, "ROB sharing policy set to Programmable\n");
         DPRINTF(Fetch, "ROB sharing policy set to Programmable\n");
 
-        int allocatedNum = 0;
+        int allocatedNum = 0, allocatedPortion = 0;
 
         ThreadID tid = 0;
 
         for(; tid < numThreads - 1; ++tid) {
-            maxEntries[tid] = numEntries * portion[tid] / denominator;
+            portion[tid] = denominator / numThreads;
+            maxEntries[tid] = numEntries / numThreads;
+
             allocatedNum += maxEntries[tid];
+            allocatedPortion += portion[tid];
         }
 
         assert(allocatedNum <= numEntries);
         maxEntries[tid] = numEntries - allocatedNum;
+        portion[tid] = denominator - allocatedPortion;
+
+        DPRINTF(Pard, "portion[0]: %d, portion[1]: %d\n", portion[0], portion[1]);
     } else {
         assert(0 && "Invalid ROB Sharing Policy.Options Are:{Dynamic,"
                     "Partitioned, Threshold}");
@@ -192,7 +199,7 @@ ROB<Impl>::resetEntries()
         while (threads != end) {
             ThreadID tid = *threads++;
 
-            if (robPolicy == Partitioned) {
+            if (robPolicy == Partitioned || robPolicy == Programmable) {
                 maxEntries[tid] = numEntries / active_threads;
             } else if (robPolicy == Threshold && active_threads == 1) {
                 maxEntries[tid] = numEntries;
@@ -241,6 +248,11 @@ ROB<Impl>::insertInst(DynInstPtr &inst)
     ++robInserted[inst->threadNumber];
 
     DPRINTF(ROB, "Adding inst PC %s to the ROB.\n", inst->pcState());
+
+    if(numInstsInROB == numEntries) {
+        log_var(numInstsInROB);
+        log_var(numEntries);
+    }
 
     assert(numInstsInROB != numEntries);
 
@@ -347,10 +359,9 @@ template <class Impl>
 unsigned
 ROB<Impl>::numFreeEntries(ThreadID tid)
 {
-    if (robPolicy == Dynamic) {
+    if ((robPolicy == Programmable && tid == 0) || robPolicy == Dynamic) {
         return numFreeEntries();
-    }
-    else {
+    } else {
         return maxEntries[tid] - threadEntries[tid];
     }
 }
@@ -625,6 +636,7 @@ ROB<Impl>::reassignPortion(int newPortionVec[],
 
     for (int i = 0; i < numThreads; ++i) {
         portion[i] = newPortionVec[i];
+        DPRINTF(Pard, "portion[%d]: %d\n", i, portion[i]);
     }
 
     denominator = newPortionDenominator;
@@ -650,6 +662,9 @@ ROB<Impl>::updateMaxEntries()
 
     bool incThread_0 = thread_0_increment > 0;
 
+    DPRINTF(Pard, "numFreeEntries[0]: %d\n", numFreeEntries(0));
+    DPRINTF(Pard, "numFreeEntries[1]: %d\n", numFreeEntries(1));
+
     bool sat = incThread_0 ? numFreeEntries(1) >= thread_0_increment :
         numFreeEntries(0) >= -thread_0_increment;
 
@@ -672,8 +687,7 @@ ROB<Impl>::updateMaxEntries()
                 "satisify new portion %d\n",
                 taker - &maxEntries[0], *taker, thread_0_increment,
                 portion[int(taker - &maxEntries[0])]);
-    }
-    else {
+    } else {
         DPRINTF(Pard, "Thread [%ld] takes %d entries from thread [%ld]\n",
                 taker - &maxEntries[0], really_taken, giver - &maxEntries[0]);
     }
@@ -684,9 +698,11 @@ ROB<Impl>::updateMaxEntries()
     //voc->setVrobSize(1, maxEntries[1]);
 
     maxEntriesUpToDate = sat;
-
-    assert(maxEntries[0] < numEntries);
-    assert(maxEntries[1] < numEntries);
+    DPRINTF(Pard, "maxEntries[0]: %d\n", maxEntries[0]);
+    DPRINTF(Pard, "maxEntries[1]: %d\n", maxEntries[1]);
+    DPRINTF(Pard, "numEntries: %d\n", numEntries);
+    assert(maxEntries[0] <= numEntries);
+    assert(maxEntries[1] <= numEntries);
 }
 
 template <class Impl>

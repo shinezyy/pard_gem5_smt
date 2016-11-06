@@ -185,6 +185,7 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
         ThreadID tid = 0;
 
         for (; tid < numThreads - 1; tid++) {
+            portion[tid] = denominator / numThreads;
             maxEntries[tid] = numEntries * portion[tid] / denominator;
             allocatedNum += maxEntries[tid];
         }

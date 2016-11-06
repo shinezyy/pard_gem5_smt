@@ -183,7 +183,13 @@ class ROB
 
     /** Returns the maximum number of entries for a specific thread. */
     unsigned getMaxEntries(ThreadID tid)
-    { return maxEntries[tid]; }
+    {
+        if (robPolicy == Programmable && tid == 0) {
+            return numEntries;
+        } else {
+            return maxEntries[tid];
+        }
+    }
 
     /** Returns the number of entries being used by a specific thread. */
     unsigned getThreadEntries(ThreadID tid)
@@ -195,7 +201,13 @@ class ROB
 
     /** Returns if a specific thread's partition is full. */
     bool isFull(ThreadID tid)
-    { return threadEntries[tid] == numEntries; }
+    {
+        if (robPolicy == Programmable && tid == 0) {
+            return isFull();
+        } else {
+            return (threadEntries[tid] == maxEntries[tid]) || isFull();
+        }
+    }
 
     /** Returns if the ROB is empty. */
     bool isEmpty() const
