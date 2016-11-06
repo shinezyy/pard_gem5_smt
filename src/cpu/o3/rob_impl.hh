@@ -586,8 +586,9 @@ ROB<Impl>::regStats()
         .desc("The number of ROB writes per thread");
 
     robUtilization
+        .init(numThreads)
         .name(name() + ".rob_utilization")
-        .desc("The accumulation of rob used in past period")
+        .desc("The accumulation of rob used in past period per thread")
         .flags(display);
 }
 
@@ -692,7 +693,9 @@ template <class Impl>
 void
 ROB<Impl>::increaseUsedEntries()
 {
-    numUsedEntries += numInstsInROB;
+    numUsedEntries += countInsts();
+    numThreadUsedEntries[0] += countInsts(0);
+    numThreadUsedEntries[1] += countInsts(0);
 }
 
 template <class Impl>
@@ -700,15 +703,29 @@ void
 ROB<Impl>::resetUsedEntries()
 {
     numUsedEntries = 0;
+    numThreadUsedEntries[0] = 0;
+    numThreadUsedEntries[1] = 0;
 }
 
 template <class Impl>
 void
 ROB<Impl>::dumpUsedEntries()
 {
-    robUtilization = double(numUsedEntries) /
+    robThreadUtil[0] = double(numThreadUsedEntries[0])/
         double(numEntries*cpu->windowSize);
+
+    robThreadUtil[1] = double(numThreadUsedEntries[1])/
+        double(numEntries*cpu->windowSize);
+
+    robUtilization[0] = robThreadUtil[0];
+    robUtilization[1] = robThreadUtil[1];
+
+    robUtil = double(numUsedEntries) /
+        double(numEntries*cpu->windowSize);
+
     resetUsedEntries();
 }
+
+
 
 #endif//__CPU_O3_ROB_IMPL_HH__

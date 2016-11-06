@@ -52,11 +52,15 @@ class FMT {
 
     std::vector<std::map<InstSeqNum, BranchEntry> > table;
 
+    public:
+
     uint64_t globalBase[Impl::MaxThreads];
 
     uint64_t globalMiss[Impl::MaxThreads];
 
     uint64_t globalWait[Impl::MaxThreads];
+
+    private:
 
     ThreadID numThreads;
 

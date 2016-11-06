@@ -210,6 +210,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       system(params->system),
       drainManager(NULL),
       lastRunningCycle(curCycle()),
+      expectedSlowdown(params->expectedSlowdown),
       windowSize(params->windowSize),
       numPhysIntRegs(params->numPhysIntRegs),
       numPhysFloatRegs(params->numPhysFloatRegs),
@@ -726,6 +727,93 @@ FullO3CPU<Impl>::redistribute()
 
 }
 
+
+template <class Impl>
+void
+FullO3CPU<Impl>::locateSource(bool *rob, bool *lq, bool *sq)
+{
+    double robThreshold = 0.9;
+    double lqThreshold = 0.7;
+    double sqThreshold = 0.9;
+
+    if (commit.rob->robUtil > robThreshold) {
+        *rob = true;
+    }
+    if (iew.ldstQueue.lqUtil > lqThreshold) {
+        *lq = true;
+    }
+    if (iew.ldstQueue.sqUtil > sqThreshold) {
+        *sq = true;
+    }
+}
+
+
+template <class Impl>
+void
+FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
+{
+    int vec[2];
+
+    // heuristic rules...
+    vec[0] = 1024 - expectedSlowdown;
+    vec[1] = expectedSlowdown;
+
+    if (rob) {
+        commit.rob->reassignPortion(vec, 2, 1024);
+    }
+    if (lq) {
+        iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
+    }
+    if (sq) {
+        iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+    }
+}
+
+
+template <class Impl>
+void
+FullO3CPU<Impl>::freeResource()
+{
+    int vec[2];
+    vec[0] = 0;
+    vec[0] = 1024;
+
+    commit.rob->reassignPortion(vec, 2, 1024);
+    iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
+    iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+}
+
+
+template <class Impl>
+void
+FullO3CPU<Impl>::fmtBasedDist()
+{
+    // Treat thread 0 as high-prio as usual
+    ThreadID hpt = 0;
+    uint64_t predicted = fmt.globalBase[hpt] + fmt.globalMiss[hpt];
+    uint64_t real = predicted + fmt.globalWait[hpt];
+
+    if (predicted*1024 < real*(1024 - expectedSlowdown)) {
+        // find source of slowdown and adjustment
+        bool robFull, lqFull, sqFull;
+        robFull = false;
+        lqFull = false;
+        sqFull = false;
+
+        locateSource(&robFull, &lqFull, &sqFull);
+        reserveResource(robFull, lqFull, sqFull);
+
+    }
+
+    // reset
+    for (ThreadID t = 0; t < numThreads; ++t) {
+        fmt.globalBase[t] = 0;
+        fmt.globalMiss[t] = 0;
+        fmt.globalWait[t] = 0;
+    }
+}
+
+
 template <class Impl>
 void
 FullO3CPU<Impl>::tick()
@@ -745,7 +833,7 @@ FullO3CPU<Impl>::tick()
         iew.ldstQueue.dumpUsedEntries();
 
         if (autoControl) {
-            redistribute();
+            fmtBasedDist();
         }
 
         async_event = true;

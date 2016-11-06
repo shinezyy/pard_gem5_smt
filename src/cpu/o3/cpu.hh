@@ -778,10 +778,21 @@ class FullO3CPU : public BaseO3CPU
 
     void redistribute();
 
+    void fmtBasedDist();
+
+    void locateSource(bool *rob, bool *lq, bool *sq);
+
+    void reserveResource(bool rob, bool lq, bool sq);
+
+    void freeResource();
+
+    uint32_t expectedSlowdown;
+
   public:
     unsigned windowSize;
 
     unsigned numPhysIntRegs;
+
     unsigned numPhysFloatRegs;
 
     uint64_t localCycles;

@@ -93,16 +93,7 @@ class ROB
     /** ROB resource sharing policy for SMT mode. */
     ROBPolicy robPolicy;
 
-    /** rob utilization (accumulation). */
-    uint64_t numUsedEntries;
-
   public:
-
-    void increaseUsedEntries();
-
-    void resetUsedEntries();
-
-    void dumpUsedEntries();
 
     /** ROB constructor.
      *  @param _cpu   The cpu object pointer.
@@ -366,7 +357,7 @@ class ROB
     // The number of insts inserted into rob per thread
     Stats::Vector robInserted;
     // ROB utilization in past period
-    Stats::Scalar robUtilization;
+    Stats::Vector robUtilization;
 
     Voc *voc;
 
@@ -377,6 +368,22 @@ class ROB
     {
         voc = _voc;
     }
+
+    /** rob utilization (accumulation). */
+    uint64_t numThreadUsedEntries[2];
+
+    uint64_t numUsedEntries;
+
+    void increaseUsedEntries();
+
+    void resetUsedEntries();
+
+    void dumpUsedEntries();
+
+    double robThreadUtil[2];
+
+    double robUtil;
+
 };
 
 #endif //__CPU_O3_ROB_HH__
