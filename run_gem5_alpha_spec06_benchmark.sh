@@ -22,13 +22,22 @@
 GEM5_DIR=$(dirname $0)
 ##################################################################
 
-# Get command line input. We will need to check these.
-BENCHMARK=$1                    # Benchmark name, e.g. bzip2
-OUTPUT_DIR=$2                   # Directory to place run output.
-SMT=$3
-DEBUG_FLAG=$4
+# Arg Parser!
 
-SCRIPT_OUT=$OUTPUT_DIR/runscript.log
+# Get command line input. We will need to check these.
+while echo $1 | grep -q ^-; do
+    eval $( echo $1 | sed 's/^-//' )=$2
+    shift
+    shift
+done
+
+echo benchmark = $benchmark                   # Benchmark name, e.g. bzip2
+echo output_dir = $output_dir                   # Directory to place run output.
+echo smt = $smt
+echo debug_flags = $debug_flags
+echo gem5_ver = $gem5_ver
+
+SCRIPT_OUT=$output_dir/runscript.log
 # File log for this script's stdout henceforth
 
 ################## REPORT SCRIPT CONFIGURATION ###################
@@ -38,8 +47,8 @@ echo "$0 $*"                                        | tee -a $SCRIPT_OUT
 echo "================= Hardcoded directories ==================" | tee -a $SCRIPT_OUT
 echo "GEM5_DIR:                                     $GEM5_DIR" | tee -a $SCRIPT_OUT
 echo "==================== Script inputs =======================" | tee -a $SCRIPT_OUT
-echo "BENCHMARK:                                    $BENCHMARK" | tee -a $SCRIPT_OUT
-echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
+echo "benchmark:                                    $benchmark" | tee -a $SCRIPT_OUT
+echo "output_dir:                                   $output_dir" | tee -a $SCRIPT_OUT
 echo "==========================================================" | tee -a $SCRIPT_OUT
 ##################################################################
 
@@ -54,15 +63,14 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
-#$GEM5_DIR/build/ALPHA/gem5.fast\
 #gdb --args \
-$GEM5_DIR/build/ALPHA/gem5.opt\
-    --outdir=$OUTPUT_DIR\
-    $DEBUG_FLAG\
+$GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
+    --outdir=$output_dir\
+    $debug_flags\
     $GEM5_DIR/configs/spec/spec06_config.py\
-    --benchmark="$BENCHMARK"\
-    --benchmark_stdout=$OUTPUT_DIR\
-    --benchmark_stderr=$OUTPUT_DIR\
+    --benchmark="$benchmark"\
+    --benchmark_stdout=$output_dir\
+    --benchmark_stderr=$output_dir\
     --mem-size=4GB\
     --cpu-type=detailed\
     --caches\
@@ -74,5 +82,5 @@ $GEM5_DIR/build/ALPHA/gem5.opt\
     --l2cache\
     --l2_size=2MB\
     --l2_assoc=8\
-    $SMT\
+    $smt\
     | tee -a $SCRIPT_OUT
