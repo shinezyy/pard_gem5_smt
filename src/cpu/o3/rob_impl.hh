@@ -50,6 +50,7 @@
 #include "debug/Fetch.hh"
 #include "debug/ROB.hh"
 #include "debug/Pard.hh"
+#include "debug/FmtCtrl.hh"
 #include "params/DerivO3CPU.hh"
 #include "cpu/o3/log.hh"
 
@@ -655,6 +656,7 @@ template <class Impl>
 void
 ROB<Impl>::updateMaxEntries()
 {
+    DPRINTF(FmtCtrl, "ROB [0]: %d, [1]: %d\n", maxEntries[0], maxEntries[1]);
     if (robPolicy != Programmable || maxEntriesUpToDate || numThreads < 2) {
         return;
     }
@@ -720,7 +722,7 @@ ROB<Impl>::increaseUsedEntries()
 {
     numUsedEntries += countInsts();
     numThreadUsedEntries[0] += countInsts(0);
-    numThreadUsedEntries[1] += countInsts(0);
+    numThreadUsedEntries[1] += countInsts(1);
 }
 
 template <class Impl>
