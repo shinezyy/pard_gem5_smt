@@ -55,6 +55,7 @@
 #include "debug/LSQ.hh"
 #include "debug/Writeback.hh"
 #include "debug/Pard.hh"
+#include "debug/FmtCtrl.hh"
 #include "params/DerivO3CPU.hh"
 
 using namespace std;
@@ -753,6 +754,9 @@ template<class Impl>
 void
 LSQ<Impl>::updateMaxEntries()
 {
+    DPRINTF(FmtCtrl, "LQ [0]: %d, [1]: %d\n", maxLQEntries[0], maxLQEntries[1]);
+    DPRINTF(FmtCtrl, "SQ [0]: %d, [1]: %d\n", maxSQEntries[0], maxSQEntries[1]);
+
     if (numThreads < 2 || lsqPolicy != Programmable ||
             (lqUptodate && sqUptodate)) {
         return;

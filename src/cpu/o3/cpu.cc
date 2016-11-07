@@ -61,6 +61,7 @@
 #include "debug/O3CPU.hh"
 #include "debug/Quiesce.hh"
 #include "debug/Pard.hh"
+#include "debug/FmtCtrl.hh"
 #include "enums/MemoryMode.hh"
 #include "sim/core.hh"
 #include "sim/full_system.hh"
@@ -211,6 +212,9 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       drainManager(NULL),
       lastRunningCycle(curCycle()),
       expectedSlowdown(params->expectedSlowdown),
+      robReserved(false),
+      lqReserved(false),
+      sqReserved(false),
       windowSize(params->windowSize),
       numPhysIntRegs(params->numPhysIntRegs),
       numPhysFloatRegs(params->numPhysFloatRegs),
@@ -764,12 +768,19 @@ FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
         DPRINTF(Pard, "reserving ROB, vec[0]: %d, vec[1]: %d\n",
                 vec[0], vec[1]);
         commit.rob->reassignPortion(vec, 2, 1024);
+        robReserved = true;
     }
     if (lq) {
+        DPRINTF(Pard, "reserving LQ, vec[0]: %d, vec[1]: %d\n",
+                vec[0], vec[1]);
         iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
+        lqReserved = true;
     }
     if (sq) {
+        DPRINTF(Pard, "reserving SQ, vec[0]: %d, vec[1]: %d\n",
+                vec[0], vec[1]);
         iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+        sqReserved = true;
     }
 }
 
@@ -782,9 +793,18 @@ FullO3CPU<Impl>::freeResource()
     vec[0] = 0;
     vec[1] = 1024;
 
-    commit.rob->reassignPortion(vec, 2, 1024);
-    iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
-    iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+    if (robReserved) {
+        commit.rob->reassignPortion(vec, 2, 1024);
+        robReserved = false;
+    }
+    if (lqReserved) {
+        iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
+        lqReserved = false;
+    }
+    if (sqReserved) {
+        iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+        sqReserved = false;
+    }
 }
 
 
@@ -805,6 +825,9 @@ FullO3CPU<Impl>::fmtBasedDist()
         sqFull = false;
 
         locateSource(&robFull, &lqFull, &sqFull);
+        DPRINTF(FmtCtrl, "rob is Full: %d, lq is Full: %d, sq is Full: %d",
+                robFull, lqFull, sqFull);
+
         reserveResource(robFull, lqFull, sqFull);
     } else {
         freeResource();

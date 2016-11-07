@@ -79,8 +79,9 @@ if 'O3CPU' in env['CPU_MODELS']:
     DebugFlag('FMT')
     DebugFlag('VOC')
     DebugFlag('BMT')
+    DebugFlag('FmtCtrl')
 
-    CompoundFlag('PardAll', ['Pard', 'FMT', 'VOC', 'BMT'])
+    CompoundFlag('PardAll', ['FmtCtrl', 'Pard', 'FMT', 'VOC', 'BMT'])
 
     CompoundFlag('O3CPUAll', [ 'Fetch', 'Decode', 'Rename', 'IEW', 'Commit',
         'IQ', 'ROB', 'FreeList', 'LSQ', 'LSQUnit', 'StoreSet', 'MemDepUnit',

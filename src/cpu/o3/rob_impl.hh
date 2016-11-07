@@ -364,6 +364,8 @@ ROB<Impl>::numFreeEntries(ThreadID tid)
     if ((robPolicy == Programmable && tid == 0) || robPolicy == Dynamic) {
         return numFreeEntries();
     } else {
+        DPRINTF(FmtCtrl, "maxEntries[%d]: %d", tid,
+                std::min(maxEntries[tid] - threadEntries[tid], numFreeEntries()));
         return std::min(maxEntries[tid] - threadEntries[tid],
                 numFreeEntries());
     }
