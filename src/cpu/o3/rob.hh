@@ -182,10 +182,14 @@ class ROB
     /** Returns the number of free entries in a specific ROB paritition. */
     unsigned numFreeEntries(ThreadID tid);
 
-    /** Returns the maximum number of entries for a specific thread. */
+    /** Returns the maximum number of entries for a specific thread.
+     * Which was only used by commit stage.
+     * In order to avoid corner case of renaming, treat is as Dynamic!
+     */
+
     unsigned getMaxEntries(ThreadID tid)
     {
-        if (robPolicy == Programmable && tid == 0) {
+        if (robPolicy == Programmable) {
             return numEntries;
         } else {
             return maxEntries[tid];
