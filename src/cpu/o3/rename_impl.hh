@@ -1190,7 +1190,8 @@ template <class Impl>
 inline int
 DefaultRename<Impl>::calcFreeROBEntries(ThreadID tid)
 {
-    if (commit_ptr->isROBPolicyDynamic()) {
+    if (commit_ptr->isROBPolicyDynamic() ||
+            commit_ptr->isROBPolicyProgrammable()) {
         // Calc number of all instructions in flight.
         int numInstsInFlight = availableInstCount;
         for (ThreadID t = 0; t < numThreads; t++) {
@@ -1198,21 +1199,6 @@ DefaultRename<Impl>::calcFreeROBEntries(ThreadID tid)
                 (instsInProgress[t] - fromIEW->iewInfo[t].dispatched);
         }
         return freeEntries[tid].robEntries - numInstsInFlight;
-
-    } else if (commit_ptr->isROBPolicyProgrammable()) {
-        // asymmtric
-        if (tid == 0) {
-            int numInstsInFlight = availableInstCount;
-            for (ThreadID t = 0; t < numThreads; t++) {
-                numInstsInFlight +=
-                    (instsInProgress[t] - fromIEW->iewInfo[t].dispatched);
-            }
-            return freeEntries[tid].robEntries - numInstsInFlight;
-
-        } else {
-            return freeEntries[tid].robEntries
-                - (instsInProgress[tid] - fromIEW->iewInfo[tid].dispatched);
-        }
 
     } else {
         return freeEntries[tid].robEntries

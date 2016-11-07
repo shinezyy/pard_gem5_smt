@@ -250,12 +250,6 @@ ROB<Impl>::insertInst(DynInstPtr &inst)
 
     DPRINTF(ROB, "Adding inst PC %s to the ROB.\n", inst->pcState());
 
-    if(numInstsInROB == numEntries) {
-        log_var(numInstsInROB);
-        log_var(numEntries);
-        log_var(inst->threadNumber);
-    }
-
     assert(numInstsInROB != numEntries);
 
     ThreadID tid = inst->threadNumber;
@@ -364,7 +358,7 @@ ROB<Impl>::numFreeEntries(ThreadID tid)
     if ((robPolicy == Programmable && tid == 0) || robPolicy == Dynamic) {
         return numFreeEntries();
     } else {
-        DPRINTF(FmtCtrl, "maxEntries[%d]: %d", tid,
+        DPRINTF(FmtCtrl, "maxEntries[%d]: %d\n", tid,
                 std::min(maxEntries[tid] - threadEntries[tid], numFreeEntries()));
         return std::min(maxEntries[tid] - threadEntries[tid],
                 numFreeEntries());

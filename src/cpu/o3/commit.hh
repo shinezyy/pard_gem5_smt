@@ -536,7 +536,7 @@ class DefaultCommit
      * rob->isDynamicPolicy() */
     void markROBNumEntriesChanged(ThreadID tid) {
         ///@todo avoid unnecessary loop.
-        if (rob->isDynamicPolicy()) {
+        if (rob->isDynamicPolicy() || rob->isProgrammablePolicy()) {
             for (ThreadID t = 0; t < numThreads; t++) {
                 changedROBNumEntries[t] = true;
             }
@@ -558,7 +558,7 @@ class DefaultCommit
 
     bool isROBPolicyProgrammable() const
     {
-        return rob->isDynamicPolicy();
+        return rob->isProgrammablePolicy();
     }
 
     void setFmt(Fmt *_fmt)

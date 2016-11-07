@@ -2,15 +2,25 @@
 #define __ZYY_LOG__
 
 
-#define log(format,...) \
-    fprintf(stdout, "\33[1;34m%s,%s,%d: " format "\33[0m\n", \
+#define log2(format,...) \
+    printf("%s,%s,%d: " format, \
             __FILE__, __func__, __LINE__, ## __VA_ARGS__), \
             fflush(stdout) \
 
+
 #define log_var(x) \
-    fprintf(stdout, "\33[1;34m%s,%s,%d: " "%s is %d" "\33[0m\n", \
+    printf("%s,%s,%d: " "%s is %d\n", \
             __FILE__, __func__, __LINE__, #x, x), \
             fflush(stdout) \
 
+
+#define log_var_cond(b, x) \
+    do {\
+        if (b) { \
+            printf("%s,%s,%d: " "%s is %d\n", \
+                    __FILE__, __func__, __LINE__, #x, x), \
+                fflush(stdout); \
+        }\
+    } while(0)
 
 #endif

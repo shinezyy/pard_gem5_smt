@@ -51,6 +51,7 @@
 #include "arch/registers.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
+#include "cpu/o3/log.hh"
 
 struct DerivO3CPUParams;
 
@@ -193,7 +194,9 @@ class ROB
 
     /** Returns the number of entries being used by a specific thread. */
     unsigned getThreadEntries(ThreadID tid)
-    { return threadEntries[tid]; }
+    {
+        return threadEntries[tid];
+    }
 
     /** Returns if the ROB is full. */
     bool isFull()
