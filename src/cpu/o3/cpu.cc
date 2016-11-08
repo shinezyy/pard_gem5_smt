@@ -736,7 +736,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::locateSource(bool *rob, bool *lq, bool *sq)
 {
-    double robThreshold = 0.9;
+    double robThreshold = 0.8;
     double lqThreshold = 0.7;
     double sqThreshold = 0.9;
 
@@ -790,18 +790,29 @@ void
 FullO3CPU<Impl>::freeResource()
 {
     int vec[2];
-    vec[0] = 0;
-    vec[1] = 1024;
+    int hptPortion;
 
     if (robReserved) {
+        hptPortion = commit.rob->getHPTPortion();
+        vec[0] = std::max(hptPortion - 64, 0);
+        vec[1] = 1024 - vec[0];
+
         commit.rob->reassignPortion(vec, 2, 1024);
         robReserved = false;
     }
     if (lqReserved) {
+        hptPortion = iew.ldstQueue.getHPTLQPortion();
+        vec[0] = std::max(hptPortion - 64, 0);
+        vec[1] = 1024 - vec[0];
+
         iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
         lqReserved = false;
     }
     if (sqReserved) {
+        hptPortion = iew.ldstQueue.getHPTSQPortion();
+        vec[0] = std::max(hptPortion - 64, 0);
+        vec[1] = 1024 - vec[0];
+
         iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
         sqReserved = false;
     }

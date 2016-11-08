@@ -366,6 +366,10 @@ class LSQ {
 
     Stats::Vector lqUtilization;
     Stats::Vector sqUtilization;
+
+    int getHPTLQPortion() {return LQPortion[0];}
+
+    int getHPTSQPortion() {return SQPortion[0];}
 };
 
 template <class Impl>

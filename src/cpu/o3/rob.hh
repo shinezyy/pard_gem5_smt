@@ -405,6 +405,8 @@ class ROB
 
     double robUtil;
 
+    int getHPTPortion() {return portion[0];}
+
 };
 
 #endif //__CPU_O3_ROB_HH__
