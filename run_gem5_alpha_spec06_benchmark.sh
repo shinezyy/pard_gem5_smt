@@ -64,6 +64,7 @@ echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
 #gdb --args \
+nohup \
 $GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
     --outdir=$output_dir\
     $debug_flags\
@@ -83,4 +84,5 @@ $GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
     --l2_size=2MB\
     --l2_assoc=8\
     $smt\
-    | tee -a $SCRIPT_OUT
+    | tee -a $SCRIPT_OUT\
+    > nohup.$benchmark 2>&1 &
