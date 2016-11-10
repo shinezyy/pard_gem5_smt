@@ -839,6 +839,10 @@ FullO3CPU<Impl>::fmtBasedDist()
         DPRINTF(FmtCtrl, "rob is Full: %d, lq is Full: %d, sq is Full: %d",
                 robFull, lqFull, sqFull);
 
+        if (! (robFull || lqFull || sqFull)) {
+            robFull = true;
+        }
+
         reserveResource(robFull, lqFull, sqFull);
     } else {
         freeResource();
