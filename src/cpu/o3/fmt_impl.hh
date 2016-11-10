@@ -105,7 +105,6 @@ void FMT<Impl>::incWaitSlot(DynInstPtr &inst, ThreadID tid)
     template<class Impl>
 void FMT<Impl>::incMissSlot(DynInstPtr &inst, ThreadID tid)
 {
-    assert(!table[tid].empty());
     assert(table[tid].rbegin() != table[tid].rend());
 
     rBranchEntryIterator it = table[tid].rbegin();
@@ -128,6 +127,33 @@ void FMT<Impl>::resolveBranch(bool right, DynInstPtr &bran, ThreadID tid)
         globalMiss[tid] += table[tid][bran->seqNum].missSlots;
         globalMiss[tid] += table[tid][bran->seqNum].waitSlots;
     }
+}
+
+    template<class Impl>
+void FMT<Impl>::incBaseSlot(ThreadID tid)
+{
+    assert(table[tid].rbegin() != table[tid].rend());
+    rBranchEntryIterator it = table[tid].rbegin();
+    it->second.baseSlots++;
+    numBaseSlots[tid]++;
+}
+
+    template<class Impl>
+void FMT<Impl>::incMissSlot(ThreadID tid)
+{
+    assert(table[tid].rbegin() != table[tid].rend());
+    rBranchEntryIterator it = table[tid].rbegin();
+    it->second.missSlots++;
+    numMissSlots[tid]++;
+}
+
+    template<class Impl>
+void FMT<Impl>::incWaitSlot(ThreadID tid)
+{
+    assert(table[tid].rbegin() != table[tid].rend());
+    rBranchEntryIterator it = table[tid].rbegin();
+    it->second.waitSlots++;
+    numWaitSlots[tid]++;
 }
 
 

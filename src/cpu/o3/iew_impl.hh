@@ -922,6 +922,16 @@ DefaultIEW<Impl>::dispatch(ThreadID tid)
     if (dispatchStatus[tid] == Blocked) {
         ++iewBlockCycles;
 
+        for (ThreadID t = 0; t < numThreads; t++) {
+            for (int i = 0; i < dispatchWidth; i++) {
+                if (t != tid) {
+                    fmt->incWaitSlot(t);
+                } else {
+                    fmt->incMissSlot(t);
+                }
+            }
+        }
+
     } else if (dispatchStatus[tid] == Squashing) {
         ++iewSquashCycles;
     }
@@ -1175,16 +1185,6 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
     }
 
     if (!insts_to_dispatch.empty()) {
-
-        for (ThreadID t = 0; t < numThreads; t++) {
-            for (int i = 0; i < dispatchWidth - dis_num_inst; i++) {
-                if (t != tid) {
-                    fmt->incWaitSlot(inst, t);
-                } else {
-                    fmt->incMissSlot(inst, t);
-                }
-            }
-        }
 
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);

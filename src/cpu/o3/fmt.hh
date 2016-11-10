@@ -108,6 +108,12 @@ class FMT {
      */
     void resolveBranch(bool right, DynInstPtr &bran, ThreadID tid);
 
+    // Default to inc newest Branch
+    void incBaseSlot(ThreadID tid);
+
+    void incMissSlot(ThreadID tid);
+
+    void incWaitSlot(ThreadID tid);
 };
 
 #endif // __CPU_O3_FMT_HH__
