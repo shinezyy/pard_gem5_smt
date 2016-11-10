@@ -310,12 +310,14 @@ def get_h264ref():
     h264ref=LiveProcess()
     h264ref.executable = spec_dir + '464.h264ref/exe/h264ref' + my_suffix
     test_dir = spec_dir + '464.h264ref/data/test/input/'
+    ref_dir = spec_dir + '464.h264ref/data/ref/input/'
     # TEST CMDS
-    h264ref.cmd = [h264ref.executable] + ['-d',\
-            test_dir + 'foreman_test_encoder_baseline.cfg']
+    #h264ref.cmd = [h264ref.executable] + ['-d',\
+    #        test_dir + 'foreman_test_encoder_baseline.cfg']
     # REF CMDS
     #h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_baseline.cfg']
-    #h264ref.cmd = [h264ref.executable] + ['-d', 'foreman_ref_encoder_main.cfg']
+    h264ref.cmd = [h264ref.executable] + ['-d',\
+              ref_dir + 'foreman_ref_encoder_main.cfg']
     #h264ref.cmd = [h264ref.executable] + ['-d', 'sss_encoder_main.cfg']
     #h264ref.output = out_dir + 'h264ref.out'
     return h264ref
