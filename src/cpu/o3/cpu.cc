@@ -446,7 +446,7 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
         this->thread[tid]->setFuncExeInst(0);
 
     resourceManager.readConfig();
-    resourceManager.reserveDecode();
+    resourceManager.reserveFetch();
     resourceManager.reserveIQ();
     resourceManager.reserveROB();
     resourceManager.reserveLQ();

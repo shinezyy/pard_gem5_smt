@@ -9,6 +9,6 @@
     "LSQPortionDenominator": 1024,
     "LQPortion": 0,
     "SQPortion": 0,
-    "DecodePortionDenominator": 1024,
-    "DecodePortion": 512
+    "FetchPortionDenominator": 1024,
+    "FetchPortion": 512
 }

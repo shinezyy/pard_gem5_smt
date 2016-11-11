@@ -184,33 +184,33 @@ ResourceManager<Impl>::reserveROB()
 
 template<class Impl>
 void
-ResourceManager<Impl>::reserveDecode()
+ResourceManager<Impl>::reserveFetch()
 {
     int portion[] = {512, 512};
     int denominator = 1024;
 
     if(configUpdated) {
-        if(config.HasMember("DecodePortionDenominator")) {
-            denominator = config["DecodePortionDenominator"].GetInt();
-            DPRINTF(Pard, "new Decode denominator is %d\n", denominator);
+        if(config.HasMember("FetchPortionDenominator")) {
+            denominator = config["FetchPortionDenominator"].GetInt();
+            DPRINTF(Pard, "new Fetch denominator is %d\n", denominator);
         }
 
-        if(config.HasMember("DecodePortion")) {
-            portion[0] = config["DecodePortion"].GetInt();
+        if(config.HasMember("FetchPortion")) {
+            portion[0] = config["FetchPortion"].GetInt();
             assert(portion[0] <= denominator);
             portion[1] = denominator - portion[0];
         } else {
-            DPRINTF(Pard, "Decode partition policy not updated\n");
+            DPRINTF(Pard, "Fetch partition policy not updated\n");
         }
     }
 
-    DPRINTF(Pard, "Decode Denominator is %d\n", denominator);
+    DPRINTF(Pard, "Fetch Denominator is %d\n", denominator);
 
     for (int i = 0; i < sizeof(portion) / sizeof(portion[0]); i++) {
-        DPRINTF(Pard, "Decode portion[%d]: %d\n", i, portion[i]);
+        DPRINTF(Pard, "Fetch portion[%d]: %d\n", i, portion[i]);
     }
 
-    fetch->reassignDecodeWidth(portion, 2, denominator);
+    fetch->reassignFetchWidth(portion, 2, denominator);
 }
 
 template<class Impl>

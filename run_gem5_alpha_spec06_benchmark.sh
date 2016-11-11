@@ -31,11 +31,16 @@ while echo $1 | grep -q ^-; do
     shift
 done
 
-echo benchmark = $benchmark                   # Benchmark name, e.g. bzip2
-echo output_dir = $output_dir                   # Directory to place run output.
-echo smt = $smt
-echo debug_flags = $debug_flags
-echo gem5_ver = $gem5_ver
+echo benchmark = $b                   # Benchmark name, e.g. bzip2
+benchmark=$b
+echo output_dir = $o                   # Directory to place run output.
+output_dir=$o
+echo smt = $s
+smt=$s
+echo debug_flags = $d
+debug_flags=$d
+echo gem5_ver = $v
+gem5_ver=$v
 
 SCRIPT_OUT=$output_dir/runscript.log
 # File log for this script's stdout henceforth
@@ -63,11 +68,11 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
+#nohup \
 #gdb --args \
-nohup \
 $GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
-    --outdir=$output_dir\
     $debug_flags\
+    --outdir=$output_dir\
     $GEM5_DIR/configs/spec/spec06_config.py\
     --benchmark="$benchmark"\
     --benchmark_stdout=$output_dir\
@@ -84,5 +89,5 @@ $GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
     --l2_size=2MB\
     --l2_assoc=8\
     $smt\
-    | tee -a $SCRIPT_OUT\
-    > nohup.$benchmark 2>&1 &
+    | tee -a $SCRIPT_OUT
+#    > nohup.$benchmark 2>&1 &

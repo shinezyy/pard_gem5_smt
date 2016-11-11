@@ -79,7 +79,6 @@ using namespace std;
 template<class Impl>
 DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
     : denominator(1024),
-      decodeWidthUpToDate(true),
       cpu(_cpu),
       decodeToFetchDelay(params->decodeToFetchDelay),
       renameToFetchDelay(params->renameToFetchDelay),
@@ -160,7 +159,6 @@ DefaultFetch<Impl>::DefaultFetch(O3CPU *_cpu, DerivO3CPUParams *params)
         // Create space to buffer the cache line data,
         // which may not hold the entire cache line.
         fetchBuffer[tid] = new uint8_t[fetchBufferSize];
-        decodeWidths[tid] = decodeWidth;
     }
     // Construct the FinishTranslationEvent collection
     // according to the number of thread.
@@ -391,9 +389,11 @@ DefaultFetch<Impl>::resetStage()
         fetchQueue[tid].clear();
 
         if (fetchPolicy != Programmable) {
+            DPRINTF(Pard, "Using non-programmable fetch policy\n");
             priorityList.push_back(tid);
         }
         else {
+            DPRINTF(Pard, "Using programmable fetch policy\n");
             int width = fetchWidth * portion[tid] / denominator;
             for (int i = 0; i < width; i++) {
                 priorityList.push_back(tid);
@@ -926,7 +926,6 @@ DefaultFetch<Impl>::tick()
 
     wroteToTimeBuffer = false;
 
-    updateDecodeWidth();
     updateFetchWidth();
 
     for (ThreadID i = 0; i < numThreads; ++i) {
@@ -977,23 +976,13 @@ DefaultFetch<Impl>::tick()
 
     // Send instructions enqueued into the fetch queue to decode.
     // Limit rate by fetchWidth.  Stall if decode is stalled.
-    unsigned insts_to_decode[Impl::MaxThreads];
-    unsigned insts_to_decode_all;
+    unsigned insts_to_decode_all = 0;
     unsigned available_insts = 0;
 
-    for (ThreadID tid = 0; tid < numThreads; ++tid) {
-        insts_to_decode[tid] = 0;
-    }
-    insts_to_decode_all = 0;
 
     for (auto tid : *activeThreads) {
         if (!stalls[tid].decode) {
-            if (fetchQueue[tid].size() < decodeWidths[tid]) {
-                available_insts += fetchQueue[tid].size();
-            }
-            else {
-                available_insts += decodeWidths[tid];
-            }
+            available_insts += fetchQueue[tid].size();
         }
     }
 
@@ -1001,15 +990,9 @@ DefaultFetch<Impl>::tick()
     auto tid_itr = activeThreads->begin();
     std::advance(tid_itr, random_mt.random<uint8_t>(0, activeThreads->size() - 1));
 
-    while (available_insts != 0 && (insts_to_decode[0] < decodeWidths[0]
-            || insts_to_decode[1] < decodeWidths[1]) &&
-            insts_to_decode_all < decodeWidth) {
-
+    while (available_insts != 0 && insts_to_decode_all < decodeWidth) {
         ThreadID tid = *tid_itr;
-
-        if (!stalls[tid].decode && !fetchQueue[tid].empty() &&
-                insts_to_decode[tid] < decodeWidths[tid] &&
-                insts_to_decode_all < decodeWidth) {
+        if (!stalls[tid].decode && !fetchQueue[tid].empty() ) {
             auto inst = fetchQueue[tid].front();
             toDecode->insts[toDecode->size++] = inst;
             DPRINTF(Fetch, "[tid:%i][sn:%i]: Sending instruction to decode from "
@@ -1018,8 +1001,6 @@ DefaultFetch<Impl>::tick()
 
             wroteToTimeBuffer = true;
             fetchQueue[tid].pop_front();
-
-            insts_to_decode[tid]++;
             insts_to_decode_all++;
             available_insts--;
         }
@@ -1702,34 +1683,7 @@ DefaultFetch<Impl>::pipelineIcacheAccesses(ThreadID tid)
 
 template<class Impl>
 void
-DefaultFetch<Impl>::updateDecodeWidth()
-{
-    if (decodeWidthUpToDate)
-        return;
-    assert(fetchPolicy == Programmable);
-
-    DPRINTF(Pard, "Updating decode width\n");
-
-    int allocatedWidth = 0;
-
-    ThreadID tid = 0;
-
-    for (;tid < numThreads - 1; ++tid) {
-        decodeWidths[tid] = decodeWidth*portion[tid]/denominator;
-        allocatedWidth += decodeWidths[tid];
-        DPRINTF(Pard, "Thread %d decode width: %d\n", tid, decodeWidths[tid]);
-    }
-    assert(allocatedWidth <= decodeWidth);
-    decodeWidths[tid] = decodeWidth - allocatedWidth;
-
-    DPRINTF(Pard, "Thread %d decode width: %d\n", tid, decodeWidths[tid]);
-
-    decodeWidthUpToDate = true;
-}
-
-template<class Impl>
-void
-DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
+DefaultFetch<Impl>::reassignFetchWidth(int newWidthVec[],
         int lenWidthVec, int newWidthDenominator)
 {
     //assert(lenWidthVec == numThreads);
@@ -1737,7 +1691,6 @@ DefaultFetch<Impl>::reassignDecodeWidth(int newWidthVec[],
         return;
     }
 
-    decodeWidthUpToDate = false;
     fetchWidthUpToDate = false;
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {

@@ -372,13 +372,9 @@ class DefaultFetch
 
     int denominator;
 
-    unsigned decodeWidths[Impl::MaxThreads];
+    unsigned fetchWidths[Impl::MaxThreads];
 
-    bool decodeWidthUpToDate;
-
-    void updateDecodeWidth();
-
-    void reassignDecodeWidth(int newWidthVec[],
+    void reassignFetchWidth(int newWidthVec[],
             int lenWidthVec, int newWidthDenominator);
 
   private:

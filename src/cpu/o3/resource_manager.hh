@@ -64,7 +64,7 @@ class ResourceManager {
 
         void reserveRename();
 
-        void reserveDecode();
+        void reserveFetch();
 
         void reconfigIssuePrio();
 

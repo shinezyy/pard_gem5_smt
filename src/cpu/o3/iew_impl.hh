@@ -983,7 +983,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
     int dis_num_inst = 0;
 
     // Loop through the instructions, putting them in the instruction
-    // queue.
+    // queuedis_num_inst
     for ( ; dis_num_inst < insts_to_add &&
               dis_num_inst < dispatchWidth;
           ++dis_num_inst)
@@ -1189,6 +1189,17 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
+    } else if (dis_num_inst < dispatchWidth){
+        for (ThreadID t = 0; t < numThreads; t++) {
+            for (int i = dis_num_inst; i < dispatchWidth; i++) {
+                if (t != tid) {
+                    fmt->incWaitSlot(t);
+                } else {
+                    fmt->incMissSlot(t);
+                }
+            }
+        }
+
     }
 
     if (dispatchStatus[tid] == Idle && dis_num_inst) {
