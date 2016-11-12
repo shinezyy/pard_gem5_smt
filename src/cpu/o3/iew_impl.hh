@@ -79,8 +79,7 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
       issueWidth(params->issueWidth),
       wbWidth(params->wbWidth),
       numThreads(params->numThreads),
-      numIQFull(params->numThreads),
-      Programmable(params->iewProgrammable)
+      numIQFull(params->numThreads)
 {
     if (dispatchWidth > Impl::MaxWidth)
         fatal("dispatchWidth (%d) is larger than compiled limit (%d),\n"
@@ -109,7 +108,6 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
         dispatchStatus[tid] = Running;
         fetchRedirect[tid] = false;
         tempWaitSlots[tid] = 0;
-        dispatchWidths[tid] = dispatchWidth/numThreads;
     }
 
     updateLSQNextCycle = false;
@@ -925,7 +923,7 @@ DefaultIEW<Impl>::dispatch(ThreadID tid)
         ++iewBlockCycles;
 
         for (ThreadID t = 0; t < numThreads; t++) {
-            for (int i = 0; i < dispatchWidths[tid]; i++) {
+            for (int i = 0; i < dispatchWidth; i++) {
                 if (t != tid) {
                     fmt->incWaitSlot(t);
                 } else {
@@ -987,7 +985,7 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
     // Loop through the instructions, putting them in the instruction
     // queuedis_num_inst
     for ( ; dis_num_inst < insts_to_add &&
-              dis_num_inst < dispatchWidths[tid];
+              dis_num_inst < dispatchWidth;
           ++dis_num_inst)
     {
         inst = insts_to_dispatch.front();
@@ -1191,9 +1189,9 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
-    } else if (dis_num_inst < dispatchWidths[tid]){
+    } else if (dis_num_inst < dispatchWidth){
         for (ThreadID t = 0; t < numThreads; t++) {
-            for (int i = dis_num_inst; i < dispatchWidths[tid]; i++) {
+            for (int i = dis_num_inst; i < dispatchWidth; i++) {
                 if (t != tid) {
                     fmt->incWaitSlot(t);
                 } else {
@@ -1741,20 +1739,6 @@ void
 DefaultIEW<Impl>::setVoc(Voc *_voc)
 {
     voc = _voc;
-}
-
-template<class Impl>
-void
-DefaultIEW<Impl>::reassignDispatchWidth(int newWidthVec[], int lenWidthVec)
-{
-    //assert(lenWidthVec == numThreads);
-    if (!Programmable) {
-        return;
-    }
-
-    for (ThreadID tid = 0; tid < numThreads; ++tid) {
-        dispatchWidths[tid] = newWidthVec[tid];
-    }
 }
 
 
