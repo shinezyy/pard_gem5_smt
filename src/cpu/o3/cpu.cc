@@ -758,6 +758,14 @@ FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
 {
     int vec[2];
 
+    // always do
+    fetchReserved = true;
+    vec[0] = std::min(fetch.getHPTPortion() + 128, 1024 - 128);
+    vec[1] = 1024 - vec[0];
+    DPRINTF(Pard, "reserving Fetch, vec[0]: %d, vec[1]: %d\n",
+            vec[0], vec[1]);
+    fetch.reassignFetchWidth(vec, 2, 1024);
+
     // heuristic rules...
     vec[0] = 1024 - expectedSlowdown;
     vec[1] = expectedSlowdown;
@@ -791,6 +799,14 @@ FullO3CPU<Impl>::freeResource()
 {
     int vec[2];
     int hptPortion;
+
+    // always do
+    fetchReserved = true;
+    vec[0] = std::max(fetch.getHPTPortion() - 128, 512);
+    vec[1] = 1024 - vec[0];
+    DPRINTF(Pard, "reserving Fetch, vec[0]: %d, vec[1]: %d\n",
+            vec[0], vec[1]);
+    fetch.reassignFetchWidth(vec, 2, 1024);
 
     if (robReserved) {
         hptPortion = commit.rob->getHPTPortion();
@@ -838,10 +854,6 @@ FullO3CPU<Impl>::fmtBasedDist()
         locateSource(&robFull, &lqFull, &sqFull);
         DPRINTF(FmtCtrl, "rob is Full: %d, lq is Full: %d, sq is Full: %d",
                 robFull, lqFull, sqFull);
-
-        if (! (robFull || lqFull || sqFull)) {
-            robFull = true;
-        }
 
         reserveResource(robFull, lqFull, sqFull);
     } else {

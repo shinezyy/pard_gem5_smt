@@ -377,6 +377,8 @@ class DefaultFetch
     void reassignFetchWidth(int newWidthVec[],
             int lenWidthVec, int newWidthDenominator);
 
+    int getHPTPortion() {return portion[0];}
+
   private:
     DynInstPtr buildInst(ThreadID tid, StaticInstPtr staticInst,
                          StaticInstPtr curMacroop, TheISA::PCState thisPC,

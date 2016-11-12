@@ -788,7 +788,7 @@ class FullO3CPU : public BaseO3CPU
 
     uint32_t expectedSlowdown;
 
-    bool robReserved, lqReserved, sqReserved;
+    bool robReserved, lqReserved, sqReserved, fetchReserved;
 
   public:
     unsigned windowSize;
