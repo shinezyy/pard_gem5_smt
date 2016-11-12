@@ -1,14 +1,14 @@
 {
-    "InstQueuePortion": 512,
+    "InstQueuePortion": 1024,
     "InstQueuePortionDenominator": 1024,
     "IssuePriority": [1, 0],
-    "ROBPortion": 0,
+    "ROBPortion": 1024,
     "ROBPortionDenominator": 1024,
     "FreeRegs": [256, 256],
 
     "LSQPortionDenominator": 1024,
-    "LQPortion": 0,
-    "SQPortion": 0,
+    "LQPortion": 1024,
+    "SQPortion": 1024,
     "FetchPortionDenominator": 1024,
-    "FetchPortion": 512
+    "FetchPortion": 1024
 }

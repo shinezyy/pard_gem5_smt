@@ -109,7 +109,14 @@ DefaultIEW<Impl>::DefaultIEW(O3CPU *_cpu, DerivO3CPUParams *params)
         dispatchStatus[tid] = Running;
         fetchRedirect[tid] = false;
         tempWaitSlots[tid] = 0;
+
+#define STTEST 1
+#if STTEST
+        dispatchWidths[0] = dispatchWidth;
+        dispatchWidths[1] = 0;
+#else
         dispatchWidths[tid] = dispatchWidth/numThreads;
+#endif
     }
 
     updateLSQNextCycle = false;
