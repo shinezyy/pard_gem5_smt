@@ -387,9 +387,11 @@ class DefaultIEW
      */
     Cycles issueToExecuteDelay;
 
+  public:
     /** Width of dispatch, in instructions. */
     unsigned dispatchWidth;
 
+  private:
     /** Width of issue, in instructions. */
     unsigned issueWidth;
 
@@ -509,6 +511,14 @@ class DefaultIEW
     void setFmt(Fmt *_fmt);
 
     void setVoc(Voc *_voc);
+
+    bool Programmable;
+
+    unsigned dispatchWidths[Impl::MaxThreads];
+
+    void reassignDispatchWidth(int newWidthVec[], int lenWidthVec);
+
+    int getHPTWidth() {return dispatchWidths[0];};
 };
 
 #endif // __CPU_O3_IEW_HH__

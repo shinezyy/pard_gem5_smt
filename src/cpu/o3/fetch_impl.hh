@@ -1757,7 +1757,7 @@ DefaultFetch<Impl>::updateFetchWidth()
         return;
     assert(fetchPolicy == Programmable);
 
-    DPRINTF(Pard, "Updating fetch width\n");
+    DPRINTF(Fetch, "Updating fetch width\n");
     priorityList.clear();
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         if (fetchPolicy != Programmable) {
@@ -1768,13 +1768,12 @@ DefaultFetch<Impl>::updateFetchWidth()
             for (int i = 0; i < width; i++) {
                 priorityList.push_back(tid);
             }
-            DPRINTF(Pard, "Thread %d fetch width: %d\n",
+            DPRINTF(Fetch, "Thread %d fetch width: %d\n",
                     tid, width);
         }
     }
 
     fetchWidthUpToDate = true;
-    DPRINTF(Pard, "Updated fetch width\n");
 }
 
 

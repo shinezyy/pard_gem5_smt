@@ -372,8 +372,6 @@ class DefaultFetch
 
     int denominator;
 
-    unsigned fetchWidths[Impl::MaxThreads];
-
     void reassignFetchWidth(int newWidthVec[],
             int lenWidthVec, int newWidthDenominator);
 

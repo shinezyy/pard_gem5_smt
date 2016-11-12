@@ -83,7 +83,7 @@ class DerivO3CPU(BaseCPU):
                "Issue/Execute/Writeback delay")
     issueToExecuteDelay = Param.Cycles(1, "Issue to execute delay (internal "
               "to the IEW stage)")
-    dispatchWidth = Param.Unsigned(4, "Dispatch width")
+    dispatchWidth = Param.Unsigned(8, "Dispatch width")
     issueWidth = Param.Unsigned(8, "Issue width")
     wbWidth = Param.Unsigned(8, "Writeback width")
     fuPool = Param.FUPool(DefaultFUPool(), "Functional Unit pool")
@@ -131,8 +131,8 @@ class DerivO3CPU(BaseCPU):
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
 
-    #smtFetchPolicy = Param.String('Programmable', "SMT Fetch policy")
-    smtFetchPolicy = Param.String('RoundRobin', "SMT Fetch policy")
+    smtFetchPolicy = Param.String('Programmable', "SMT Fetch policy")
+    #smtFetchPolicy = Param.String('RoundRobin', "SMT Fetch policy")
 
     smtLSQPolicy    = Param.String('Programmable', "SMT LSQ Sharing Policy")
     #smtLSQPolicy    = Param.String('Dynamic', "SMT LSQ Sharing Policy")
@@ -165,6 +165,8 @@ class DerivO3CPU(BaseCPU):
     autoControl = Param.Bool(True, "Enable auto control")
 
     expectedSlowdown = Param.Int(200, "Expected max slowdown 1024 as deno")
+
+    iewProgrammable = Param.Bool(True, "Enable programmable dispatch")
 
     def addCheckerCpu(self):
         if buildEnv['TARGET_ISA'] in ['arm']:
