@@ -326,8 +326,9 @@ for cpu in system.cpu:
     cpu.icache.tags.thread_0_assoc = 7
     cpu.dcache.tags = LRUPartition()
     cpu.dcache.tags.thread_0_assoc = 7
-    # cpu.l2cache.tags = LRUPartition() # L2 partition
-    # cpu.l2cache.tags.thread_0_assoc = 6
+
+# system.l2.tags = LRUPartition() # L2 partition
+# system.l2.tags.thread_0_assoc = 6
 
 
 # options.take_checkpoints=100000
