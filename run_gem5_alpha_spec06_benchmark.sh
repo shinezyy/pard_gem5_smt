@@ -41,6 +41,8 @@ echo debug_flags = $d
 debug_flags=$d
 echo gem5_ver = $v
 gem5_ver=$v
+echo arch = $a
+arch=$a
 
 SCRIPT_OUT=$output_dir/runscript.log
 # File log for this script's stdout henceforth
@@ -68,9 +70,9 @@ echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
 ################# detailed
-#nohup \
 #gdb --args \
-$GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
+nohup \
+$GEM5_DIR/build/$arch/gem5.$gem5_ver\
     $debug_flags\
     --outdir=$output_dir\
     $GEM5_DIR/configs/spec/spec06_config.py\
@@ -89,5 +91,5 @@ $GEM5_DIR/build/ALPHA/gem5.$gem5_ver\
     --l2_size=2MB\
     --l2_assoc=8\
     $smt\
-    | tee -a $SCRIPT_OUT
-#    > nohup.$benchmark 2>&1 &
+    | tee -a $SCRIPT_OUT\
+    > nohup.$benchmark 2>&1 &
