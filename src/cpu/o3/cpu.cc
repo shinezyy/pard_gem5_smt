@@ -211,12 +211,10 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       system(params->system),
       drainManager(NULL),
       lastRunningCycle(curCycle()),
-      autoControl(params->autoControl),
       expectedSlowdown(params->expectedSlowdown),
       robReserved(false),
       lqReserved(false),
       sqReserved(false),
-      fetchReserved(false),
       windowSize(params->windowSize),
       numPhysIntRegs(params->numPhysIntRegs),
       numPhysFloatRegs(params->numPhysFloatRegs),
@@ -760,45 +758,26 @@ FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
 {
     int vec[2];
 
-    // always do
-    fetchReserved = true;
-    vec[0] = std::min(fetch.getHPTPortion() + 128, 1024 - 128);
-    vec[1] = 1024 - vec[0];
-    if (vec[0] != fetch.getHPTPortion()) {
-        DPRINTF(Pard, "Reserving [Fetch], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
-        fetch.reassignFetchWidth(vec, 2, 1024);
-    }
-
-    // always do
-    vec[0] = std::min(iew.getHPTWidth() + 1, 7);
-    vec[1] = 8 - vec[0];
-    if (vec[0] != iew.getHPTWidth()) {
-        DPRINTF(Pard, "Reserving [Dispatch], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
-        iew.reassignDispatchWidth(vec, 2);
-    }
-
     // heuristic rules...
     vec[0] = 1024 - expectedSlowdown;
     vec[1] = expectedSlowdown;
 
-    DPRINTF(Pard, "ExpectedSlowdown: %d\n", expectedSlowdown);
+    DPRINTF(Pard, "expectedSlowdown: %d\n", expectedSlowdown);
 
     if (rob) {
-        DPRINTF(Pard, "Reserving [ROB], vec[0]: %d, vec[1]: %d\n",
+        DPRINTF(Pard, "reserving ROB, vec[0]: %d, vec[1]: %d\n",
                 vec[0], vec[1]);
         commit.rob->reassignPortion(vec, 2, 1024);
         robReserved = true;
     }
     if (lq) {
-        DPRINTF(Pard, "Reserving [LQ], vec[0]: %d, vec[1]: %d\n",
+        DPRINTF(Pard, "reserving LQ, vec[0]: %d, vec[1]: %d\n",
                 vec[0], vec[1]);
         iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
         lqReserved = true;
     }
     if (sq) {
-        DPRINTF(Pard, "Reserving [SQ], vec[0]: %d, vec[1]: %d\n",
+        DPRINTF(Pard, "reserving SQ, vec[0]: %d, vec[1]: %d\n",
                 vec[0], vec[1]);
         iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
         sqReserved = true;
@@ -812,24 +791,6 @@ FullO3CPU<Impl>::freeResource()
 {
     int vec[2];
     int hptPortion;
-
-    // always do
-    vec[0] = std::max(fetch.getHPTPortion() - 128, 512);
-    vec[1] = 1024 - vec[0];
-    if (vec[0] != fetch.getHPTPortion()) {
-        DPRINTF(Pard, "Freeing [Fetch], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
-        fetch.reassignFetchWidth(vec, 2, 1024);
-    }
-
-    vec[0] = std::max(iew.getHPTWidth() - 1, 4);
-    vec[1] = 8 - vec[0];
-    if (vec[0] != iew.getHPTWidth()) {
-        DPRINTF(Pard, "Freeing [Dispatch], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
-        iew.reassignDispatchWidth(vec, 2);
-    }
-
 
     if (robReserved) {
         hptPortion = commit.rob->getHPTPortion();
@@ -867,8 +828,6 @@ FullO3CPU<Impl>::fmtBasedDist()
     uint64_t predicted = fmt.globalBase[hpt] + fmt.globalMiss[hpt];
     uint64_t real = predicted + fmt.globalWait[hpt];
 
-    DPRINTF(Pard, "PTA working -----------------------\n");
-
     if (predicted*1024 < real*(1024 - expectedSlowdown)) {
         // find source of slowdown and adjustment
         bool robFull, lqFull, sqFull;
@@ -876,17 +835,16 @@ FullO3CPU<Impl>::fmtBasedDist()
         lqFull = false;
         sqFull = false;
 
-        DPRINTF(Pard, "HPT base: %llu, miss: %lld, wait: %lld\n",
-                fmt.globalBase[hpt], fmt.globalMiss[hpt],
-                fmt.globalWait[hpt]);
-
         locateSource(&robFull, &lqFull, &sqFull);
-        DPRINTF(Pard, "rob is Full: %d, lq is Full: %d, sq is Full: %d\n",
+        DPRINTF(FmtCtrl, "rob is Full: %d, lq is Full: %d, sq is Full: %d",
                 robFull, lqFull, sqFull);
+
+        if (! (robFull || lqFull || sqFull)) {
+            robFull = true;
+        }
 
         reserveResource(robFull, lqFull, sqFull);
     } else {
-        DPRINTF(Pard, "Requirement met\n");
         freeResource();
     };
 

@@ -83,7 +83,7 @@ class DerivO3CPU(BaseCPU):
                "Issue/Execute/Writeback delay")
     issueToExecuteDelay = Param.Cycles(1, "Issue to execute delay (internal "
               "to the IEW stage)")
-    dispatchWidth = Param.Unsigned(4, "Dispatch width")
+    dispatchWidth = Param.Unsigned(8, "Dispatch width")
     issueWidth = Param.Unsigned(8, "Issue width")
     wbWidth = Param.Unsigned(8, "Writeback width")
     fuPool = Param.FUPool(DefaultFUPool(), "Functional Unit pool")
@@ -147,8 +147,8 @@ class DerivO3CPU(BaseCPU):
     smtIQThreshold = Param.Int(50, "SMT IQ Threshold Sharing Parameter")
     # IQ threshold is counted with precentage!!
 
-    #smtROBPolicy   = Param.String('Dynamic', "SMT ROB Sharing Policy")
-    smtROBPolicy   = Param.String('Programmable', "SMT ROB Sharing Policy")
+    smtROBPolicy   = Param.String('Dynamic', "SMT ROB Sharing Policy")
+    #smtROBPolicy   = Param.String('Programmable', "SMT ROB Sharing Policy")
     smtROBThreshold = Param.Int(58, "SMT ROB Threshold Sharing Parameter")
     # ROB threshold is counted with absolute number
 

@@ -322,12 +322,10 @@ for cpu in system.cpu:
     cpu.max_insts_any_thread = 200*(10**6)
 
 for cpu in system.cpu:
-    cpu.icache.tags = LRUPartition()
-    cpu.icache.tags.thread_0_assoc = 7
-    cpu.dcache.tags = LRUPartition()
-    cpu.dcache.tags.thread_0_assoc = 7
-    # cpu.l2cache.tags = LRUPartition() # L2 partition
-    # cpu.l2cache.tags.thread_0_assoc = 6
+    cpu.icache.tags = LRU()
+    # cpu.icache.tags.thread_0_assoc = 7
+    cpu.dcache.tags = LRU()
+    # cpu.dcache.tags.thread_0_assoc = 7
 
 
 # options.take_checkpoints=100000
