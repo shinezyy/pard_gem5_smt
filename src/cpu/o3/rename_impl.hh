@@ -131,25 +131,25 @@ DefaultRename<Impl>::regStats()
         .desc("Number of squashed instructions processed by rename")
         .prereq(renameSquashedInsts);
     renameROBFullEvents
+        .init(numThreads)
         .name(name() + ".ROBFullEvents")
         .desc("Number of times rename has blocked due to ROB full")
-        .prereq(renameROBFullEvents)
         .flags(Stats::display);
     renameIQFullEvents
+        .init(numThreads)
         .name(name() + ".IQFullEvents")
         .desc("Number of times rename has blocked due to IQ full")
-        .flags(Stats::display)
-        .prereq(renameIQFullEvents);
+        .flags(Stats::display);
     renameLQFullEvents
+        .init(numThreads)
         .name(name() + ".LQFullEvents")
         .desc("Number of times rename has blocked due to LQ full")
-        .flags(Stats::display)
-        .prereq(renameLQFullEvents);
+        .flags(Stats::display);
     renameSQFullEvents
+        .init(numThreads)
         .name(name() + ".SQFullEvents")
         .desc("Number of times rename has blocked due to SQ full")
-        .flags(Stats::display)
-        .prereq(renameSQFullEvents);
+        .flags(Stats::display);
     renameFullRegistersEvents
         .name(name() + ".FullRegisterEvents")
         .desc("Number of times there has been no free registers")
@@ -589,7 +589,7 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
         block(tid);
 
-        incrFullStat(source);
+        incrFullStat(source, tid);
 
         return;
     } else if (min_free_entries < insts_available) {
@@ -602,7 +602,7 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
 
         blockThisCycle = true;
 
-        incrFullStat(source);
+        incrFullStat(source, tid);
     }
 
     InstQueue &insts_to_rename = renameStatus[tid] == Unblocking ?
@@ -648,7 +648,7 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
             if(calcFreeLQEntries(tid) <= 0) {
                 DPRINTF(Rename, "[tid:%u]: Cannot rename due to no free LQ\n");
                 source = LQ;
-                incrFullStat(source);
+                incrFullStat(source, tid);
                 break;
             }
         }
@@ -657,7 +657,7 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
             if(calcFreeSQEntries(tid) <= 0) {
                 DPRINTF(Rename, "[tid:%u]: Cannot rename due to no free SQ\n");
                 source = SQ;
-                incrFullStat(source);
+                incrFullStat(source, tid);
                 break;
             }
         }
@@ -1448,20 +1448,21 @@ DefaultRename<Impl>::serializeAfter(InstQueue &inst_list, ThreadID tid)
 
 template <class Impl>
 inline void
-DefaultRename<Impl>::incrFullStat(const FullSource &source)
+DefaultRename<Impl>::incrFullStat(const FullSource &source,
+        ThreadID tid)
 {
     switch (source) {
       case ROB:
-        ++renameROBFullEvents;
+        ++renameROBFullEvents[tid];
         break;
       case IQ:
-        ++renameIQFullEvents;
+        ++renameIQFullEvents[tid];
         break;
       case LQ:
-        ++renameLQFullEvents;
+        ++renameLQFullEvents[tid];
         break;
       case SQ:
-        ++renameSQFullEvents;
+        ++renameSQFullEvents[tid];
         break;
       default:
         panic("Rename full stall stat should be incremented for a reason!");

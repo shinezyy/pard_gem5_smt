@@ -466,7 +466,7 @@ class DefaultRename
     /** Function used to increment the stat that corresponds to the source of
      * the stall.
      */
-    inline void incrFullStat(const FullSource &source);
+    inline void incrFullStat(const FullSource &source, ThreadID tid);
 
     /** Stat for total number of cycles spent squashing. */
     Stats::Scalar renameSquashCycles;
@@ -485,13 +485,13 @@ class DefaultRename
     /** Stat for total number of squashed instructions that rename discards. */
     Stats::Scalar renameSquashedInsts;
     /** Stat for total number of times that the ROB starts a stall in rename. */
-    Stats::Scalar renameROBFullEvents;
+    Stats::Vector renameROBFullEvents;
     /** Stat for total number of times that the IQ starts a stall in rename. */
-    Stats::Scalar renameIQFullEvents;
+    Stats::Vector renameIQFullEvents;
     /** Stat for total number of times that the LQ starts a stall in rename. */
-    Stats::Scalar renameLQFullEvents;
+    Stats::Vector renameLQFullEvents;
     /** Stat for total number of times that the SQ starts a stall in rename. */
-    Stats::Scalar renameSQFullEvents;
+    Stats::Vector renameSQFullEvents;
     /** Stat for total number of times that rename runs out of free registers
      * to use to rename. */
     Stats::Scalar renameFullRegistersEvents;
