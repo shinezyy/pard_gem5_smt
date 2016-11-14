@@ -280,6 +280,11 @@ DefaultRename<Impl>::resetStage()
         storesInProgress[tid] = 0;
 
         serializeOnNextInst[tid] = false;
+
+        numROBFull[tid] = 0;
+        numLQFull[tid] = 0;
+        numSQFull[tid] = 0;
+        numIQFull[tid] = 0;
     }
 }
 
@@ -1454,15 +1459,19 @@ DefaultRename<Impl>::incrFullStat(const FullSource &source,
     switch (source) {
       case ROB:
         ++renameROBFullEvents[tid];
+        ++numROBFull[tid];
         break;
       case IQ:
         ++renameIQFullEvents[tid];
+        ++numIQFull[tid];
         break;
       case LQ:
         ++renameLQFullEvents[tid];
+        ++numLQFull[tid];
         break;
       case SQ:
         ++renameSQFullEvents[tid];
+        ++numSQFull[tid];
         break;
       default:
         panic("Rename full stall stat should be incremented for a reason!");

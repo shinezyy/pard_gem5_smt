@@ -220,7 +220,9 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
       windowSize(params->windowSize),
       numPhysIntRegs(params->numPhysIntRegs),
       numPhysFloatRegs(params->numPhysFloatRegs),
-      localCycles(0)
+      localCycles(0),
+      abnormal(false),
+      numContCtrl(0)
 {
     if (!params->switched_out) {
         _status = Running;
@@ -740,7 +742,7 @@ FullO3CPU<Impl>::locateSource(bool *rob, bool *lq, bool *sq)
 {
     double robThreshold = 0.8;
     double lqThreshold = 0.7;
-    double sqThreshold = 0.9;
+    double sqThreshold = 0.8;
 
     if (commit.rob->robUtil > robThreshold) {
         *rob = true;
@@ -751,8 +753,22 @@ FullO3CPU<Impl>::locateSource(bool *rob, bool *lq, bool *sq)
     if (iew.ldstQueue.sqUtil > sqThreshold) {
         *sq = true;
     }
+
+    if (checkAbn() && numContCtrl >= 3) {
+        abnormal = true;
+    }
 }
 
+template <class Impl>
+bool
+FullO3CPU<Impl>::checkAbn()
+{
+    ThreadID hpt = 0, lpt = 1;
+    return (rename.numROBFull[hpt] > rename.numROBFull[lpt] ||
+            rename.numLQFull[hpt] > rename.numLQFull[lpt] ||
+            rename.numSQFull[hpt] > rename.numSQFull[lpt] ||
+            rename.numIQFull[hpt] > rename.numIQFull[lpt]);
+}
 
 template <class Impl>
 void
@@ -785,24 +801,51 @@ FullO3CPU<Impl>::reserveResource(bool rob, bool lq, bool sq)
 
     DPRINTF(Pard, "ExpectedSlowdown: %d\n", expectedSlowdown);
 
-    if (rob) {
-        DPRINTF(Pard, "Reserving [ROB], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
+    if (!abnormal) {
+        if (rob) {
+            DPRINTF(Pard, "Reserving [ROB], vec[0]: %d, vec[1]: %d\n",
+                    vec[0], vec[1]);
+            commit.rob->reassignPortion(vec, 2, 1024);
+            robReserved = true;
+        }
+        if (lq) {
+            DPRINTF(Pard, "Reserving [LQ], vec[0]: %d, vec[1]: %d\n",
+                    vec[0], vec[1]);
+            iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
+            lqReserved = true;
+        }
+        if (sq) {
+            DPRINTF(Pard, "Reserving [SQ], vec[0]: %d, vec[1]: %d\n",
+                    vec[0], vec[1]);
+            iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
+            sqReserved = true;
+        }
+        numContCtrl += 1;
+    } else {
+        // abnormal, more strict limitation!
+        vec[0] = std::min(1024 - 64, commit.rob->getHPTPortion() + 64);
+        vec[1] = 1024 - vec[0];
         commit.rob->reassignPortion(vec, 2, 1024);
         robReserved = true;
-    }
-    if (lq) {
-        DPRINTF(Pard, "Reserving [LQ], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
+
+        vec[0] = std::min(1024 - 64, iew.ldstQueue.getHPTLQPortion() + 64);
+        vec[1] = 1024 - vec[0];
         iew.ldstQueue.reassignLQPortion(vec, 2, 1024);
         lqReserved = true;
-    }
-    if (sq) {
-        DPRINTF(Pard, "Reserving [SQ], vec[0]: %d, vec[1]: %d\n",
-                vec[0], vec[1]);
+
+        vec[0] = std::min(1024 - 64, iew.ldstQueue.getHPTSQPortion() + 64);
+        vec[1] = 1024 - vec[0];
         iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
         sqReserved = true;
     }
+    rename.numROBFull[0] = 0;
+    rename.numLQFull[0] = 0;
+    rename.numSQFull[0] = 0;
+    rename.numIQFull[0] = 0;
+    rename.numROBFull[1] = 0;
+    rename.numLQFull[1] = 0;
+    rename.numSQFull[1] = 0;
+    rename.numIQFull[1] = 0;
 }
 
 
@@ -855,6 +898,7 @@ FullO3CPU<Impl>::freeResource()
         iew.ldstQueue.reassignSQPortion(vec, 2, 1024);
         sqReserved = false;
     }
+    abnormal = false;
 }
 
 
@@ -869,12 +913,13 @@ FullO3CPU<Impl>::fmtBasedDist()
 
     DPRINTF(Pard, "PTA working -----------------------\n");
 
+    bool robFull, lqFull, sqFull;
+    robFull = false;
+    lqFull = false;
+    sqFull = false;
+
     if (predicted*1024 < real*(1024 - expectedSlowdown)) {
         // find source of slowdown and adjustment
-        bool robFull, lqFull, sqFull;
-        robFull = false;
-        lqFull = false;
-        sqFull = false;
 
         DPRINTF(Pard, "HPT base: %llu, miss: %lld, wait: %lld\n",
                 fmt.globalBase[hpt], fmt.globalMiss[hpt],
@@ -885,9 +930,15 @@ FullO3CPU<Impl>::fmtBasedDist()
                 robFull, lqFull, sqFull);
 
         reserveResource(robFull, lqFull, sqFull);
+
     } else {
-        DPRINTF(Pard, "Requirement met\n");
-        freeResource();
+        if (checkAbn()) {
+            abnormal = true;
+            reserveResource(robFull, lqFull, sqFull);
+        } else {
+            DPRINTF(Pard, "Requirement met\n");
+            freeResource();
+        }
     };
 
     // reset
