@@ -248,14 +248,22 @@ class DefaultRename
     /** Calculates the number of free ROB entries for a specific thread. */
     inline int calcFreeROBEntries(ThreadID tid);
 
+    inline int calcOwnROBEntries(ThreadID tid);
+
     /** Calculates the number of free IQ entries for a specific thread. */
     inline int calcFreeIQEntries(ThreadID tid);
+
+    inline int calcOwnIQEntries(ThreadID tid);
 
     /** Calculates the number of free LQ entries for a specific thread. */
     inline int calcFreeLQEntries(ThreadID tid);
 
+    inline int calcOwnLQEntries(ThreadID tid);
+
     /** Calculates the number of free SQ entries for a specific thread. */
     inline int calcFreeSQEntries(ThreadID tid);
+
+    inline int calcOwnSQEntries(ThreadID tid);
 
     /** Returns the number of valid instructions coming from decode. */
     unsigned validInsts();
@@ -383,10 +391,19 @@ class DefaultRename
         unsigned sqEntries;
     };
 
+    struct MaxEntries {
+        unsigned iqEntries;
+        unsigned robEntries;
+        unsigned lqEntries;
+        unsigned sqEntries;
+    };
+
     /** Per-thread tracking of the number of free entries of back-end
      * structures.
      */
     FreeEntries freeEntries[Impl::MaxThreads];
+
+    MaxEntries maxEntries[Impl::MaxThreads];
 
     /** Records if the ROB is empty. In SMT mode the ROB may be dynamically
      * partitioned between threads, so the ROB must tell rename when it is

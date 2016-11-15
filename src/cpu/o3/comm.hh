@@ -86,6 +86,8 @@ struct DefaultRenameDefaultIEW {
 
     int size;
 
+    int hptMissToWait;
+
     DynInstPtr insts[Impl::MaxWidth];
 };
 
@@ -156,6 +158,12 @@ struct TimeBufStruct {
         unsigned dispatched;
         bool usedIQ;
         bool usedLSQ;
+
+        unsigned maxIQEntries;
+        unsigned maxLQEntries;
+        unsigned maxSQEntries;
+
+        unsigned dispatchWidth;
     };
 
     iewComm iewInfo[Impl::MaxThreads];
@@ -220,6 +228,8 @@ struct TimeBufStruct {
         /// Hack for now to send back an strictly ordered access to
         /// the IEW stage.
         bool strictlyOrdered; // *I
+
+        unsigned maxROBEntries;
 
     };
 

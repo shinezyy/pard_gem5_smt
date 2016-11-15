@@ -317,12 +317,17 @@ DefaultIEW<Impl>::startupStage()
 {
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         toRename->iewInfo[tid].usedIQ = true;
-        toRename->iewInfo[tid].freeIQEntries =
-            instQueue.numFreeEntries(tid);
+        toRename->iewInfo[tid].freeIQEntries = instQueue.numFreeEntries(tid);
+        toRename->iewInfo[tid].maxIQEntries = instQueue.maxEntries[tid];
 
         toRename->iewInfo[tid].usedLSQ = true;
         toRename->iewInfo[tid].freeLQEntries = ldstQueue.numFreeLoadEntries(tid);
         toRename->iewInfo[tid].freeSQEntries = ldstQueue.numFreeStoreEntries(tid);
+
+        toRename->iewInfo[tid].maxLQEntries = ldstQueue.maxLQEntries[tid];
+        toRename->iewInfo[tid].maxSQEntries = ldstQueue.maxSQEntries[tid];
+
+        toRename->iewInfo[tid].dispatchWidth = dispatchWidths[tid];
     }
 
     // Initialize the checker's dcache port here
@@ -923,16 +928,7 @@ DefaultIEW<Impl>::dispatch(ThreadID tid)
 
     if (dispatchStatus[tid] == Blocked) {
         ++iewBlockCycles;
-
-        for (ThreadID t = 0; t < numThreads; t++) {
-            for (int i = 0; i < dispatchWidths[tid]; i++) {
-                if (t != tid) {
-                    fmt->incWaitSlot(t);
-                } else {
-                    fmt->incMissSlot(t);
-                }
-            }
-        }
+        recordMiss(dispatchWidths[tid], tid);
 
     } else if (dispatchStatus[tid] == Squashing) {
         ++iewSquashCycles;
@@ -1191,17 +1187,9 @@ DefaultIEW<Impl>::dispatchInsts(ThreadID tid)
         DPRINTF(IEW,"[tid:%i]: Issue: Bandwidth Full. Blocking.\n", tid);
         block(tid);
         toRename->iewUnblock[tid] = false;
-    } else if (dis_num_inst < dispatchWidths[tid]){
-        for (ThreadID t = 0; t < numThreads; t++) {
-            for (int i = dis_num_inst; i < dispatchWidths[tid]; i++) {
-                if (t != tid) {
-                    fmt->incWaitSlot(t);
-                } else {
-                    fmt->incMissSlot(t);
-                }
-            }
-        }
 
+    } else if (dis_num_inst < dispatchWidths[tid]){
+        recordMiss(dispatchWidths[tid] - dis_num_inst, tid);
     }
 
     if (dispatchStatus[tid] == Idle && dis_num_inst) {
@@ -1608,12 +1596,19 @@ DefaultIEW<Impl>::tick()
             toRename->iewInfo[tid].usedIQ = true;
             toRename->iewInfo[tid].freeIQEntries =
                 instQueue.numFreeEntries(tid);
+            toRename->iewInfo[tid].maxIQEntries = instQueue.maxEntries[tid];
+
             toRename->iewInfo[tid].usedLSQ = true;
 
             toRename->iewInfo[tid].freeLQEntries =
                 ldstQueue.numFreeLoadEntries(tid);
             toRename->iewInfo[tid].freeSQEntries =
                 ldstQueue.numFreeStoreEntries(tid);
+
+            toRename->iewInfo[tid].maxLQEntries = ldstQueue.maxLQEntries[tid];
+            toRename->iewInfo[tid].maxSQEntries = ldstQueue.maxSQEntries[tid];
+
+            toRename->iewInfo[tid].dispatchWidth = dispatchWidths[tid];
 
             wroteToTimeBuffer = true;
         }
@@ -1754,6 +1749,34 @@ DefaultIEW<Impl>::reassignDispatchWidth(int newWidthVec[], int lenWidthVec)
 
     for (ThreadID tid = 0; tid < numThreads; ++tid) {
         dispatchWidths[tid] = newWidthVec[tid];
+        toRename->iewInfo[tid].dispatchWidth = dispatchWidths[tid];
+    }
+}
+
+template<class Impl>
+void
+DefaultIEW<Impl>::recordMiss(int wastedSlot, ThreadID tid)
+{
+    for (ThreadID t = 0; t < numThreads; t++) {
+        if (tid == 0 && t == 0) {
+
+            int missRect = fromRename->hptMissToWait;
+            assert(missRect >= 0 && missRect <= dispatchWidth);
+
+            if (missRect > wastedSlot) {
+                fmt->incWaitSlot(t, wastedSlot);
+            } else {
+                fmt->incWaitSlot(t, missRect);
+                fmt->incMissSlot(t, wastedSlot- missRect);
+            }
+
+        } else {
+            if (t == tid) {
+                fmt->incWaitSlot(t, wastedSlot);
+            } else {
+                fmt->incMissSlot(t, wastedSlot);
+            }
+        }
     }
 }
 

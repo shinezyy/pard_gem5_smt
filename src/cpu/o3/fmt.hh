@@ -109,11 +109,11 @@ class FMT {
     void resolveBranch(bool right, DynInstPtr &bran, ThreadID tid);
 
     // Default to inc newest Branch
-    void incBaseSlot(ThreadID tid);
+    void incBaseSlot(ThreadID tid, int n);
 
-    void incMissSlot(ThreadID tid);
+    void incMissSlot(ThreadID tid, int n);
 
-    void incWaitSlot(ThreadID tid);
+    void incWaitSlot(ThreadID tid, int n);
 };
 
 #endif // __CPU_O3_FMT_HH__

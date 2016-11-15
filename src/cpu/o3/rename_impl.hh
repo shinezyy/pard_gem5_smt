@@ -580,6 +580,20 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         source = IQ;
     }
 
+    if (tid == 0) {
+        toIEW->hptMissToWait = 0;
+        unsigned numMiss = fromIEW->iewInfo[tid].dispatchWidth - min_free_entries;
+
+        if (source == ROB) {
+            unsigned occupied = calcOwnROBEntries(1);
+            if (occupied > numMiss) {
+                toIEW->hptMissToWait += numMiss;
+            } else {
+                toIEW->hptMissToWait += occupied;
+            }
+        }
+    }
+
     // Check if there's any space left.
     if (min_free_entries <= 0) {
         DPRINTF(Rename, "[tid:%u]: Blocking due to no free ROB/IQ/ "
@@ -595,6 +609,7 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         block(tid);
 
         incrFullStat(source, tid);
+
 
         return;
     } else if (min_free_entries < insts_available) {
@@ -652,6 +667,13 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         if (inst->isLoad()) {
             if(calcFreeLQEntries(tid) <= 0) {
                 DPRINTF(Rename, "[tid:%u]: Cannot rename due to no free LQ\n");
+
+                if (tid == 0) {
+                    unsigned occupied = calcOwnLQEntries(1);
+                    if (occupied > 0) {
+                        toIEW->hptMissToWait += 1;
+                    }
+                }
                 source = LQ;
                 incrFullStat(source, tid);
                 break;
@@ -661,6 +683,13 @@ DefaultRename<Impl>::renameInsts(ThreadID tid)
         if (inst->isStore()) {
             if(calcFreeSQEntries(tid) <= 0) {
                 DPRINTF(Rename, "[tid:%u]: Cannot rename due to no free SQ\n");
+
+                if (tid == 0) {
+                    unsigned occupied = calcOwnSQEntries(1);
+                    if (occupied > 0) {
+                        toIEW->hptMissToWait += 1;
+                    }
+                }
                 source = SQ;
                 incrFullStat(source, tid);
                 break;
@@ -1311,18 +1340,25 @@ template <class Impl>
 void
 DefaultRename<Impl>::readFreeEntries(ThreadID tid)
 {
-    if (fromIEW->iewInfo[tid].usedIQ)
+    if (fromIEW->iewInfo[tid].usedIQ) {
         freeEntries[tid].iqEntries = fromIEW->iewInfo[tid].freeIQEntries;
+        maxEntries[tid].iqEntries = fromIEW->iewInfo[tid].maxIQEntries;
+    }
 
     if (fromIEW->iewInfo[tid].usedLSQ) {
         freeEntries[tid].lqEntries = fromIEW->iewInfo[tid].freeLQEntries;
         freeEntries[tid].sqEntries = fromIEW->iewInfo[tid].freeSQEntries;
+
+        maxEntries[tid].lqEntries = fromIEW->iewInfo[tid].maxLQEntries;
+        maxEntries[tid].sqEntries = fromIEW->iewInfo[tid].maxSQEntries;
     }
 
     if (fromCommit->commitInfo[tid].usedROB) {
         freeEntries[tid].robEntries =
             fromCommit->commitInfo[tid].freeROBEntries;
         emptyROB[tid] = fromCommit->commitInfo[tid].emptyROB;
+        maxEntries[tid].robEntries =
+            fromCommit->commitInfo[tid].maxROBEntries;
     }
 
     DPRINTF(Rename, "[tid:%i]: Free IQ: %i, Free ROB: %i, "
@@ -1539,5 +1575,38 @@ DefaultRename<Impl>::dumpFreeEntries()
         double(cpu->numPhysFloatRegs*cpu->windowSize));
     resetFreeEntries();
 }
+
+template <class Impl>
+inline int
+DefaultRename<Impl>::calcOwnROBEntries(ThreadID tid)
+{
+    assert(tid == 1); // assume that we calculate thread 1 only
+    return maxEntries[0].robEntries - freeEntries[0].robEntries;
+}
+
+template <class Impl>
+inline int
+DefaultRename<Impl>::calcOwnLQEntries(ThreadID tid)
+{
+    assert(tid == 1); // assume that we calculate thread 1 only
+    return maxEntries[0].lqEntries - freeEntries[0].lqEntries;
+}
+
+template <class Impl>
+inline int
+DefaultRename<Impl>::calcOwnSQEntries(ThreadID tid)
+{
+    assert(tid == 1); // assume that we calculate thread 1 only
+    return maxEntries[0].sqEntries - freeEntries[0].sqEntries;
+}
+
+template <class Impl>
+inline int
+DefaultRename<Impl>::calcOwnIQEntries(ThreadID tid)
+{
+    assert(tid == 1); // assume that we calculate thread 1 only
+    return maxEntries[0].iqEntries - freeEntries[0].iqEntries;
+}
+
 
 #endif//__CPU_O3_RENAME_IMPL_HH__

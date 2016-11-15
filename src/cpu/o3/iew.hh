@@ -519,6 +519,8 @@ class DefaultIEW
     void reassignDispatchWidth(int newWidthVec[], int lenWidthVec);
 
     int getHPTWidth() {return dispatchWidths[0];};
+
+    void recordMiss(int wastedSlot, ThreadID tid);
 };
 
 #endif // __CPU_O3_IEW_HH__

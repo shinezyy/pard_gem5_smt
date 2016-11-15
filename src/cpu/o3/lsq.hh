@@ -337,11 +337,14 @@ class LSQ {
     /** Total Size of SQ Entries. */
     unsigned SQEntries;
 
+  public:
     /** Max LQ Size - Used to Enforce Sharing Policies. */
     unsigned maxLQEntries[Impl::MaxThreads];
 
     /** Max SQ Size - Used to Enforce Sharing Policies. */
     unsigned maxSQEntries[Impl::MaxThreads];
+
+  protected:
 
     /** Number of Threads. */
     ThreadID numThreads;

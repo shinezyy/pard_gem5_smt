@@ -463,8 +463,11 @@ class InstructionQueue
     /** Per Thread IQ count */
     unsigned count[Impl::MaxThreads];
 
+  public:
     /** Max IQ Entries Per Thread */
     unsigned maxEntries[Impl::MaxThreads];
+
+  private:
 
     /** Number of free IQ entries left. */
     unsigned freeEntries;
