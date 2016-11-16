@@ -407,6 +407,11 @@ class ROB
 
     int getHPTPortion() {return portion[0];}
 
+    unsigned sampleCycle;
+
+    unsigned sampleTime;
+
+    unsigned sampleRate;
 };
 
 #endif //__CPU_O3_ROB_HH__

@@ -63,7 +63,10 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
       squashWidth(params->squashWidth),
       numInstsInROB(0),
       denominator(1024),
-      numThreads(params->numThreads)
+      numThreads(params->numThreads),
+      sampleCycle(0),
+      sampleTime(0),
+      sampleRate(10)
 {
 }
 
@@ -716,9 +719,13 @@ template <class Impl>
 void
 ROB<Impl>::increaseUsedEntries()
 {
-    numUsedEntries += countInsts();
-    numThreadUsedEntries[0] += countInsts(0);
-    numThreadUsedEntries[1] += countInsts(1);
+    sampleCycle++;
+    if (sampleTime*(cpu->windowSize/sampleRate) <= sampleCycle) {
+        sampleTime++;
+        numUsedEntries += countInsts();
+        numThreadUsedEntries[0] += countInsts(0);
+        numThreadUsedEntries[1] += countInsts(1);
+    }
 }
 
 template <class Impl>
@@ -728,6 +735,8 @@ ROB<Impl>::resetUsedEntries()
     numUsedEntries = 0;
     numThreadUsedEntries[0] = 0;
     numThreadUsedEntries[1] = 0;
+    sampleCycle = 0;
+    sampleTime = 0;
 }
 
 template <class Impl>
@@ -735,16 +744,16 @@ void
 ROB<Impl>::dumpUsedEntries()
 {
     robThreadUtil[0] = double(numThreadUsedEntries[0])/
-        double(numEntries*cpu->windowSize);
+        double(numEntries*sampleRate);
 
     robThreadUtil[1] = double(numThreadUsedEntries[1])/
-        double(numEntries*cpu->windowSize);
+        double(numEntries*sampleRate);
 
     robUtilization[0] = robThreadUtil[0];
     robUtilization[1] = robThreadUtil[1];
 
     robUtil = double(numUsedEntries) /
-        double(numEntries*cpu->windowSize);
+        double(numEntries*sampleRate);
 
     resetUsedEntries();
 }

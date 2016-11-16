@@ -78,7 +78,10 @@ LSQ<Impl>::LSQ(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params)
       lqUtil(0),
       sqUtil(0),
       lqUptodate(false),
-      sqUptodate(false)
+      sqUptodate(false),
+      sampleCycle(0),
+      sampleTime(0),
+      sampleRate(10)
 {
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         LQPortion[tid] = denominator/numThreads;
@@ -903,12 +906,16 @@ template<class Impl>
 void
 LSQ<Impl>::increaseUsedEntries()
 {
-    numUsedLQEntries += numLoads();
-    numThreadUsedLQEntries[0] += numLoads(0);
-    numThreadUsedLQEntries[1] += numLoads(1);
-    numUsedSQEntries += numStores();
-    numThreadUsedSQEntries[0] += numStores(0);
-    numThreadUsedSQEntries[1] += numStores(1);
+    sampleCycle++;
+    if (sampleTime*(cpu->windowSize/sampleRate) <= sampleCycle) {
+        sampleTime++;
+        numUsedLQEntries += numLoads();
+        numThreadUsedLQEntries[0] += numLoads(0);
+        numThreadUsedLQEntries[1] += numLoads(1);
+        numUsedSQEntries += numStores();
+        numThreadUsedSQEntries[0] += numStores(0);
+        numThreadUsedSQEntries[1] += numStores(1);
+    }
 }
 
 template<class Impl>
@@ -921,6 +928,8 @@ LSQ<Impl>::resetUsedEntries()
     numThreadUsedLQEntries[1] = 0;
     numThreadUsedSQEntries[0] = 0;
     numThreadUsedSQEntries[1] = 0;
+    sampleCycle = 0;
+    sampleTime = 0;
 }
 
 template<class Impl>
@@ -928,19 +937,19 @@ void
 LSQ<Impl>::dumpUsedEntries()
 {
     lqUtil = double(numUsedLQEntries) /
-        double(LQEntries * cpu->windowSize);
+        double(LQEntries * sampleRate);
     sqUtil = double(numUsedSQEntries) /
-        double(SQEntries * cpu->windowSize);
+        double(SQEntries * sampleRate);
 
     lqThreadUtil[0] = double(numThreadUsedLQEntries[0]) /
-        double(LQEntries * cpu->windowSize);
+        double(LQEntries * sampleRate);
     sqThreadUtil[0] = double(numThreadUsedSQEntries[0]) /
-        double(SQEntries * cpu->windowSize);
+        double(SQEntries * sampleRate);
 
     lqThreadUtil[1] = double(numThreadUsedLQEntries[1]) /
-        double(LQEntries * cpu->windowSize);
+        double(LQEntries * sampleRate);
     sqThreadUtil[1] = double(numThreadUsedSQEntries[1]) /
-        double(SQEntries * cpu->windowSize);
+        double(SQEntries * sampleRate);
 
     lqUtilization[0] = lqThreadUtil[0];
     lqUtilization[1] = lqThreadUtil[1];

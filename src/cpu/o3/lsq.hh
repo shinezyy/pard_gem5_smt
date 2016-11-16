@@ -373,6 +373,8 @@ class LSQ {
     int getHPTLQPortion() {return LQPortion[0];}
 
     int getHPTSQPortion() {return SQPortion[0];}
+
+    unsigned sampleCycle, sampleTime, sampleRate;
 };
 
 template <class Impl>
