@@ -753,10 +753,6 @@ FullO3CPU<Impl>::locateSource(bool *rob, bool *lq, bool *sq)
     if (iew.ldstQueue.sqUtil > sqThreshold) {
         *sq = true;
     }
-
-    if (checkAbn() && numContCtrl >= 3) {
-        abnormal = true;
-    }
 }
 
 template <class Impl>
@@ -918,7 +914,8 @@ FullO3CPU<Impl>::fmtBasedDist()
     lqFull = false;
     sqFull = false;
 
-    if (predicted*1024 < real*(1024 - expectedSlowdown)) {
+    bool sat = predicted*1024 < real*(1024 - expectedSlowdown);
+    if (!abnormal && sat) {
         // find source of slowdown and adjustment
 
         DPRINTF(Pard, "HPT base: %llu, miss: %lld, wait: %lld\n",
@@ -931,15 +928,15 @@ FullO3CPU<Impl>::fmtBasedDist()
 
         reserveResource(robFull, lqFull, sqFull);
 
-    } else {
-        if (checkAbn()) {
-            abnormal = true;
-            reserveResource(robFull, lqFull, sqFull);
-        } else {
-            DPRINTF(Pard, "Requirement met\n");
-            freeResource();
-        }
-    };
+    }
+
+    if (checkAbn()) {
+        abnormal = true;
+        reserveResource(robFull, lqFull, sqFull);
+    } else if (sat){
+        DPRINTF(Pard, "Requirement met\n");
+        freeResource();
+    }
 
     // reset
     for (ThreadID t = 0; t < numThreads; ++t) {
