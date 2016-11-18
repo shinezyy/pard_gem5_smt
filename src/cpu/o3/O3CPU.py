@@ -164,7 +164,7 @@ class DerivO3CPU(BaseCPU):
 
     autoControl = Param.Bool(True, "Enable auto control")
 
-    expectedSlowdown = Param.Int(128, "Expected max slowdown 1024 as deno")
+    expectedSlowdown = Param.Int(200, "Expected max slowdown 1024 as deno")
 
     iewProgrammable = Param.Bool(True, "Enable programmable dispatch")
 
