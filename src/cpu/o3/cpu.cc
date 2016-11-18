@@ -914,8 +914,8 @@ FullO3CPU<Impl>::fmtBasedDist()
     lqFull = false;
     sqFull = false;
 
-    bool sat = predicted*1024 < real*(1024 - expectedSlowdown);
-    if (!abnormal && sat) {
+    bool nsat = predicted*1024 < real*(1024 - expectedSlowdown);
+    if (!abnormal && nsat) {
         // find source of slowdown and adjustment
 
         DPRINTF(Pard, "HPT base: %llu, miss: %lld, wait: %lld\n",
@@ -933,7 +933,7 @@ FullO3CPU<Impl>::fmtBasedDist()
     if (checkAbn()) {
         abnormal = true;
         reserveResource(robFull, lqFull, sqFull);
-    } else if (sat){
+    } else if (!nsat){
         DPRINTF(Pard, "Requirement met\n");
         freeResource();
     }
